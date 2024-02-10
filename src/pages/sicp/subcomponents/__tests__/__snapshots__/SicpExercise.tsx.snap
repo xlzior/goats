@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sicp exercise renders correctly 1`] = `
+<div
+  className="bp4-card bp4-elevation-1 sicp-exercise"
+>
+  <b>
+    Title
+  </b>
+  <div>
+    <div>
+      body
+    </div>
+  </div>
+  <div
+    className="sicp-button-container"
+  >
+    <button
+      className="bp4-button bp4-large sicp-show-solution-button"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      type="button"
+    >
+      <span
+        className="bp4-button-text"
+      >
+        Show Solution
+      </span>
+    </button>
+  </div>
+  <div
+    className="bp4-collapse sicp-solution"
+    style={
+      Object {
+        "height": undefined,
+        "overflowY": undefined,
+        "transition": undefined,
+      }
+    }
+  >
+    <div
+      aria-hidden={true}
+      className="bp4-collapse-body"
+      style={
+        Object {
+          "transform": "translateY(-undefinedpx)",
+          "transition": undefined,
+        }
+      }
+    />
+  </div>
+</div>
+`;
