@@ -4,10 +4,11 @@ Open-source implementations of the programming language _Source_. Source is a se
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
 - [Documentation](#documentation)
-- [Requirements](#requirements)
+  - [Requirements](#requirements)
 - [Testing](#testing)
 - [Error messages](#error-messages)
 - [Using your js-slang in Source Academy](#using-your-js-slang-in-source-academy)
