@@ -12,7 +12,6 @@ type RequestBody struct {
 }
 
 type Response struct {
-	Message string      `json:"message"`
 	AST     interface{} `json:"ast,omitempty"`
 	Error   string      `json:"error,omitempty"`
 }
@@ -37,7 +36,6 @@ func ParseHandler(w http.ResponseWriter, r *http.Request) {
 	parsedAST, err := parser.ParseProgram(requestBody.Program)
 	if err != nil {
 		response := Response{
-			Message: "Error parsing program",
 			Error:   err.Error(),
 		}
 		sendResponse(w, response)
@@ -46,7 +44,6 @@ func ParseHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a response object
 	response := Response{
-		Message: "AST successfully generated",
 		AST:     parsedAST,
 	}
 
