@@ -37,7 +37,6 @@ The server will respond with a JSON object containing the parsed AST or an error
 
 ```json
 {
-  "message": "AST successfully generated",
   "ast": {
     "Type": "Package",
     ...
