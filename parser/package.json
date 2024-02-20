@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "lexer": "antlr4ts -visitor ./GoLexer.g4 -o out",
+    "parser": "antlr4ts -visitor ./GoParser.g4 -o out",
+    "build": "tsc",
+    "start": "yarn build && node build/testParser.js"
+  },
+  "dependencies": {
+    "antlr4ts": "^0.5.0-alpha.4"
+  },
+  "devDependencies": {
+    "antlr4ts-cli": "^0.5.0-alpha.4"
+  }
+}
