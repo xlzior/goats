@@ -28,7 +28,6 @@ const defaultSublanguages: {
 
 const NavigationBarLangSelectButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  // TODO: how to access languageConfig to update mainLanguage to be Golang?
   const lang = useTypedSelector(store => store.playground.languageConfig.mainLanguage);
   const dispatch = useDispatch();
   const selectLang = (language: SupportedLanguage) => {
