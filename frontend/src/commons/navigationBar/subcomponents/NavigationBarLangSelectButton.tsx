@@ -4,7 +4,6 @@ import { useDispatch } from 'react-redux';
 import {
   getLanguageConfig,
   goLanguage,
-  // goLanguages,
   pyLanguages,
   SALanguage,
   schemeLanguages,

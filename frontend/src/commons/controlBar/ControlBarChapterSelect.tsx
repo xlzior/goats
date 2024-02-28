@@ -38,7 +38,6 @@ const chapterListRenderer: ItemListRenderer<SALanguage> = ({
   items
 }) => {
   const defaultChoices = items.filter(({ variant }) => variant === Variant.DEFAULT);
-  console.log(defaultChoices)
   const variantChoices = items.filter(({ variant }) => variant !== Variant.DEFAULT);
 
   return (
