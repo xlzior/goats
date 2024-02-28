@@ -106,13 +106,15 @@ export enum StoriesRole {
 export enum SupportedLanguage {
   JAVASCRIPT = 'JavaScript',
   SCHEME = 'Scheme',
-  PYTHON = 'Python'
+  PYTHON = 'Python',
+  GOLANG = 'Golang'
 }
 
 export const SUPPORTED_LANGUAGES = [
   SupportedLanguage.JAVASCRIPT,
   SupportedLanguage.SCHEME,
-  SupportedLanguage.PYTHON
+  SupportedLanguage.PYTHON,
+  SupportedLanguage.GOLANG
 ];
 
 /**
@@ -167,6 +169,16 @@ export const htmlLanguage: SALanguage = {
   variant: Variant.DEFAULT,
   displayName: 'HTML',
   mainLanguage: SupportedLanguage.JAVASCRIPT,
+  supports: {}
+};
+
+// Hardcoded to 100 for now, otherwise we need to edit js-slang's Chapter enum
+const GO_CHAPTER = 100;
+export const goLanguage: SALanguage = {
+  chapter: GO_CHAPTER,
+  variant: Variant.DEFAULT,
+  displayName: 'Golang',
+  mainLanguage: SupportedLanguage.GOLANG,
   supports: {}
 };
 
@@ -262,7 +274,8 @@ export const ALL_LANGUAGES: readonly SALanguage[] = [
   fullTSLanguage,
   htmlLanguage,
   ...schemeLanguages,
-  ...pyLanguages
+  ...pyLanguages,
+  goLanguage
 ];
 // TODO: Remove this function once logic has been fully migrated
 export const getLanguageConfig = (

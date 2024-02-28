@@ -8,12 +8,13 @@ import React from 'react';
 import {
   fullJSLanguage,
   fullTSLanguage,
+  goLanguage,
   htmlLanguage,
   pyLanguages,
   SALanguage,
   schemeLanguages,
   sourceLanguages,
-  styliseSublanguage
+  styliseSublanguage,
 } from '../application/ApplicationTypes';
 import Constants from '../utils/Constants';
 import { useTypedSelector } from '../utils/Hooks';
@@ -37,6 +38,7 @@ const chapterListRenderer: ItemListRenderer<SALanguage> = ({
   items
 }) => {
   const defaultChoices = items.filter(({ variant }) => variant === Variant.DEFAULT);
+  console.log(defaultChoices)
   const variantChoices = items.filter(({ variant }) => variant !== Variant.DEFAULT);
 
   return (
@@ -85,7 +87,7 @@ export const ControlBarChapterSelect: React.FC<ControlBarChapterSelectProps> = (
     // Full JS/TS version uses eval(), which is a huge security risk, so we only enable
     // for public deployments. HTML, while sandboxed, is treated the same way to be safe.
     // See https://github.com/source-academy/frontend/pull/2460#issuecomment-1528759912
-    ...(Constants.playgroundOnly ? [fullJSLanguage, fullTSLanguage, htmlLanguage] : []),
+    ...(Constants.playgroundOnly ? [fullJSLanguage, fullTSLanguage, htmlLanguage, goLanguage] : []),
     ...schemeLanguages,
     ...pyLanguages
   ];
