@@ -1,4 +1,4 @@
-import { Variant } from 'js-slang/dist/types';
+import { Chapter, Variant } from 'js-slang/dist/types';
 
 import { AuthProviderType } from './AuthHelper';
 
@@ -21,8 +21,7 @@ const storiesBackendUrl = process.env.REACT_APP_STORIES_BACKEND_URL;
 const cadetLoggerUrl = isTest ? undefined : process.env.REACT_APP_CADET_LOGGER;
 const cadetLoggerInterval = parseInt(process.env.REACT_APP_CADET_LOGGER_INTERVAL || '10000', 10);
 const useBackend = !isTest && isTrue(process.env.REACT_APP_USE_BACKEND);
-// TODO: Hardcoded to use 100. Otherwise, need edit js-slang's Chapter enum
-const defaultSourceChapter = 100;
+const defaultSourceChapter = Chapter.GOLANG;
 const defaultSourceVariant = Variant.DEFAULT;
 const defaultQuestionId = 0;
 const maxBrowseIndex = 50;

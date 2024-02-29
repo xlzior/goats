@@ -172,10 +172,8 @@ export const htmlLanguage: SALanguage = {
   supports: {}
 };
 
-// Hardcoded to 100 for now, otherwise we need to edit js-slang's Chapter enum
-const GO_CHAPTER = 100;
 export const goLanguage: SALanguage = {
-  chapter: GO_CHAPTER,
+  chapter: Chapter.GOLANG,
   variant: Variant.DEFAULT,
   displayName: 'Golang',
   mainLanguage: SupportedLanguage.GOLANG,
@@ -329,7 +327,14 @@ export const defaultPlayground: PlaygroundState = {
   languageConfig: defaultLanguageConfig
 };
 
-export const defaultEditorValue = '// Type your program in here!';
+export const defaultEditorValue = `package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello World!")
+}
+`;
 
 /**
  * Create a default IWorkspaceState for 'resetting' a workspace.
