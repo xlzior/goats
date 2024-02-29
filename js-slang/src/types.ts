@@ -80,7 +80,8 @@ export enum Chapter {
   SCHEME_3 = -11,
   SCHEME_4 = -12,
   FULL_SCHEME = -13,
-  LIBRARY_PARSER = 100
+  GOLANG = -14,
+  LIBRARY_PARSER = 100,
 }
 
 export enum Variant {
