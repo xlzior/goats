@@ -11,7 +11,7 @@ Make sure you have Go installed on your machine. You can download and install it
 
 ## Usage
 
-Start the Go server by changing directory to `go-server` and run `go run main.go`
+Start the Go server by changing directory to `go-parser` and run `go run main.go`
 
 Open Postman and test the endpoint at [http://localhost:8080](http://localhost:8080)
 

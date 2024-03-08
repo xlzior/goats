@@ -2,9 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/xlzior/goats/go-parser/parser"
 	"io/ioutil"
 	"net/http"
-	"github.com/xlzior/goats/backend/go-server/parser"
 )
 
 type RequestBody struct {
@@ -12,8 +12,8 @@ type RequestBody struct {
 }
 
 type Response struct {
-	AST     interface{} `json:"ast,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	AST   interface{} `json:"ast,omitempty"`
+	Error string      `json:"error,omitempty"`
 }
 
 func ParseHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func ParseHandler(w http.ResponseWriter, r *http.Request) {
 	parsedAST, err := parser.ParseProgram(requestBody.Program)
 	if err != nil {
 		response := Response{
-			Error:   err.Error(),
+			Error: err.Error(),
 		}
 		sendResponse(w, response)
 		return
@@ -44,7 +44,7 @@ func ParseHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a response object
 	response := Response{
-		AST:     parsedAST,
+		AST: parsedAST,
 	}
 
 	// Send the response
