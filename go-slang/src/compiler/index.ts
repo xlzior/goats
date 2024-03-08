@@ -24,13 +24,14 @@ export class GolangCompiler {
     }
   }
 
-  compile_program(ast: any) {
-    return this.compile(ast)
-  }
-
-  compile(comp: any) {
+  private compile(comp: any) {
     this.compile_comp[comp._type](comp)
     this.instrs[this.wc] = { tag: 'DONE' }
     return this.instrs
   }
+
+  compile_program(ast: any) {
+    return this.compile(ast)
+  }
+
 }

@@ -42,7 +42,7 @@ export class GolangVM {
           this.PC++
           this.OS.push(apply_binop(instr.sym, this.OS.pop(), this.OS.pop()))
         },
-  }
+    }
   }
 
   run(instrs: any) {
