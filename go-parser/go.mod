@@ -1,4 +1,4 @@
-module github.com/xlzior/goats/backend/go-server
+module github.com/xlzior/goats/go-parser
 
 go 1.20
 
