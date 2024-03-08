@@ -24,6 +24,7 @@ import { assemble } from './vm/svml-assembler'
 import { compileToIns } from './vm/svml-compiler'
 export { SourceDocumentation } from './editors/ace/docTooltip'
 import * as es from 'estree'
+import GolangRunner from 'go-slang'
 
 import { CSEResultPromise, resumeEvaluate } from './cse-machine/interpreter'
 import { CannotFindModuleError } from './errors/localImportErrors'
@@ -226,6 +227,16 @@ export async function runFilesInContext(
   if (code === undefined) {
     context.errors.push(new CannotFindModuleError(entrypointFilePath))
     return resolvedErrorPromise
+  }
+
+  if (context.chapter === Chapter.GOLANG) {
+    const runner = new GolangRunner()
+    const result = await runner.execute(code)
+    return {
+      status: 'finished',
+      context: context,
+      value: result
+    }
   }
 
   if (
