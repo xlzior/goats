@@ -1,4 +1,4 @@
-# Go Server
+# Go Parser
 
 This project contains a simple Go server with an endpoint for parsing Go programs and returning the Abstract Syntax Tree (AST) as JSON.
 
