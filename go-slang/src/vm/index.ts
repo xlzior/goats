@@ -50,6 +50,10 @@ export class GolangVM {
       const instr = instrs[this.PC]
       this.microcode[instr.tag](instr)
     }
+    // TODO: hotfix to solve tsc compile errors due to unused variables
+    // will be fixed once we use them anyway
+    this.E;
+    this.RTS;
     return peek(this.OS)
   }
 }

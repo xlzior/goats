@@ -4,9 +4,8 @@
     "module": "commonjs",
     "outDir": "./dist",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "noUnusedLocals": false
   },
-  "exclude": [
-    "dist",
-  ],
+  "exclude": ["dist"]
 }
