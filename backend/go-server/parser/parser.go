@@ -27,7 +27,7 @@ func ParseProgram(program string) (interface{}, error) {
 	return json, nil
 }
 
-
+// Adapted from https://github.com/DanSnow/astexplorer-go/blob/master/parse.go
 func traverse(fst *token.FileSet, node interface{}) map[string]interface{} {
 	if node == nil {
 		return nil
