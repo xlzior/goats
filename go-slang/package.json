@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "format": "biome format --write ./src"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.0",
