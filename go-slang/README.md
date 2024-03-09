@@ -26,6 +26,13 @@ yarn build
 ```
 The built JavaScript files are located at the `dist` directory.
 
+
+To format using Biome:
+
+```
+yarn format
+```
+
 ## Using your go-slang in your local js-slang
 
 First, build and link your local go-slang:
