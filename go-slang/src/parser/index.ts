@@ -1,7 +1,9 @@
+import { ParserResult } from "../types";
+
 const API_ENDPOINT = "http://localhost:8080/parse";
 
 export class GolangParser {
-  async parse(programString: string) {
+  async parse(programString: string): Promise<ParserResult> {
     const requestBody = {
       program: programString,
     };
@@ -16,15 +18,11 @@ export class GolangParser {
 
     try {
       const response = await fetch(API_ENDPOINT, fetchOptions);
-      const data = await response.json();
-      // console.log(JSON.stringify(data, null, 2))
-      // return data.ast
-
-      const binaryExprAST = data.ast.Decls[1].Body.List[0].X;
-      return binaryExprAST;
+      const data: ParserResult = await response.json();
+      return data;
     } catch (e) {
       console.error(e);
-      return null;
+      return { error: "An error occurred while parsing" };
     }
   }
 }

@@ -232,10 +232,15 @@ export async function runFilesInContext(
   if (context.chapter === Chapter.GOLANG) {
     const runner = new GolangRunner()
     const result = await runner.execute(code)
+    if (result.error) {
+      // context.errors only accept errors with SourceError interface. to KIV
+      // context.errors.push(result.error)
+      return resolvedErrorPromise
+    }
     return {
       status: 'finished',
       context: context,
-      value: result
+      value: result.value
     }
   }
 

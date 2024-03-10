@@ -1,3 +1,13 @@
+export interface ParserResult {
+  ast?: File;
+  error?: string;
+}
+
+export interface RunnerResult {
+  value?: string;
+  error?: string;
+}
+
 // ========================
 // CONSTANTS
 // ========================
@@ -5,7 +15,7 @@ export enum NodeType {
   FILE = "File",
   FUNC_DECL = "FuncDecl",
   IDENT = "Ident",
-  BASIC_LITERAL = "BasicLiteral",
+  BASIC_LIT = "BasicLit",
   BINARY_EXPR = "BinaryExpr",
   CALL_EXPR = "CallExpr",
   BLOCK_STMT = "BlockStmt",
@@ -71,8 +81,8 @@ export interface FuncDecl extends Decl {
 
 export interface Expr {}
 
-export interface BasicLiteral extends Expr {
-  _type: NodeType.BASIC_LITERAL;
+export interface BasicLit extends Expr {
+  _type: NodeType.BASIC_LIT;
   Kind: string;
   Value: number | string;
 }
@@ -126,9 +136,8 @@ export interface ForStmt extends Stmt {
 }
 
 export interface ExprStmt extends Stmt {
-  // calling a function
   _type: NodeType.EXPR_STMT;
-  Expr: CallExpr;
+  X: Expr;
 }
 
 export interface ReturnStmt extends Stmt {
