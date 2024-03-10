@@ -237,6 +237,10 @@ export async function runFilesInContext(
       // context.errors.push(result.error)
       return resolvedErrorPromise
     }
+
+    const println = context.nativeStorage.builtins.get('Println')
+    result.logs?.forEach(s => println(s))
+
     return {
       status: 'finished',
       context: context,

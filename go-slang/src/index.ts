@@ -35,6 +35,7 @@ export class GolangRunner {
       const result = this.vm.run(instr_set);
       return {
         value: result,
+        logs: ["TODO"],
       };
     } catch (e: any) {
       return {

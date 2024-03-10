@@ -638,6 +638,10 @@ export const importBuiltins = (context: Context, externalBuiltIns: CustomBuiltIn
       }
     }
   }
+
+  if (context.chapter === Chapter.GOLANG) {
+    defineBuiltin(context, 'Println(val)', display, 1)
+  }
 }
 
 function importPrelude(context: Context) {

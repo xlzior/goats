@@ -5,6 +5,7 @@ export interface ParserResult {
 
 export interface RunnerResult {
   value?: string;
+  logs?: any[];
   error?: string;
 }
 
