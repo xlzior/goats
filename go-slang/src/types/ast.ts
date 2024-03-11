@@ -145,7 +145,7 @@ export interface IfStmt extends Stmt {
   _type: NodeType.IF_STMT;
   Cond: Expr;
   Body: BlockStmt;
-  Else: BlockStmt | IfStmt;
+  Else?: BlockStmt | IfStmt; // if there is no else if or else, IfStmt Node does not have Else property
 }
 
 export interface ForStmt extends Stmt {
