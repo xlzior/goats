@@ -20,28 +20,6 @@ const binop_microcode: any = {
 const apply_binop = (op: string, v2: number, v1: number) =>
   binop_microcode[op](v1, v2);
 
-// TODO: move this to somewhere else
-// should be be dependency injected
-const builtin_mapping: Record<string, any> = {
-  Println: (v: any) => console.log("Go program printed:", v),
-};
-
-const apply_builtin = (builtin_symbol: string, args: any[]) =>
-  builtin_mapping[builtin_symbol](...args);
-
-const global_frame: Record<string, any> = {};
-
-for (const key in builtin_mapping) {
-  global_frame[key] = {
-    tag: "BUILTIN",
-    sym: key,
-    arity: 1, // TODO: find the arity of the function
-  };
-}
-
-const empty_environment: any[] = [];
-const global_environment = [global_frame, empty_environment];
-
 const lookup = (x: string, e: any[]): any => {
   if (e.length < 2) return console.error("unbound name: ", x);
 
@@ -84,8 +62,24 @@ export class GolangVM {
   private E: Array<any>;
   private RTS: Array<any>;
   private microcode: any;
+  private builtin_mapping: Record<string, any>;
 
-  constructor() {
+  constructor(builtin_mapping: Record<string, any>) {
+    this.builtin_mapping = builtin_mapping;
+
+    const global_frame: Record<string, any> = {};
+
+    for (const key in builtin_mapping) {
+      global_frame[key] = {
+        tag: "BUILTIN",
+        sym: key,
+        arity: 1, // TODO: find the arity of the function
+      };
+    }
+
+    const empty_environment: any[] = [];
+    const global_environment = [global_frame, empty_environment];
+
     this.OS = [];
     this.PC = 0;
     this.E = global_environment;
@@ -144,7 +138,8 @@ export class GolangVM {
         const sf = this.OS.pop();
         if (sf.tag === "BUILTIN") {
           this.PC++;
-          this.OS.push(apply_builtin(sf.sym, args));
+          const builtin = this.builtin_mapping[sf.sym](...args);
+          this.OS.push(builtin);
           return;
         }
         this.RTS.push({ tag: "CALL_FRAME", addr: this.PC + 1, env: this.E });
