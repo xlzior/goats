@@ -88,7 +88,21 @@ export class GolangCompiler {
         });
       },
       Ident: (astNode: Ident) => {
-        this.instrs[this.wc++] = { tag: "LD", sym: astNode.Name };
+        const name = astNode.Name
+        let instr;
+        // Go treats boolean as Ident. Adds a LDC instruction
+        if (name === "true" || name === "false") {
+          instr = {
+            tag: "LDC",
+            val: name === "true" ? true : false
+          };
+        } else {
+          instr = {
+            tag: "LD",
+            sym: name
+          };
+        }
+        this.instrs[this.wc++] = instr
       },
       ReturnStmt: (astNode: ReturnStmt) => {
         astNode.Results.forEach((result) => {
