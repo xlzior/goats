@@ -1,4 +1,4 @@
-import { ParserResult } from "../types";
+import { ParserResult } from "../types/ast";
 
 const API_ENDPOINT = "http://localhost:8080/parse";
 

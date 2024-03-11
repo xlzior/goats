@@ -8,11 +8,6 @@ type ParserResultError = {
 
 export type ParserResult = ParserResultSuccess | ParserResultError;
 
-export interface RunnerResult {
-  value?: string;
-  error?: string;
-}
-
 // ========================
 // CONSTANTS
 // ========================
