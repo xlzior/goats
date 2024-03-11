@@ -11,18 +11,18 @@ describe("Golang runner for evaluating binary expressions", () => {
     {
       program: `
       package main
-      import "fmt"
+      
       func main() {
-        1 + 2
+        return 1 + 2
       }`,
       expected: 3,
     },
     {
       program: `
       package main
-      import "fmt"
+      
       func main() {
-        10 * 2 / 5
+        return 10 * 2 / 5
       }`,
       expected: 4.0,
     },
@@ -40,11 +40,11 @@ describe("Golang runner for evaluating binary expressions", () => {
   test("evaluate program with multiple lines of binary expr should return the result of the last evaluated expr", async () => {
     const program = `
     package main
-    import "fmt"
+    
     func main() {
       10 * 2 / 5
       33 - 13
-      10 * 7 - 5
+      return 10 * 7 - 5
     }`;
     const actual = await golangRunner.execute(program);
     const expected = 65;
