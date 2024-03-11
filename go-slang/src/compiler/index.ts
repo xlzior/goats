@@ -13,6 +13,8 @@ import {
   Expr,
   Ident,
   CallExpr,
+  UnaryExpr,
+  ParenExpr,
 } from "../types";
 
 function scan(statement: Stmt): string[] {
@@ -50,6 +52,13 @@ export class GolangCompiler {
         this.compile(astNode.X);
         this.compile(astNode.Y);
         this.instrs[this.wc++] = { tag: "BINOP", sym: astNode.Op };
+      },
+      UnaryExpr: (astNode: UnaryExpr) => {
+        this.compile(astNode.X);
+        this.instrs[this.wc++] = { tag: "UNOP", sym: astNode.Op };
+      },
+      ParenExpr: (astNode: ParenExpr) => { // to handle unary expr like !(x > 5)
+        this.compile(astNode.X);
       },
       FuncDecl: (astNode: FuncDecl) => {
         const params = astNode.Type.Params.List.flatMap((e) =>

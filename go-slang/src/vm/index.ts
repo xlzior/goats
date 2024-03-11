@@ -28,6 +28,18 @@ const binop_microcode: any = {
 const apply_binop = (op: string, v2: number, v1: number) =>
   binop_microcode[op](v1, v2);
 
+const unop_microcode: any = {
+  '-': (x: number) => -x,
+  '!': (x: boolean) => {
+    if (typeof x === "boolean") {
+      return !x
+    }
+    throw Error("! expects a boolean")
+  }
+}
+
+const apply_unop = (op: string, v: number | boolean) => unop_microcode[op](v)
+
 const lookup = (x: string, e: any[]): any => {
   if (e.length < 2) return console.error("unbound name: ", x);
 
@@ -96,6 +108,10 @@ export class GolangVM {
       LDC: (instr: any) => {
         this.PC++;
         this.OS.push(instr.val);
+      },
+      UNOP: (instr: any) => {
+        this.PC++
+        this.OS.push(apply_unop(instr.sym, this.OS.pop()))
       },
       BINOP: (instr: any) => {
         this.PC++;

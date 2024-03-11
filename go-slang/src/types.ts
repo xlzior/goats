@@ -17,6 +17,7 @@ export enum NodeType {
   IDENT = "Ident",
   BASIC_LIT = "BasicLit",
   BINARY_EXPR = "BinaryExpr",
+  UNARY_EXPR = "UnaryExpr",
   CALL_EXPR = "CallExpr",
   BLOCK_STMT = "BlockStmt",
   ASSIGN_STMT = "AssignStmt",
@@ -37,6 +38,8 @@ export enum Op {
   GTE = ">=",
   OR = "||",
   AND = "&&",
+  NOT = "!",
+  MINUS = "-",
 }
 
 // ========================
@@ -98,6 +101,16 @@ export interface BinaryExpr extends Expr {
   Op: Op;
   X: Expr;
   Y: Expr;
+}
+
+export interface UnaryExpr extends Expr {
+  _type: NodeType.UNARY_EXPR;
+  Op: Op.MINUS | Op.NOT;
+  X: Expr;
+}
+
+export interface ParenExpr extends Expr {
+  X: Expr;
 }
 
 export interface Ident extends Expr {
