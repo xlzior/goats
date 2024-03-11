@@ -24,6 +24,10 @@ function scan(statement: Stmt): string[] {
   }
 }
 
+function stripQuotes(str: string) {
+  return str.replace(/^"|"$/g, "");
+}
+
 export class GolangCompiler {
   private wc: number;
   private instrs: Array<any>;
@@ -36,7 +40,10 @@ export class GolangCompiler {
       BasicLit: (astNode: BasicLit) => {
         this.instrs[this.wc++] = {
           tag: "LDC",
-          val: astNode.Kind === "INT" ? Number(astNode.Value) : astNode.Value,
+          val:
+            astNode.Kind === "INT"
+              ? Number(astNode.Value)
+              : stripQuotes(astNode.Value as string),
         };
       },
       BinaryExpr: (astNode: BinaryExpr) => {
@@ -88,21 +95,21 @@ export class GolangCompiler {
         });
       },
       Ident: (astNode: Ident) => {
-        const name = astNode.Name
+        const name = astNode.Name;
         let instr;
         // Go treats boolean as Ident. Adds a LDC instruction
         if (name === "true" || name === "false") {
           instr = {
             tag: "LDC",
-            val: name === "true" ? true : false
+            val: name === "true" ? true : false,
           };
         } else {
           instr = {
             tag: "LD",
-            sym: name
+            sym: name,
           };
         }
-        this.instrs[this.wc++] = instr
+        this.instrs[this.wc++] = instr;
       },
       ReturnStmt: (astNode: ReturnStmt) => {
         astNode.Results.forEach((result) => {
