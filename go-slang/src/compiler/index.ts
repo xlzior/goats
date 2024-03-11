@@ -6,6 +6,7 @@ import {
   ExprStmt,
   FuncDecl,
   ReturnStmt,
+  Node,
   Stmt,
   NodeType,
   AssignStmt,
@@ -33,7 +34,10 @@ export class GolangCompiler {
     this.instrs = [];
     this.compile_ast = {
       BasicLit: (astNode: BasicLit) => {
-        this.instrs[this.wc++] = { tag: "LDC", val: Number(astNode.Value) };
+        this.instrs[this.wc++] = {
+          tag: "LDC",
+          val: astNode.Kind === "INT" ? Number(astNode.Value) : astNode.Value,
+        };
       },
       BinaryExpr: (astNode: BinaryExpr) => {
         this.compile(astNode.X);
@@ -42,7 +46,7 @@ export class GolangCompiler {
       },
       FuncDecl: (astNode: FuncDecl) => {
         const params = astNode.Type.Params.List.flatMap((e) =>
-          e.Names.map((name) => name.Name)
+          e.Names.map((name) => name.Name),
         );
         this.instrs[this.wc++] = {
           tag: "LDF",
@@ -52,7 +56,7 @@ export class GolangCompiler {
         const goto_instruction = { tag: "GOTO", addr: -1 };
         this.instrs[this.wc++] = goto_instruction;
         this.compile(astNode.Body);
-        this.instrs[this.wc++] = { tag: "LDC", val: undefined }; // TODO: what's this for again?
+        this.instrs[this.wc++] = { tag: "LDC", val: undefined };
         this.instrs[this.wc++] = { tag: "RESET" };
         goto_instruction.addr = this.wc;
         this.instrs[this.wc++] = { tag: "ASSIGN", sym: astNode.Name.Name };
@@ -98,14 +102,13 @@ export class GolangCompiler {
     };
   }
 
-  private compile(astNode: any) {
+  private compile(astNode: Node) {
     if (this.compile_ast[astNode._type] !== undefined) {
       this.compile_ast[astNode._type](astNode);
     } else {
       console.error(astNode._type, "not implemented");
       console.error(astNode);
     }
-    return this.instrs;
   }
 
   compile_program(rootAstNode: File) {

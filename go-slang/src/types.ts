@@ -48,12 +48,15 @@ export interface File {
   Name: Ident; // package name
 }
 
+export interface Node {
+  _type: NodeType;
+}
+
 // ========================
 // DECLARATIONS
 // ========================
 
-export interface Decl {
-  _type: NodeType;
+export interface Decl extends Node {
   Name: Ident;
 }
 
@@ -82,7 +85,7 @@ export interface FuncDecl extends Decl {
 // EXPRESSIONS
 // ========================
 
-export interface Expr {}
+export interface Expr extends Node {}
 
 export interface BasicLit extends Expr {
   _type: NodeType.BASIC_LIT;
@@ -112,9 +115,7 @@ export interface CallExpr extends Expr {
 // STATEMENTS
 // ========================
 
-export interface Stmt {
-  _type: NodeType;
-}
+export interface Stmt extends Node {}
 
 export interface AssignStmt extends Stmt {
   _type: NodeType.ASSIGN_STMT;

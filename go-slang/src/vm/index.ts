@@ -3,8 +3,16 @@ function peek(stack: Array<any>) {
   return stack[stack.length - 1];
 }
 
+const is_number = (val: any) => typeof val === "number";
+const is_string = (val: any) => typeof val === "string";
+
 const binop_microcode: any = {
-  "+": (x: any, y: any) => x + y,
+  "+": (x: any, y: any) => {
+    if ((is_number(x) && is_number(y)) || (is_string(x) && is_string(y))) {
+      return x + y;
+    }
+    throw Error(`Expects two numbers or two strings`);
+  },
   "*": (x: number, y: number) => x * y,
   "-": (x: number, y: number) => x - y,
   "/": (x: number, y: number) => x / y,
@@ -13,8 +21,8 @@ const binop_microcode: any = {
   "<=": (x: number, y: number) => x <= y,
   ">=": (x: number, y: number) => x >= y,
   ">": (x: number, y: number) => x > y,
-  "===": (x: number, y: number) => x === y,
-  "!==": (x: number, y: number) => x !== y,
+  "==": (x: number, y: number) => x === y,
+  "!=": (x: number, y: number) => x !== y,
 };
 
 const apply_binop = (op: string, v2: number, v1: number) =>
@@ -47,7 +55,7 @@ const extend = (xs: string[], vs: any[], e: any) => {
   if (vs.length < xs.length) console.error("too few arguments");
 
   const new_frame = Object.fromEntries(
-    xs.map((key, index) => [key, vs[index]])
+    xs.map((key, index) => [key, vs[index]]),
   );
   return [new_frame, e];
 };
