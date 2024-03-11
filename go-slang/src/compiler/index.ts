@@ -5,7 +5,23 @@ import {
   BlockStmt,
   ExprStmt,
   FuncDecl,
+  ReturnStmt,
+  Stmt,
+  NodeType,
+  AssignStmt,
+  Expr,
+  Ident,
+  CallExpr,
 } from "../types";
+
+function scan(statement: Stmt): string[] {
+  switch (statement._type) {
+    case NodeType.ASSIGN_STMT:
+      return (statement as AssignStmt).Lhs.map((e) => e.Name);
+    default:
+      return [];
+  }
+}
 
 export class GolangCompiler {
   private wc: number;
@@ -24,14 +40,57 @@ export class GolangCompiler {
         this.compile(astNode.Y);
         this.instrs[this.wc++] = { tag: "BINOP", sym: astNode.Op };
       },
-      // TODO: to compile other properties of FuncDecl in a future PR that handles function constructs
       FuncDecl: (astNode: FuncDecl) => {
+        const params = astNode.Type.Params.List.flatMap((e) =>
+          e.Names.map((name) => name.Name)
+        );
+        this.instrs[this.wc++] = {
+          tag: "LDF",
+          params: params,
+          addr: this.wc + 1,
+        };
+        const goto_instruction = { tag: "GOTO", addr: -1 };
+        this.instrs[this.wc++] = goto_instruction;
         this.compile(astNode.Body);
-      }, 
-      // TODO: to handle block scope of variables in a future PR that handles block construct
+        this.instrs[this.wc++] = { tag: "LDC", val: undefined }; // TODO: what's this for again?
+        this.instrs[this.wc++] = { tag: "RESET" };
+        goto_instruction.addr = this.wc;
+        this.instrs[this.wc++] = { tag: "ASSIGN", sym: astNode.Name.Name };
+      },
+      CallExpr: (astNode: CallExpr) => {
+        this.compile(astNode.Fun);
+        astNode.Args.forEach((arg) => this.compile(arg));
+        this.instrs[this.wc++] = { tag: "CALL", arity: astNode.Args.length };
+      },
       BlockStmt: (astNode: BlockStmt) => {
-        const stmts = astNode.List;
-        stmts.forEach(stmt => this.compile(stmt))
+        const locals = astNode.List.flatMap(scan);
+        this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
+        astNode.List.forEach((stmt, i) => {
+          this.compile(stmt);
+          if (i < astNode.List.length - 1) {
+            this.instrs[this.wc++] = { tag: "POP" };
+          }
+        });
+        this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
+      },
+      AssignStmt: (astNode: AssignStmt) => {
+        const assignments: [Ident, Expr][] = astNode.Lhs.map((sym, i) => [
+          sym,
+          astNode.Rhs[i],
+        ]);
+        assignments.forEach(([ident, expr]) => {
+          this.compile(expr);
+          this.instrs[this.wc++] = { tag: "ASSIGN", sym: ident.Name };
+        });
+      },
+      Ident: (astNode: Ident) => {
+        this.instrs[this.wc++] = { tag: "LD", sym: astNode.Name };
+      },
+      ReturnStmt: (astNode: ReturnStmt) => {
+        astNode.Results.forEach((result) => {
+          this.compile(result);
+        });
+        this.instrs[this.wc++] = { tag: "RESET" };
       },
       ExprStmt: (astNode: ExprStmt) => {
         this.compile(astNode.X);
@@ -40,18 +99,23 @@ export class GolangCompiler {
   }
 
   private compile(astNode: any) {
-    // Currently ignores AST nodes that are unimplemented
     if (this.compile_ast[astNode._type] !== undefined) {
       this.compile_ast[astNode._type](astNode);
+    } else {
+      console.error(astNode._type, "not implemented");
+      console.error(astNode);
     }
-    this.instrs[this.wc] = { tag: "DONE" };
     return this.instrs;
   }
 
-  // Currently, it assumes there is only one function, which is main()
-  // TODO: We need check which function is main and then return the PC that starts from main? this can be discussed
   compile_program(rootAstNode: File) {
-    rootAstNode.Decls.forEach(node => this.compile(node))
+    const locals = rootAstNode.Decls.map((node) => node.Name.Name);
+    this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
+    rootAstNode.Decls.forEach((node) => this.compile(node));
+    this.instrs[this.wc++] = { tag: "LD", sym: "main" };
+    this.instrs[this.wc++] = { tag: "CALL", arity: 0 };
+    this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
+    this.instrs[this.wc] = { tag: "DONE" };
     return this.instrs;
   }
 }

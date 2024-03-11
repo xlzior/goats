@@ -25,7 +25,7 @@ export class GolangRunner {
         };
       }
 
-      let instr_set
+      let instr_set;
       // To disable typescript warnings that parserResult.ast would possibly be undefined
       // although it would never be the case when it reaches here
       if (parserResult.ast) {
@@ -36,10 +36,8 @@ export class GolangRunner {
       return {
         value: result,
       };
-    } catch (e: any) {
-      return {
-        error: "An error occurred while running the program. Please try again later.",
-      };
+    } catch (error: any) {
+      return { error };
     }
   }
 }

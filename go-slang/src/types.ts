@@ -52,7 +52,10 @@ export interface File {
 // DECLARATIONS
 // ========================
 
-export interface Decl {}
+export interface Decl {
+  _type: NodeType;
+  Name: Ident;
+}
 
 interface Field {
   Names: Ident[]; // field/method parameter names
@@ -109,7 +112,9 @@ export interface CallExpr extends Expr {
 // STATEMENTS
 // ========================
 
-export interface Stmt {}
+export interface Stmt {
+  _type: NodeType;
+}
 
 export interface AssignStmt extends Stmt {
   _type: NodeType.ASSIGN_STMT;
