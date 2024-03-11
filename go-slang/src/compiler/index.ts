@@ -15,8 +15,10 @@ import {
   CallExpr,
   UnaryExpr,
   ParenExpr,
+  IfStmt,
 } from "../types/ast";
-import { GOTO, Instruction } from "../types/vm_instructions";
+
+import { GOTO, JOF, Instruction } from "../types/vm_instructions";
 
 function scan(statement: Stmt): string[] {
   switch (statement._type) {
@@ -44,9 +46,9 @@ export class GolangCompiler {
         this.instrs[this.wc++] = {
           tag: "LDC",
           val:
-            astNode.Kind === "INT"
-              ? Number(astNode.Value)
-              : stripQuotes(astNode.Value as string),
+            astNode.Kind === "STRING"
+              ? stripQuotes(astNode.Value as string)
+              : Number(astNode.Value), // can handle integers and floating point values
         };
       },
       BinaryExpr: (astNode: BinaryExpr) => {
@@ -59,12 +61,11 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { tag: "UNOP", sym: astNode.Op };
       },
       ParenExpr: (astNode: ParenExpr) => {
-        // to handle unary expr like !(x > 5)
         this.compile(astNode.X);
       },
       FuncDecl: (astNode: FuncDecl) => {
         const params = astNode.Type.Params.List.flatMap((e) =>
-          e.Names.map((name) => name.Name)
+          e.Names.map((name) => name.Name),
         );
         this.instrs[this.wc++] = {
           tag: "LDF",
@@ -132,6 +133,22 @@ export class GolangCompiler {
       },
       ExprStmt: (astNode: ExprStmt) => {
         this.compile(astNode.X);
+      },
+      IfStmt: (astNode: IfStmt) => {
+        this.compile(astNode.Cond);
+        const jump_on_false_instruction: JOF = { tag: "JOF", addr: -1 };
+        this.instrs[this.wc++] = jump_on_false_instruction;
+        this.compile(astNode.Body);
+        const goto_instruction: GOTO = { tag: "GOTO", addr: -1 };
+        this.instrs[this.wc++] = goto_instruction;
+        const alternative_address = this.wc;
+        jump_on_false_instruction.addr = alternative_address;
+        this.compile(
+          astNode.Else
+            ? astNode.Else
+            : { _type: NodeType.BLOCK_STMT, List: [] },
+        );
+        goto_instruction.addr = this.wc;
       },
     };
   }
