@@ -1,7 +1,7 @@
 import { GolangParser } from "./parser";
 import { GolangCompiler } from "./compiler";
 import { GolangVM } from "./vm";
-import { ParserResult, RunnerResult } from "./types";
+import { RunnerResult } from "./types";
 
 // Facade class that contains parser, compiler and vm / main entry point
 export class GolangRunner {

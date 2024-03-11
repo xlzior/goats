@@ -1,3 +1,20 @@
+import {
+  LDC,
+  UNOP,
+  BINOP,
+  POP,
+  GOTO,
+  ENTER_SCOPE,
+  EXIT_SCOPE,
+  LD,
+  ASSIGN,
+  LDF,
+  CALL,
+  RESET,
+  JOF,
+  Instruction,
+} from "../types/vm_instructions";
+
 function peek(stack: Array<any>) {
   if (stack.length === 0) throw new Error("Stack is empty!");
   return stack[stack.length - 1];
@@ -29,16 +46,16 @@ const apply_binop = (op: string, v2: number, v1: number) =>
   binop_microcode[op](v1, v2);
 
 const unop_microcode: any = {
-  '-': (x: number) => -x,
-  '!': (x: boolean) => {
+  "-": (x: number) => -x,
+  "!": (x: boolean) => {
     if (typeof x === "boolean") {
-      return !x
+      return !x;
     }
-    throw Error("! expects a boolean")
-  }
-}
+    throw Error("! expects a boolean");
+  },
+};
 
-const apply_unop = (op: string, v: number | boolean) => unop_microcode[op](v)
+const apply_unop = (op: string, v: number | boolean) => unop_microcode[op](v);
 
 const lookup = (x: string, e: any[]): any => {
   if (e.length < 2) return console.error("unbound name: ", x);
@@ -67,7 +84,7 @@ const extend = (xs: string[], vs: any[], e: any) => {
   if (vs.length < xs.length) console.error("too few arguments");
 
   const new_frame = Object.fromEntries(
-    xs.map((key, index) => [key, vs[index]]),
+    xs.map((key, index) => [key, vs[index]])
   );
   return [new_frame, e];
 };
@@ -105,48 +122,48 @@ export class GolangVM {
     this.E = global_environment;
     this.RTS = [];
     this.microcode = {
-      LDC: (instr: any) => {
+      LDC: (instr: LDC) => {
         this.PC++;
         this.OS.push(instr.val);
       },
-      UNOP: (instr: any) => {
-        this.PC++
-        this.OS.push(apply_unop(instr.sym, this.OS.pop()))
+      UNOP: (instr: UNOP) => {
+        this.PC++;
+        this.OS.push(apply_unop(instr.sym, this.OS.pop()));
       },
-      BINOP: (instr: any) => {
+      BINOP: (instr: BINOP) => {
         this.PC++;
         this.OS.push(apply_binop(instr.sym, this.OS.pop(), this.OS.pop()));
       },
-      POP: (instr: any) => {
+      POP: (instr: POP) => {
         this.PC++;
         this.OS.pop();
       },
-      JOF: (instr: any) => {
+      JOF: (instr: JOF) => {
         this.PC = this.OS.pop() ? this.PC + 1 : instr.addr;
       },
-      GOTO: (instr: any) => {
+      GOTO: (instr: GOTO) => {
         this.PC = instr.addr;
       },
-      ENTER_SCOPE: (instr: any) => {
+      ENTER_SCOPE: (instr: ENTER_SCOPE) => {
         this.PC++;
         this.RTS.push({ tag: "BLOCK_FRAME", env: this.E });
         const locals = instr.syms;
         const unassigneds = locals.map(() => unassigned);
         this.E = extend(locals, unassigneds, this.E);
       },
-      EXIT_SCOPE: (instr: any) => {
+      EXIT_SCOPE: (instr: EXIT_SCOPE) => {
         this.PC++;
         this.E = this.RTS.pop().env;
       },
-      LD: (instr: any) => {
+      LD: (instr: LD) => {
         this.PC++;
         this.OS.push(lookup(instr.sym, this.E));
       },
-      ASSIGN: (instr: any) => {
+      ASSIGN: (instr: ASSIGN) => {
         this.PC++;
         assign_value(instr.sym, peek(this.OS), this.E);
       },
-      LDF: (instr: any) => {
+      LDF: (instr: LDF) => {
         this.PC++;
         this.OS.push({
           tag: "CLOSURE",
@@ -155,7 +172,7 @@ export class GolangVM {
           env: this.E,
         });
       },
-      CALL: (instr: any) => {
+      CALL: (instr: CALL) => {
         const arity = instr.arity;
         let args = [];
         for (let i = arity - 1; i >= 0; i--) args.push(this.OS.pop());
@@ -170,7 +187,7 @@ export class GolangVM {
         this.E = extend(sf.params, args, sf.env);
         this.PC = sf.addr;
       },
-      RESET: (instr: any) => {
+      RESET: (instr: RESET) => {
         const top_frame = this.RTS.pop();
         if (top_frame.tag === "CALL_FRAME") {
           this.PC = top_frame.addr;
@@ -180,7 +197,7 @@ export class GolangVM {
     };
   }
 
-  run(instrs: any) {
+  run(instrs: Instruction[]) {
     while (!(instrs[this.PC].tag === "DONE")) {
       const instr = instrs[this.PC];
       if (this.microcode[instr.tag]) {

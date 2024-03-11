@@ -15,7 +15,8 @@ import {
   CallExpr,
   UnaryExpr,
   ParenExpr,
-} from "../types";
+} from "../types/ast";
+import { GOTO, Instruction } from "../types/vm_instructions";
 
 function scan(statement: Stmt): string[] {
   switch (statement._type) {
@@ -32,7 +33,7 @@ function stripQuotes(str: string) {
 
 export class GolangCompiler {
   private wc: number;
-  private instrs: Array<any>;
+  private instrs: Array<Instruction>;
   private compile_ast: any;
 
   constructor() {
@@ -57,19 +58,20 @@ export class GolangCompiler {
         this.compile(astNode.X);
         this.instrs[this.wc++] = { tag: "UNOP", sym: astNode.Op };
       },
-      ParenExpr: (astNode: ParenExpr) => { // to handle unary expr like !(x > 5)
+      ParenExpr: (astNode: ParenExpr) => {
+        // to handle unary expr like !(x > 5)
         this.compile(astNode.X);
       },
       FuncDecl: (astNode: FuncDecl) => {
         const params = astNode.Type.Params.List.flatMap((e) =>
-          e.Names.map((name) => name.Name),
+          e.Names.map((name) => name.Name)
         );
         this.instrs[this.wc++] = {
           tag: "LDF",
           params: params,
           addr: this.wc + 1,
         };
-        const goto_instruction = { tag: "GOTO", addr: -1 };
+        const goto_instruction: GOTO = { tag: "GOTO", addr: -1 };
         this.instrs[this.wc++] = goto_instruction;
         this.compile(astNode.Body);
         this.instrs[this.wc++] = { tag: "LDC", val: undefined };
@@ -105,8 +107,10 @@ export class GolangCompiler {
       },
       Ident: (astNode: Ident) => {
         const name = astNode.Name;
-        let instr;
+        let instr: Instruction;
         // Go treats boolean as Ident. Adds a LDC instruction
+        // TODO: feel like the proper way to handle this would be to add it to the environment
+        // and continue treating it like an Ident / LD instruction
         if (name === "true" || name === "false") {
           instr = {
             tag: "LDC",
