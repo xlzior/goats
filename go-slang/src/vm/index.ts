@@ -47,8 +47,7 @@ const lookup = (x: string, e: any[]): any => {
 
   if (e[0].hasOwnProperty(x)) {
     const v = e[0][x];
-    // TODO: fix unassigned
-    if (v === "unassigned") return console.error(x, "unassigned name");
+    if (is_unassigned(v)) return console.error(x, "unassigned name");
     return v;
   }
 
@@ -74,6 +73,10 @@ const extend = (xs: string[], vs: any[], e: any) => {
   );
   return [new_frame, e];
 };
+
+const unassigned = { tag: "unassigned" };
+
+const is_unassigned = (v: any) => v.tag === "unassigned";
 
 export class GolangVM {
   private OS: Array<any>;
@@ -110,7 +113,7 @@ export class GolangVM {
         this.PC++;
         this.RTS.push({ tag: "BLOCK_FRAME", env: this.E });
         const locals = instr.syms;
-        const unassigneds = locals.map(() => "unassigned");
+        const unassigneds = locals.map(() => unassigned);
         this.E = extend(locals, unassigneds, this.E);
       },
       EXIT_SCOPE: (instr: any) => {
