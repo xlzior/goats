@@ -42,6 +42,7 @@ import {
   resolvedErrorPromise,
   sourceFilesRunner
 } from './runner'
+import { GoError } from './errors/goErrors'
 
 export interface IOptions {
   scheduler: 'preemptive' | 'async'
@@ -235,9 +236,8 @@ export async function runFilesInContext(
     }
     const runner = new GolangRunner(builtin_mapping)
     const result = await runner.execute(code)
-    if (result.error) {
-      // context.errors only accept errors with SourceError interface. to KIV
-      // context.errors.push(result.error)
+    if ('error' in result) {
+      context.errors.push(new GoError(result.error))
       return resolvedErrorPromise
     }
     return {
