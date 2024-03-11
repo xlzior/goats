@@ -280,6 +280,10 @@ export const importBuiltins = (context: Context, externalBuiltIns: CustomBuiltIn
     return v[0]
   }
 
+  if (context.chapter === Chapter.GOLANG) {
+    defineBuiltin(context, 'Println(val)', display, 1)
+  }
+
   if (context.chapter >= 1) {
     defineBuiltin(context, 'get_time()', misc.get_time)
     defineBuiltin(context, 'display(val, prepend = undefined)', display, 1)

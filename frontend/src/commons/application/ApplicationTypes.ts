@@ -329,10 +329,8 @@ export const defaultPlayground: PlaygroundState = {
 
 export const defaultEditorValue = `package main
 
-import "fmt"
-
 func main() {
-	fmt.Println("Hello World!")
+	Println("Hello World!")
 }
 `;
 

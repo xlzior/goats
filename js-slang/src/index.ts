@@ -230,7 +230,10 @@ export async function runFilesInContext(
   }
 
   if (context.chapter === Chapter.GOLANG) {
-    const runner = new GolangRunner()
+    const builtin_mapping: Record<string, any> = {
+      Println: context.nativeStorage.builtins.get('Println')
+    }
+    const runner = new GolangRunner(builtin_mapping)
     const result = await runner.execute(code)
     if (result.error) {
       // context.errors only accept errors with SourceError interface. to KIV
