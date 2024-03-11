@@ -9,10 +9,10 @@ export class GolangRunner {
   private compiler: GolangCompiler;
   private vm: GolangVM;
 
-  constructor() {
+  constructor(builtin_mapping: Record<string, any> = {}) {
     this.parser = new GolangParser();
     this.compiler = new GolangCompiler();
-    this.vm = new GolangVM();
+    this.vm = new GolangVM(builtin_mapping);
   }
 
   async execute(program: string): Promise<RunnerResult> {

@@ -3,7 +3,10 @@
 
 import { GolangRunner } from "./src";
 
-const runner = new GolangRunner();
+const builtin_mapping: Record<string, any> = {
+  Println: (v: any) => console.log("Go program printed:", v),
+};
+const runner = new GolangRunner(builtin_mapping);
 const program = `
 package main
 
