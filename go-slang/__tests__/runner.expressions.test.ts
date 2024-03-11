@@ -55,7 +55,7 @@ describe("Golang runner for evaluating binary expressions", () => {
 
 describe("Golang runner for evaluating logical expressions", () => {
 
-  test("evaluate program with logical OR expression", async () => {
+  test("evaluate program with logical OR expression that evaluates to true", async () => {
     const program = `
     package main
   
@@ -68,7 +68,20 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with logical AND expression", async () => {
+  test("evaluate program with logical OR expression that evaluates to false", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := 1 > 2 || 5 > 10
+      return x
+    }`;
+    const actual = await golangRunner.execute(program);
+    const expected = false; 
+    expect(actual.value).toEqual(expected);
+  });
+
+  test("evaluate program with logical AND expression that evaluates to true", async () => {
     const program = `
     package main
   
@@ -78,6 +91,19 @@ describe("Golang runner for evaluating logical expressions", () => {
     }`;
     const actual = await golangRunner.execute(program);
     const expected = true; 
+    expect(actual.value).toEqual(expected);
+  });
+
+  test("evaluate program with logical AND expression that evaluates to false", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := 1 < 2 && 5 > 10
+      return x
+    }`;
+    const actual = await golangRunner.execute(program);
+    const expected = false; 
     expect(actual.value).toEqual(expected);
   });
 
