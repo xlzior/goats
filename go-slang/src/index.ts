@@ -17,25 +17,13 @@ export class GolangRunner {
 
   async execute(program: string): Promise<RunnerResult> {
     try {
-      const parserResult: ParserResult = await this.parser.parse(program);
+      const parserResult = await this.parser.parse(program);
+      if ("error" in parserResult) return { error: parserResult.error };
 
-      if (parserResult.error) {
-        return {
-          error: parserResult.error,
-        };
-      }
-
-      let instr_set;
-      // To disable typescript warnings that parserResult.ast would possibly be undefined
-      // although it would never be the case when it reaches here
-      if (parserResult.ast) {
-        instr_set = this.compiler.compile_program(parserResult.ast);
-      }
-
+      const instr_set = this.compiler.compile_program(parserResult.ast);
       const result = this.vm.run(instr_set);
-      return {
-        value: result,
-      };
+
+      return { value: result };
     } catch (error: any) {
       return { error };
     }

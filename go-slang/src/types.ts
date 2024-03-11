@@ -1,7 +1,12 @@
-export interface ParserResult {
-  ast?: File;
-  error?: string;
-}
+type ParserResultSuccess = {
+  ast: File;
+};
+
+type ParserResultError = {
+  error: string;
+};
+
+export type ParserResult = ParserResultSuccess | ParserResultError;
 
 export interface RunnerResult {
   value?: string;
