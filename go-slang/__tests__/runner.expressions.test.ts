@@ -52,9 +52,7 @@ describe("Golang runner for evaluating binary expressions", () => {
   });
 });
 
-
 describe("Golang runner for evaluating logical expressions", () => {
-
   test("evaluate program with logical OR expression that evaluates to true", async () => {
     const program = `
     package main
@@ -64,7 +62,7 @@ describe("Golang runner for evaluating logical expressions", () => {
       return x
     }`;
     const actual = await golangRunner.execute(program);
-    const expected = true; 
+    const expected = true;
     expect(actual.value).toEqual(expected);
   });
 
@@ -77,7 +75,7 @@ describe("Golang runner for evaluating logical expressions", () => {
       return x
     }`;
     const actual = await golangRunner.execute(program);
-    const expected = false; 
+    const expected = false;
     expect(actual.value).toEqual(expected);
   });
 
@@ -90,7 +88,7 @@ describe("Golang runner for evaluating logical expressions", () => {
       return x
     }`;
     const actual = await golangRunner.execute(program);
-    const expected = true; 
+    const expected = true;
     expect(actual.value).toEqual(expected);
   });
 
@@ -103,7 +101,7 @@ describe("Golang runner for evaluating logical expressions", () => {
       return x
     }`;
     const actual = await golangRunner.execute(program);
-    const expected = false; 
+    const expected = false;
     expect(actual.value).toEqual(expected);
   });
 
@@ -119,7 +117,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     const expected = true;
     expect(actual.value).toEqual(expected);
   });
-  
+
   test("evaluate program with complex nested expression", async () => {
     const program = `
     package main
@@ -129,7 +127,7 @@ describe("Golang runner for evaluating logical expressions", () => {
       return x
     }`;
     const actual = await golangRunner.execute(program);
-    const expected = true; 
+    const expected = true;
     expect(actual.value).toEqual(expected);
   });
 
@@ -157,7 +155,7 @@ describe("Golang runner for evaluating logical expressions", () => {
       return x
     }`;
     const actual = await golangRunner.execute(program);
-    const expected = true; 
+    const expected = true;
     expect(actual.value).toEqual(expected);
   });
 
@@ -173,7 +171,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     const expected = true;
     expect(actual.value).toEqual(expected);
   });
-  
+
   test("evaluate program with complex boolean expressions", async () => {
     const program = `
     package main
@@ -183,8 +181,33 @@ describe("Golang runner for evaluating logical expressions", () => {
       return x
     }`;
     const actual = await golangRunner.execute(program);
-    const expected = true; 
+    const expected = true;
     expect(actual.value).toEqual(expected);
   });
 
+  test("evaluate program with short circuit for OR", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := true || 1 + true;
+      return x
+    }`;
+    const actual = await golangRunner.execute(program);
+    const expected = true;
+    expect(actual.value).toEqual(expected);
+  });
+
+  test("evaluate program with short circuit for AND", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := false && 1 + true;
+      return x
+    }`;
+    const actual = await golangRunner.execute(program);
+    const expected = false;
+    expect(actual.value).toEqual(expected);
+  });
 });
