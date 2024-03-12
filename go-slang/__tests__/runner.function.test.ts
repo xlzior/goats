@@ -19,6 +19,37 @@ describe("Golang runner for evaluating functions", () => {
     expect(value).toEqual(expected);
   });
 
+  test("simple function no return value", async () => {
+    const program = `
+    package main
+
+    func add(a, b int) int {
+      return a + b
+    }
+
+    func no_return() int {
+      a := 5
+      b := 10
+      c := a * b + a + b
+      return
+    }
+  
+    func main() {
+      no_return()
+      a := add(5, 7)
+      no_return()
+      no_return()
+      no_return()
+      b := add(3, 7)
+      no_return()
+      no_return()
+      return a * b
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 120;
+    expect(value).toEqual(expected);
+  });
+
   test("simple function with parameters and return value", async () => {
     const program = `
     package main
