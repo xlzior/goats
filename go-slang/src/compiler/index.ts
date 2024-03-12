@@ -204,9 +204,7 @@ export class GolangCompiler {
         this.compile_conditional(
           astNode.Cond,
           astNode.Body,
-          astNode.Else
-            ? astNode.Else
-            : { _type: NodeType.BLOCK_STMT, List: [] },
+          astNode.Else ?? { _type: NodeType.BLOCK_STMT, List: [] },
         );
       },
       ForStmt: (astNode: ForStmt) => {
