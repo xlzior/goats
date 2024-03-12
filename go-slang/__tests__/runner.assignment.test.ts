@@ -108,4 +108,70 @@ describe("Golang runner for evaluating assignment statements", () => {
     const expected = 15;
     expect(value).toEqual(expected);
   });
+
+  const compoundAssignTestCases = [
+    {
+      program: `
+      package main
+      
+      func main() {
+        x := 5
+        x += 5
+        return x
+      }`,
+      expected: 10,
+    },
+    {
+      program: `
+      package main
+      
+      func main() {
+        x := 5
+        x -= 5
+        return x
+      }`,
+      expected: 0,
+    },
+    {
+      program: `
+      package main
+      
+      func main() {
+        x := 5
+        x *= 5
+        return x
+      }`,
+      expected: 25,
+    },
+    {
+      program: `
+      package main
+      
+      func main() {
+        x := 5
+        x /= 5
+        return x
+      }`,
+      expected: 1.0,
+    },
+    {
+      program: `
+      package main
+      
+      func main() {
+        x := 5
+        x %= 2
+        return x
+      }`,
+      expected: 1,
+    },
+  ];
+
+  test.each(compoundAssignTestCases)(
+    "evaluate program with a compound assignment: %s",
+    async ({ program, expected }) => {
+      const actual = await golangRunner.execute(program);
+      expect(actual.value).toEqual(expected);
+    }
+  );
 });

@@ -1,4 +1,4 @@
-import { Op } from "./ast";
+import { Token } from "./ast";
 
 export type LDC = {
   tag: "LDC";
@@ -7,12 +7,12 @@ export type LDC = {
 
 export type BINOP = {
   tag: "BINOP";
-  sym: Op;
+  sym: Token;
 };
 
 export type UNOP = {
   tag: "UNOP";
-  sym: Op;
+  sym: Token;
 };
 
 export type GOTO = {
