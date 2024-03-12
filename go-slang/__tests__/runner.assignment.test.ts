@@ -20,6 +20,19 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 
+  test("evaluate multiple assignment statement", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x, y := 5, 10
+      return x + y
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 15;
+    expect(value).toEqual(expected);
+  });
+
   test("evaluate simple re-assignment statement", async () => {
     const program = `
     package main
@@ -31,6 +44,21 @@ describe("Golang runner for evaluating assignment statements", () => {
     }`;
     const { value } = await golangRunner.execute(program);
     const expected = 10;
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate multiple re-assignment statement", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := 5
+      y := 10
+      x, y = 100, 200
+      return x + y
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 300;
     expect(value).toEqual(expected);
   });
 
