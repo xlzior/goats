@@ -24,6 +24,9 @@ import { GOTO, JOF, Instruction } from "../types/vm_instructions";
 
 function scan(statement: Stmt): string[] {
   switch (statement._type) {
+    case NodeType.FUNC_DECL:
+      const func_decl = statement as FuncDecl;
+      return [func_decl.Name.Name];
     case NodeType.ASSIGN_STMT:
       const stmt = statement as AssignStmt;
       if (stmt.Tok === Token.DEFINE)
@@ -224,16 +227,12 @@ export class GolangCompiler {
   }
 
   compile_program(rootAstNode: File) {
-    const locals = rootAstNode.Decls.map((node) => node.Name.Name);
-    this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
+    const block: BlockStmt = {
+      _type: NodeType.BLOCK_STMT,
+      List: [...rootAstNode.Decls, main_call],
+    };
 
-    rootAstNode.Decls.forEach((node) => {
-      this.compile(node);
-      this.instrs[this.wc++] = { tag: "POP" };
-    });
-
-    this.compile(main_call);
-    this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
+    this.compile(block);
     this.instrs[this.wc] = { tag: "DONE" };
     return this.instrs;
   }

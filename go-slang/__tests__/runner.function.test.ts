@@ -94,20 +94,20 @@ describe("Golang runner for evaluating functions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("nested functions", async () => {
+  test("nested function calls", async () => {
     const program = `
     package main
 
-    func outer() {
-      return inner()
+    func first() {
+      return second()
     }
 
-    func inner() {
+    func second() {
       return 3
     }
   
     func main() {
-      return outer()
+      return first()
     }`;
     const { value } = await golangRunner.execute(program);
     const expected = 3;
