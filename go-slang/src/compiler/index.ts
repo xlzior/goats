@@ -20,7 +20,7 @@ import {
   ForStmt,
 } from "../types/ast";
 
-import { GOTO, JOF, Instruction, LDC } from "../types/vm_instructions";
+import { GOTO, JOF, Instruction } from "../types/vm_instructions";
 
 function scan(statement: Stmt): string[] {
   switch (statement._type) {
@@ -85,12 +85,12 @@ export class GolangCompiler {
         if (astNode.Op === Token.LAND) {
           // X && Y is "if X then Y else false"
           const falseExpr: Ident = { _type: NodeType.IDENT, Name: "false" };
-          return this.compile_ternary(astNode.X, astNode.Y, falseExpr);
+          return this.compile_conditional(astNode.X, astNode.Y, falseExpr);
         }
         if (astNode.Op === Token.LOR) {
           // X || Y is "if X then true else Y"
           const trueExpr: Ident = { _type: NodeType.IDENT, Name: "true" };
-          return this.compile_ternary(astNode.X, trueExpr, astNode.Y);
+          return this.compile_conditional(astNode.X, trueExpr, astNode.Y);
         }
         this.compile(astNode.X);
         this.compile(astNode.Y);
@@ -201,18 +201,13 @@ export class GolangCompiler {
         this.compile(astNode.X);
       },
       IfStmt: (astNode: IfStmt) => {
-        this.compile(astNode.Cond);
-        const jump_on_false_instruction: JOF = { tag: "JOF", addr: -1 };
-        this.instrs[this.wc++] = jump_on_false_instruction;
-        this.compile(astNode.Body);
-        const goto_instruction: GOTO = { tag: "GOTO", addr: -1 };
-        this.instrs[this.wc++] = goto_instruction;
-        const alternative_address = this.wc;
-        jump_on_false_instruction.addr = alternative_address;
-        this.compile(
-          astNode.Else ? astNode.Else : { _type: NodeType.BLOCK_STMT, List: [] }
+        this.compile_conditional(
+          astNode.Cond,
+          astNode.Body,
+          astNode.Else
+            ? astNode.Else
+            : { _type: NodeType.BLOCK_STMT, List: [] },
         );
-        goto_instruction.addr = this.wc;
       },
       ForStmt: (astNode: ForStmt) => {
         const loop_start = this.wc;
@@ -227,7 +222,11 @@ export class GolangCompiler {
     };
   }
 
-  private compile_ternary(pred: Expr, cons: Expr, alt: Expr) {
+  private compile_conditional(
+    pred: Expr,
+    cons: Expr | BlockStmt,
+    alt: Expr | BlockStmt,
+  ) {
     this.compile(pred);
     const jump_on_false_instruction: JOF = { tag: "JOF", addr: -1 };
     this.instrs[this.wc++] = jump_on_false_instruction;
