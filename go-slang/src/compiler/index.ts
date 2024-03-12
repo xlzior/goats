@@ -20,7 +20,7 @@ import {
   ForStmt,
 } from "../types/ast";
 
-import { GOTO, JOF, Instruction } from "../types/vm_instructions";
+import { GOTO, JOF, Instruction, LDC } from "../types/vm_instructions";
 
 function scan(statement: Stmt): string[] {
   switch (statement._type) {
@@ -82,6 +82,16 @@ export class GolangCompiler {
         };
       },
       BinaryExpr: (astNode: BinaryExpr) => {
+        if (astNode.Op === Token.LAND) {
+          // X && Y is "if X then Y else false"
+          const falseExpr: Ident = { _type: NodeType.IDENT, Name: "false" };
+          return this.compile_ternary(astNode.X, astNode.Y, falseExpr);
+        }
+        if (astNode.Op === Token.LOR) {
+          // X || Y is "if X then true else Y"
+          const trueExpr: Ident = { _type: NodeType.IDENT, Name: "true" };
+          return this.compile_ternary(astNode.X, trueExpr, astNode.Y);
+        }
         this.compile(astNode.X);
         this.compile(astNode.Y);
         this.instrs[this.wc++] = { tag: "BINOP", sym: astNode.Op };
@@ -215,6 +225,18 @@ export class GolangCompiler {
         jump_on_false_instruction.addr = this.wc;
       },
     };
+  }
+
+  private compile_ternary(pred: Expr, cons: Expr, alt: Expr) {
+    this.compile(pred);
+    const jump_on_false_instruction: JOF = { tag: "JOF", addr: -1 };
+    this.instrs[this.wc++] = jump_on_false_instruction;
+    this.compile(cons);
+    const goto_instruction: GOTO = { tag: "GOTO", addr: -1 };
+    this.instrs[this.wc++] = goto_instruction;
+    jump_on_false_instruction.addr = this.wc;
+    this.compile(alt);
+    goto_instruction.addr = this.wc;
   }
 
   private compile(astNode: Node) {

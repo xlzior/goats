@@ -40,8 +40,6 @@ const binop_microcode: any = {
   ">": (x: number, y: number) => x > y,
   "==": (x: number, y: number) => x === y,
   "!=": (x: number, y: number) => x !== y,
-  "||": (x: boolean, y: boolean) => x || y,
-  "&&": (x: boolean, y: boolean) => x && y,
 };
 
 const apply_binop = (op: Token, v2: number | boolean, v1: number | boolean) =>
