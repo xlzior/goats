@@ -23,7 +23,9 @@ import { GOTO, JOF, Instruction } from "../types/vm_instructions";
 function scan(statement: Stmt): string[] {
   switch (statement._type) {
     case NodeType.ASSIGN_STMT:
-      return (statement as AssignStmt).Lhs.map((e) => e.Name);
+      const stmt = statement as AssignStmt;
+      if (stmt.Tok === ":=")
+        return (statement as AssignStmt).Lhs.map((e) => e.Name);
     default:
       return [];
   }
@@ -65,7 +67,7 @@ export class GolangCompiler {
       },
       FuncDecl: (astNode: FuncDecl) => {
         const params = astNode.Type.Params.List.flatMap((e) =>
-          e.Names.map((name) => name.Name),
+          e.Names.map((name) => name.Name)
         );
         this.instrs[this.wc++] = {
           tag: "LDF",
@@ -144,9 +146,7 @@ export class GolangCompiler {
         const alternative_address = this.wc;
         jump_on_false_instruction.addr = alternative_address;
         this.compile(
-          astNode.Else
-            ? astNode.Else
-            : { _type: NodeType.BLOCK_STMT, List: [] },
+          astNode.Else ? astNode.Else : { _type: NodeType.BLOCK_STMT, List: [] }
         );
         goto_instruction.addr = this.wc;
       },
