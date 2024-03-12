@@ -19,7 +19,32 @@ describe("Golang runner for evaluating functions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("simple function no return value", async () => {
+  test("empty function", async () => {
+    const program = `
+    package main
+
+    func add(a, b int) int {
+      return a + b
+    }
+
+    func useless() int {
+      
+    }
+  
+    func main() {
+      useless()
+      useless()
+      useless()
+      useless()
+      useless()
+    }`;
+
+    const result = await golangRunner.execute(program);
+    expect(result.value).toBeUndefined();
+    expect("error" in result).toBeFalsy();
+  });
+
+  test("function with no return", async () => {
     const program = `
     package main
 
@@ -31,7 +56,6 @@ describe("Golang runner for evaluating functions", () => {
       a := 5
       b := 10
       c := a * b + a + b
-      return
     }
   
     func main() {
@@ -43,6 +67,37 @@ describe("Golang runner for evaluating functions", () => {
       b := add(3, 7)
       no_return()
       no_return()
+      return a * b
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 120;
+    expect(value).toEqual(expected);
+  });
+
+  test("function with return but no value", async () => {
+    const program = `
+    package main
+
+    func add(a, b int) int {
+      return a + b
+    }
+
+    func no_return_value() int {
+      a := 5
+      b := 10
+      c := a * b + a + b
+      return
+    }
+  
+    func main() {
+      no_return_value()
+      a := add(5, 7)
+      no_return_value()
+      no_return_value()
+      no_return_value()
+      b := add(3, 7)
+      no_return_value()
+      no_return_value()
       return a * b
     }`;
     const { value } = await golangRunner.execute(program);
