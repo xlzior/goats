@@ -50,6 +50,15 @@ const compoundAssignmentToBinaryOperator = new Map([
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
 ]);
 
+const main_call: CallExpr = {
+  _type: NodeType.CALL_EXPR,
+  Args: [],
+  Fun: {
+    _type: NodeType.IDENT,
+    Name: "main",
+  },
+};
+
 export class GolangCompiler {
   private wc: number;
   private instrs: Array<Instruction>;
@@ -206,12 +215,13 @@ export class GolangCompiler {
   compile_program(rootAstNode: File) {
     const locals = rootAstNode.Decls.map((node) => node.Name.Name);
     this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
+
     rootAstNode.Decls.forEach((node) => {
       this.compile(node);
       this.instrs[this.wc++] = { tag: "POP" };
     });
-    this.instrs[this.wc++] = { tag: "LD", sym: "main" };
-    this.instrs[this.wc++] = { tag: "CALL", arity: 0 };
+
+    this.compile(main_call);
     this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
     this.instrs[this.wc] = { tag: "DONE" };
     return this.instrs;
