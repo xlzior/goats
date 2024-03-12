@@ -16,6 +16,7 @@ import {
   UnaryExpr,
   ParenExpr,
   IfStmt,
+  Token,
 } from "../types/ast";
 
 import { GOTO, JOF, Instruction } from "../types/vm_instructions";
@@ -24,7 +25,7 @@ function scan(statement: Stmt): string[] {
   switch (statement._type) {
     case NodeType.ASSIGN_STMT:
       const stmt = statement as AssignStmt;
-      if (stmt.Tok === ":=")
+      if (stmt.Tok === Token.DEFINE)
         return (statement as AssignStmt).Lhs.map((e) => e.Name);
     default:
       return [];
