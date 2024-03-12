@@ -31,20 +31,10 @@ const binop_microcode: any = {
     }
     throw Error(`Expects two numbers or two strings`);
   },
-  "+=": (x: any, y: any) => {
-    if ((is_number(x) && is_number(y)) || (is_string(x) && is_string(y))) {
-      return x + y;
-    }
-    throw Error(`Expects two numbers or two strings`);
-  },
   "-": (x: number, y: number) => x - y,
-  "-=": (x: number, y: number) => x - y,
   "*": (x: number, y: number) => x * y,
-  "*=": (x: number, y: number) => x * y,
   "/": (x: number, y: number) => x / y,
-  "/=": (x: number, y: number) => x / y,
   "%": (x: number, y: number) => x % y,
-  "%=": (x: number, y: number) => x % y,
   "<": (x: number, y: number) => x < y,
   "<=": (x: number, y: number) => x <= y,
   ">=": (x: number, y: number) => x >= y,

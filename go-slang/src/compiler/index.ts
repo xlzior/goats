@@ -36,6 +36,20 @@ function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
 }
 
+const compoundAssignmentToBinaryOperator = new Map([
+  [Token.ADD_ASSIGN, Token.ADD],
+  [Token.SUB_ASSIGN, Token.SUB],
+  [Token.MUL_ASSIGN, Token.MUL],
+  [Token.QUO_ASSIGN, Token.QUO],
+  [Token.REM_ASSIGN, Token.REM],
+  [Token.AND_ASSIGN, Token.AND],
+  [Token.OR_ASSIGN, Token.OR],
+  [Token.XOR_ASSIGN, Token.XOR],
+  [Token.SHL_ASSIGN, Token.SHL],
+  [Token.SHR_ASSIGN, Token.SHR],
+  [Token.AND_NOT_ASSIGN, Token.AND_NOT],
+]);
+
 export class GolangCompiler {
   private wc: number;
   private instrs: Array<Instruction>;
@@ -110,9 +124,13 @@ export class GolangCompiler {
             this.compile(expr);
           } else {
             // compound assignment: +=, -=, *=, /= etc
+            const Op = compoundAssignmentToBinaryOperator.get(astNode.Tok);
+            if (Op === undefined) {
+              throw new Error(`operator not implemented: ${astNode.Tok}`);
+            }
             const desugared: BinaryExpr = {
               _type: NodeType.BINARY_EXPR,
-              Op: astNode.Tok,
+              Op,
               X: ident,
               Y: expr,
             };
