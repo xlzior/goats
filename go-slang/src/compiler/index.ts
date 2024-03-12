@@ -104,15 +104,25 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { tag: "CALL", arity: astNode.Args.length };
       },
       BlockStmt: (astNode: BlockStmt) => {
+        // empty block
+        if (astNode.List.length === 0) {
+          this.instrs[this.wc++] = { tag: "LDC", val: undefined };
+          return;
+        }
+
         const locals = astNode.List.flatMap(scan);
-        this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
+
+        if (locals.length > 0)
+          this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
+
         astNode.List.forEach((stmt, i) => {
           this.compile(stmt);
           if (i < astNode.List.length - 1) {
             this.instrs[this.wc++] = { tag: "POP" };
           }
         });
-        this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
+
+        if (locals.length > 0) this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
       },
       AssignStmt: (astNode: AssignStmt) => {
         const assignments: [Ident, Expr][] = astNode.Lhs.map((sym, i) => [
@@ -207,7 +217,10 @@ export class GolangCompiler {
   compile_program(rootAstNode: File) {
     const locals = rootAstNode.Decls.map((node) => node.Name.Name);
     this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
-    rootAstNode.Decls.forEach((node) => this.compile(node));
+    rootAstNode.Decls.forEach((node) => {
+      this.compile(node);
+      this.instrs[this.wc++] = { tag: "POP" };
+    });
     this.instrs[this.wc++] = { tag: "LD", sym: "main" };
     this.instrs[this.wc++] = { tag: "CALL", arity: 0 };
     this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
