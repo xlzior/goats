@@ -60,11 +60,11 @@ const unop_microcode: any = {
 const apply_unop = (op: string, v: number | boolean) => unop_microcode[op](v);
 
 const lookup = (x: string, e: any[]): any => {
-  if (e.length < 2) return console.error("unbound name: ", x);
+  if (e.length < 2) throw new Error(`unbound name: ${x}`);
 
   if (e[0].hasOwnProperty(x)) {
     const v = e[0][x];
-    if (is_unassigned(v)) return console.error(x, "unassigned name");
+    if (is_unassigned(v)) throw new Error(`unassigned name: ${x}`);
     return v;
   }
 
@@ -72,7 +72,7 @@ const lookup = (x: string, e: any[]): any => {
 };
 
 const assign_value = (x: string, v: any, e: any[]) => {
-  if (e.length < 2) return console.error("unbound name: ", x);
+  if (e.length < 2) throw new Error(`unbound name: ${x}`);
 
   if (e[0].hasOwnProperty(x)) {
     e[0][x] = v;
@@ -86,7 +86,7 @@ const extend = (xs: string[], vs: any[], e: any) => {
   if (vs.length < xs.length) console.error("too few arguments");
 
   const new_frame = Object.fromEntries(
-    xs.map((key, index) => [key, vs[index]]),
+    xs.map((key, index) => [key, vs[index]])
   );
   return [new_frame, e];
 };

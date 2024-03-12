@@ -134,6 +134,7 @@ export interface AssignStmt extends Stmt {
   _type: NodeType.ASSIGN_STMT;
   Lhs: Ident[];
   Rhs: Expr[];
+  Tok: string; // TODO: add enum to represent tokens
 }
 
 export interface BlockStmt extends Stmt {
