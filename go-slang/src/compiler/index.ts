@@ -17,6 +17,7 @@ import {
   ParenExpr,
   IfStmt,
   Token,
+  ForStmt,
 } from "../types/ast";
 
 import { GOTO, JOF, Instruction } from "../types/vm_instructions";
@@ -180,6 +181,16 @@ export class GolangCompiler {
           astNode.Else ? astNode.Else : { _type: NodeType.BLOCK_STMT, List: [] }
         );
         goto_instruction.addr = this.wc;
+      },
+      ForStmt: (astNode: ForStmt) => {
+        const loop_start = this.wc;
+        this.compile(astNode.Cond);
+        const jump_on_false_instruction: JOF = { tag: "JOF", addr: -1 };
+        this.instrs[this.wc++] = jump_on_false_instruction;
+        this.compile(astNode.Body);
+        this.instrs[this.wc++] = { tag: "POP" };
+        this.instrs[this.wc++] = { tag: "GOTO", addr: loop_start };
+        jump_on_false_instruction.addr = this.wc;
       },
     };
   }
