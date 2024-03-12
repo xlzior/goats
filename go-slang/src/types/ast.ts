@@ -28,20 +28,6 @@ export enum NodeType {
   BRANCH_STMT = "BranchStmt",
 }
 
-export enum Op {
-  ASSIGN = "=",
-  EQ = "==",
-  NEQ = "!=",
-  LT = "<",
-  LTE = "<=",
-  GT = ">",
-  GTE = ">=",
-  OR = "||",
-  AND = "&&",
-  NOT = "!",
-  MINUS = "-",
-}
-
 export enum Token {
   // Special tokens
   ILLEGAL,
@@ -205,14 +191,14 @@ export interface BasicLit extends Expr {
 
 export interface BinaryExpr extends Expr {
   _type: NodeType.BINARY_EXPR;
-  Op: Op;
+  Op: Token;
   X: Expr;
   Y: Expr;
 }
 
 export interface UnaryExpr extends Expr {
   _type: NodeType.UNARY_EXPR;
-  Op: Op.MINUS | Op.NOT;
+  Op: Token.SUB | Token.NOT;
   X: Expr;
 }
 

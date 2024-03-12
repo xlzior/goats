@@ -105,7 +105,19 @@ export class GolangCompiler {
           astNode.Rhs[i],
         ]);
         assignments.forEach(([ident, expr]) => {
-          this.compile(expr);
+          if (astNode.Tok === Token.DEFINE || astNode.Tok === Token.ASSIGN) {
+            // simple assignment
+            this.compile(expr);
+          } else {
+            // compound assignment: +=, -=, *=, /= etc
+            const desugared: BinaryExpr = {
+              _type: NodeType.BINARY_EXPR,
+              Op: astNode.Tok,
+              X: ident,
+              Y: expr,
+            };
+            this.compile(desugared);
+          }
           this.instrs[this.wc++] = { tag: "ASSIGN", sym: ident.Name };
         });
       },
