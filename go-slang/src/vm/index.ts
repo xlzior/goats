@@ -26,10 +26,9 @@ const is_string = (val: any) => typeof val === "string";
 
 const binop_microcode: any = {
   "+": (x: any, y: any) => {
-    if ((is_number(x) && is_number(y)) || (is_string(x) && is_string(y))) {
-      return x + y;
-    }
-    throw Error(`Expects two numbers or two strings`);
+    if (!(is_number(x) && is_number(y)) && !(is_string(x) && is_string(y)))
+      throw new Error(`Expects two numbers or strings, got: ${x}, ${y}`);
+    return x + y;
   },
   "-": (x: number, y: number) => x - y,
   "*": (x: number, y: number) => x * y,
@@ -45,16 +44,18 @@ const binop_microcode: any = {
   "&&": (x: boolean, y: boolean) => x && y,
 };
 
-const apply_binop = (op: Token, v2: number, v1: number) =>
+const apply_binop = (op: Token, v2: number | boolean, v1: number | boolean) =>
   binop_microcode[op](v1, v2);
 
 const unop_microcode: any = {
-  "-": (x: number) => -x,
+  "-": (x: number) => {
+    if (typeof x !== "number") throw new Error(`- expects a number, got: ${x}`);
+    return -x;
+  },
   "!": (x: boolean) => {
-    if (typeof x === "boolean") {
-      return !x;
-    }
-    throw Error("! expects a boolean");
+    if (typeof x !== "boolean")
+      throw new Error(`! expects a boolean, got: ${x}`);
+    return !x;
   },
 };
 
@@ -206,7 +207,7 @@ export class GolangVM {
       if (this.microcode[instr.tag]) {
         this.microcode[instr.tag](instr);
       } else {
-        throw Error(`${instr.tag} not implemented`);
+        throw new Error(`${instr.tag} not implemented`);
       }
     }
     return peek(this.OS);
