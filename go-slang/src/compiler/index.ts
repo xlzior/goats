@@ -105,7 +105,7 @@ export class GolangCompiler {
       },
       FuncDecl: (astNode: FuncDecl) => {
         const params = astNode.Type.Params.List.flatMap((e) =>
-          e.Names.map((name) => name.Name)
+          e.Names.map((name) => name.Name),
         );
         this.instrs[this.wc++] = {
           tag: "LDF",
@@ -147,11 +147,7 @@ export class GolangCompiler {
         if (locals.length > 0) this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
       },
       AssignStmt: (astNode: AssignStmt) => {
-        const assignments: [Ident, Expr][] = astNode.Lhs.map((sym, i) => [
-          sym,
-          astNode.Rhs[i],
-        ]);
-        assignments.forEach(([ident, expr]) => {
+        astNode.Rhs.forEach((expr, i) => {
           if (astNode.Tok === Token.DEFINE || astNode.Tok === Token.ASSIGN) {
             // simple assignment
             this.compile(expr);
@@ -164,12 +160,16 @@ export class GolangCompiler {
             const desugared: BinaryExpr = {
               _type: NodeType.BINARY_EXPR,
               Op,
-              X: ident,
+              X: astNode.Lhs[i],
               Y: expr,
             };
             this.compile(desugared);
           }
+        });
+
+        astNode.Lhs.reverse().forEach((ident) => {
           this.instrs[this.wc++] = { tag: "ASSIGN", sym: ident.Name };
+          this.instrs[this.wc++] = { tag: "POP" };
         });
       },
       Ident: (astNode: Ident) => {
