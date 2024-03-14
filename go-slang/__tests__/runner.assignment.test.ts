@@ -368,4 +368,33 @@ describe("Golang runner for evaluating assignment statements", () => {
       expect(actual.value).toEqual(expected);
     },
   );
+
+  test("evaluate increment by one operator", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := 10
+      x++
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 11;
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate decrement by one operator", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := 10
+      x--
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 9;
+    expect(value).toEqual(expected);
+  });
+
 });

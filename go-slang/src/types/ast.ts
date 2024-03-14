@@ -26,6 +26,7 @@ export enum NodeType {
   RETURN_STMT = "ReturnStmt",
   EXPR_STMT = "ExprStmt",
   BRANCH_STMT = "BranchStmt",
+  IncDecStmt = "IncDecStmt"
 }
 
 export enum Token {
@@ -262,3 +263,9 @@ export interface BranchStmt extends Stmt {
   _type: NodeType.BRANCH_STMT;
   Token: string; // keyword token (break, continue)
 }
+
+export interface IncDecStmt extends Stmt {
+  _type: NodeType.IncDecStmt;
+  Tok: Token.INC | Token.DEC;
+  X: Ident;
+} 
