@@ -44,11 +44,8 @@ const compoundAssignmentToBinaryOperator = new Map([
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
 ]);
 
-function hasNewVariableInDefineStmt(
-  identifiers: Ident[],
-  curr_env_frame: Set<string>,
-) {
-  return identifiers.some((ident) => !curr_env_frame.has(ident.Name));
+function noNewVariables(identifiers: Ident[], curr_env_frame: Set<string>) {
+  return identifiers.every((ident) => curr_env_frame.has(ident.Name));
 }
 
 const main_call: CallExpr = {
@@ -149,7 +146,7 @@ export class GolangCompiler {
         const current_frame = peek(this.compile_env);
         if (
           astNode.Tok === Token.DEFINE &&
-          !hasNewVariableInDefineStmt(astNode.Lhs, current_frame)
+          noNewVariables(astNode.Lhs, current_frame)
         ) {
           throw new Error("no new variables on left side of :=");
         }
