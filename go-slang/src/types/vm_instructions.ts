@@ -1,74 +1,74 @@
 import { Token } from "./ast";
 
 export type LDC = {
-  tag: "LDC";
+  _type: "LDC";
   val: boolean | string | number | undefined;
 };
 
 export type BINOP = {
-  tag: "BINOP";
+  _type: "BINOP";
   sym: Token;
 };
 
 export type UNOP = {
-  tag: "UNOP";
+  _type: "UNOP";
   sym: Token;
 };
 
 export type GOTO = {
-  tag: "GOTO";
+  _type: "GOTO";
   addr: number;
 };
 
 export type JOF = {
-  tag: "JOF";
+  _type: "JOF";
   addr: number;
 };
 
 export type RESET = {
-  tag: "RESET";
+  _type: "RESET";
 };
 
 export type DEFINE = {
-  tag: "DEFINE";
+  _type: "DEFINE";
   sym: string;
 };
 
 export type ASSIGN = {
-  tag: "ASSIGN";
+  _type: "ASSIGN";
   sym: string;
 };
 
 export type CALL = {
-  tag: "CALL";
+  _type: "CALL";
   arity: number;
 };
 
 export type ENTER_SCOPE = {
-  tag: "ENTER_SCOPE";
+  _type: "ENTER_SCOPE";
 };
 
 export type POP = {
-  tag: "POP";
+  _type: "POP";
 };
 
 export type EXIT_SCOPE = {
-  tag: "EXIT_SCOPE";
+  _type: "EXIT_SCOPE";
 };
 
 export type LD = {
-  tag: "LD";
+  _type: "LD";
   sym: string;
 };
 
 export type LDF = {
-  tag: "LDF";
+  _type: "LDF";
   params: string[];
   addr: number;
 };
 
 export type DONE = {
-  tag: "DONE";
+  _type: "DONE";
 };
 
 export type Instruction =
