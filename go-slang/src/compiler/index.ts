@@ -53,8 +53,6 @@ const compoundAssignmentToBinaryOperator = new Map([
   [Token.SHL_ASSIGN, Token.SHL],
   [Token.SHR_ASSIGN, Token.SHR],
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
-  [Token.INC, Token.ADD],
-  [Token.DEC, Token.SUB],
 ]);
 
 const main_call: CallExpr = {
