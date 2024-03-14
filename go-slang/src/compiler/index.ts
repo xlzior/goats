@@ -53,6 +53,8 @@ const compoundAssignmentToBinaryOperator = new Map([
   [Token.SHL_ASSIGN, Token.SHL],
   [Token.SHR_ASSIGN, Token.SHR],
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
+  [Token.INC, Token.ADD],
+  [Token.DEC, Token.SUB],
 ]);
 
 const main_call: CallExpr = {
@@ -182,7 +184,7 @@ export class GolangCompiler {
         if (name === "true" || name === "false") {
           instr = {
             tag: "LDC",
-            val: name === "true" ? true : false,
+            val: name === "true"
           };
         } else {
           instr = {
@@ -220,24 +222,24 @@ export class GolangCompiler {
       },
       IncDecStmt: (astNode: IncDecStmt) => {
         // x++ desugar to x = x + 1
-        const one_literal: BasicLit = {
+        const one_literal_ast: BasicLit = {
           _type: NodeType.BASIC_LIT,
           Kind: "INT",
           Value: "1"
         }
-        const binary_expr: BinaryExpr = {
+        const binary_expr_ast: BinaryExpr = {
           _type: NodeType.BINARY_EXPR,
           Op: astNode.Tok === Token.INC ? Token.ADD : Token.SUB,
           X: astNode.X,
-          Y: one_literal
+          Y: one_literal_ast
         };
-        const assign_stmt: AssignStmt = {
+        const assign_stmt_ast: AssignStmt = {
           _type: NodeType.ASSIGN_STMT,
           Lhs: [astNode.X],
-          Rhs: [binary_expr],
+          Rhs: [binary_expr_ast],
           Tok: Token.ASSIGN
         }
-        this.compile(assign_stmt)
+        this.compile(assign_stmt_ast)
       },
     };
   }

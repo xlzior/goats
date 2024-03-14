@@ -23,6 +23,7 @@ function peek(stack: Array<any>) {
 
 const is_number = (val: any) => typeof val === "number";
 const is_string = (val: any) => typeof val === "string";
+const is_boolean = (val: any) => typeof val === "boolean";
 
 const binop_microcode: any = {
   "+": (x: any, y: any) => {
@@ -42,17 +43,16 @@ const binop_microcode: any = {
   "!=": (x: number, y: number) => x !== y,
 };
 
-const apply_binop = (op: Token, v2: number | boolean, v1: number | boolean) =>
+const apply_binop = (op: Token, v2: number, v1: number) =>
   binop_microcode[op](v1, v2);
 
 const unop_microcode: any = {
   "-": (x: number) => {
-    if (typeof x !== "number") throw new Error(`- expects a number, got: ${x}`);
+    if (!is_number(x)) throw new Error(`- expects a number, got: ${x}`);
     return -x;
   },
   "!": (x: boolean) => {
-    if (typeof x !== "boolean")
-      throw new Error(`! expects a boolean, got: ${x}`);
+    if (!is_boolean(x)) throw new Error(`! expects a boolean, got: ${x}`);
     return !x;
   },
 };
