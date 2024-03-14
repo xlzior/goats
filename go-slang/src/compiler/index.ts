@@ -7,7 +7,6 @@ import {
   FuncDecl,
   ReturnStmt,
   Node,
-  Stmt,
   NodeType,
   AssignStmt,
   Expr,
@@ -27,6 +26,10 @@ function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
 }
 
+function peek(stack: Array<Set<string>>) {
+  return stack[stack.length - 1];
+}
+
 const compoundAssignmentToBinaryOperator = new Map([
   [Token.ADD_ASSIGN, Token.ADD],
   [Token.SUB_ASSIGN, Token.SUB],
@@ -41,6 +44,13 @@ const compoundAssignmentToBinaryOperator = new Map([
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
 ]);
 
+function hasNewVariableInDefineStmt(identifiers: Ident[], curr_env_frame: Set<string>) {
+  for (const ident of identifiers) {
+    if (!curr_env_frame.has(ident.Name)) return true;
+  }
+  return false;
+}
+
 const main_call: CallExpr = {
   _type: NodeType.CALL_EXPR,
   Args: [],
@@ -54,10 +64,12 @@ export class GolangCompiler {
   private wc: number;
   private instrs: Array<Instruction>;
   private compile_ast: any;
+  private compile_env: Array<Set<string>>; // represented as a stack of sets
 
   constructor() {
     this.wc = 0;
     this.instrs = [];
+    this.compile_env = [];
     this.compile_ast = {
       BasicLit: (astNode: BasicLit) => {
         this.instrs[this.wc++] = {
@@ -114,6 +126,7 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { tag: "CALL", arity: astNode.Args.length };
       },
       BlockStmt: (astNode: BlockStmt) => {
+        this.compile_env.push(new Set());
         // empty block
         if (astNode.List.length === 0) {
           this.instrs[this.wc++] = { tag: "LDC", val: undefined };
@@ -130,8 +143,15 @@ export class GolangCompiler {
         });
 
         this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
+        this.compile_env.pop();
       },
       AssignStmt: (astNode: AssignStmt) => {
+
+        const current_frame = peek(this.compile_env)
+        if (astNode.Tok === Token.DEFINE && !hasNewVariableInDefineStmt(astNode.Lhs, current_frame)) {
+          throw new Error("no new variables on left side of :=")
+        }
+
         astNode.Rhs.forEach((expr, i) => {
           if (astNode.Tok === Token.DEFINE || astNode.Tok === Token.ASSIGN) {
             // simple assignment
@@ -153,6 +173,7 @@ export class GolangCompiler {
         });
 
         astNode.Lhs.reverse().forEach((ident) => {
+          current_frame.add(ident.Name)
           if (astNode.Tok === Token.DEFINE) {
             this.instrs[this.wc++] = { tag: "DEFINE", sym: ident.Name };
           }

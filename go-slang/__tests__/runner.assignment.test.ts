@@ -74,7 +74,7 @@ describe("Golang runner for evaluating definition statements", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result.error).toContain(
-      "a has already been defined in this environment",
+      "no new variables on left side of :=",
     );
   });
 
@@ -88,8 +88,23 @@ describe("Golang runner for evaluating definition statements", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result.error).toContain(
-      "has already been defined in this environment",
+      "no new variables on left side of :=",
     );
+  });
+
+  test("redefining the same variables but has 1 new variable with multiple define should not error", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 888, 999, 3
+      a, b, d := 1, 2, 4
+      return a + b + c + d
+    }`;
+    const result = await golangRunner.execute(program);
+    console.log(result)
+    const expected = 10;
+    expect(result.value).toEqual(expected);
   });
 });
 

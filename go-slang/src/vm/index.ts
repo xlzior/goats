@@ -61,10 +61,6 @@ const unop_microcode: any = {
 const apply_unop = (op: Token, v: number | boolean) => unop_microcode[op](v);
 
 const define_name = (name: string, env: any[]) => {
-  if (env[0].hasOwnProperty(name)) {
-    throw new Error(`${name} has already been defined in this environment`);
-  }
-
   env[0][name] = unassigned;
 };
 
