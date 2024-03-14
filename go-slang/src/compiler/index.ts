@@ -18,6 +18,7 @@ import {
   IfStmt,
   Token,
   ForStmt,
+  IncDecStmt,
 } from "../types/ast";
 
 import { GOTO, JOF, Instruction } from "../types/vm_instructions";
@@ -217,6 +218,27 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { tag: "GOTO", addr: loop_start };
         jump_on_false_instruction.addr = this.wc;
       },
+      IncDecStmt: (astNode: IncDecStmt) => {
+        // x++ desugar to x = x + 1
+        const one_literal: BasicLit = {
+          _type: NodeType.BASIC_LIT,
+          Kind: "INT",
+          Value: "1"
+        }
+        const binary_expr: BinaryExpr = {
+          _type: NodeType.BINARY_EXPR,
+          Op: astNode.Tok === Token.INC ? Token.ADD : Token.SUB,
+          X: astNode.X,
+          Y: one_literal
+        };
+        const assign_stmt: AssignStmt = {
+          _type: NodeType.ASSIGN_STMT,
+          Lhs: [astNode.X],
+          Rhs: [binary_expr],
+          Tok: Token.ASSIGN
+        }
+        this.compile(assign_stmt)
+      },
     };
   }
 
@@ -242,6 +264,7 @@ export class GolangCompiler {
     } else {
       console.error(astNode._type, "not implemented");
       console.error(astNode);
+      throw new Error(`${astNode._type} not implemented`) // to make TDD tests fail
     }
   }
 
