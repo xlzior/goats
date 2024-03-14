@@ -86,7 +86,7 @@ const extend = (xs: string[], vs: any[], e: any) => {
   if (vs.length < xs.length) console.error("too few arguments");
 
   const new_frame = Object.fromEntries(
-    xs.map((key, index) => [key, vs[index]])
+    xs.map((key, index) => [key, vs[index]]),
   );
   return [new_frame, e];
 };
