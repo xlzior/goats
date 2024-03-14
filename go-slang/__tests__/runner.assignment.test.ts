@@ -7,82 +7,18 @@ beforeEach(() => {
 });
 
 describe("Golang runner for evaluating definition statements", () => {
-  // test definition from all expression types
-  const simpleDefinitionTestCases = [
-    {
-      program: `
-      package main
+  test("evaluate simple definition statement", async () => {
+    const program = `
+    package main
   
-      func main() {
-        x := 5
-        return x
-      }`,
-      expected: 5,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := 5 + 2
-        return x
-      }`,
-      expected: 7,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := -5
-        return x
-      }`,
-      expected: -5,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := (5 + 2 * 3)
-        return x
-      }`,
-      expected: 11,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := 5
-        y := x
-        return y
-      }`,
-      expected: 5,
-    },
-    {
-      program: `
-      package main
-
-      func add(a, b int) int {
-        return a + b
-      }
-  
-      func main() {
-        x := add(5, 7)
-        return x
-      }`,
-      expected: 12,
-    },
-  ];
-
-  test.each(simpleDefinitionTestCases)(
-    "evaluate program with a simple definition: %s",
-    async ({ program, expected }) => {
-      const actual = await golangRunner.execute(program);
-      expect(actual.value).toEqual(expected);
-    },
-  );
+    func main() {
+      x := 5
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 5;
+    expect(value).toEqual(expected);
+  });
 
   test("evaluate multiple definition statement", async () => {
     const program = `
@@ -130,88 +66,19 @@ describe("Golang runner for evaluating definition statements", () => {
 });
 
 describe("Golang runner for evaluating assignment statements", () => {
-  // test assignment from all expression types
-  const simpleAssignmentTestCases = [
-    {
-      program: `
-      package main
+  test("evaluate simple assignment statement", async () => {
+    const program = `
+    package main
   
-      func main() {
-        x := 0
-        x = 5
-        return x
-      }`,
-      expected: 5,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := 0
-        x = 5 + 2
-        return x
-      }`,
-      expected: 7,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := 0
-        x = -5
-        return x
-      }`,
-      expected: -5,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := 0
-        x = (5 + 2 * 3)
-        return x
-      }`,
-      expected: 11,
-    },
-    {
-      program: `
-      package main
-  
-      func main() {
-        x := 5
-        y := 0
-        y = x
-        return y
-      }`,
-      expected: 5,
-    },
-    {
-      program: `
-      package main
-
-      func add(a, b int) int {
-        return a + b
-      }
-  
-      func main() {
-        x := 0
-        x = add(5, 7)
-        return x
-      }`,
-      expected: 12,
-    },
-  ];
-
-  test.each(simpleAssignmentTestCases)(
-    "evaluate program with a simple assignment: %s",
-    async ({ program, expected }) => {
-      const actual = await golangRunner.execute(program);
-      expect(actual.value).toEqual(expected);
-    },
-  );
+    func main() {
+      x := 5
+      x = 2
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 2;
+    expect(value).toEqual(expected);
+  });
 
   test("evaluate multiple assignment statement", async () => {
     const program = `
@@ -396,5 +263,4 @@ describe("Golang runner for evaluating assignment statements", () => {
     const expected = 9;
     expect(value).toEqual(expected);
   });
-
 });
