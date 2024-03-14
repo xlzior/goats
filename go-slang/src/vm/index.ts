@@ -14,6 +14,7 @@ import {
   RESET,
   JOF,
   Instruction,
+  DEFINE,
 } from "../types/vm_instructions";
 
 function peek(stack: Array<any>) {
@@ -59,29 +60,37 @@ const unop_microcode: any = {
 
 const apply_unop = (op: Token, v: number | boolean) => unop_microcode[op](v);
 
-const lookup = (x: string, e: any[]): any => {
-  if (e.length < 2) throw new Error(`unbound name: ${x}`);
+const define_name = (name: string, env: any[]) => {
+  if (env[0].hasOwnProperty(name)) {
+    throw new Error(`${name} has already been defined in this environment`);
+  }
 
-  if (e[0].hasOwnProperty(x)) {
-    const v = e[0][x];
-    if (is_unassigned(v)) throw new Error(`unassigned name: ${x}`);
+  env[0][name] = unassigned;
+};
+
+const lookup = (name: string, env: any[]): any => {
+  if (env.length < 2) throw new Error(`unbound name: ${name}`);
+
+  if (env[0].hasOwnProperty(name)) {
+    const v = env[0][name];
+    if (is_unassigned(v)) throw new Error(`unassigned name: ${name}`);
     return v;
   }
 
-  return lookup(x, e[1]);
+  return lookup(name, env[1]);
 };
 
-const assign_value = (x: string, v: any, e: any[]) => {
-  if (e.length < 2) throw new Error(`unbound name: ${x}`);
+const assign_value = (name: string, value: any, env: any[]) => {
+  if (env.length < 2) throw new Error(`unbound name: ${name}`);
 
-  if (e[0].hasOwnProperty(x)) {
-    e[0][x] = v;
+  if (env[0].hasOwnProperty(name)) {
+    env[0][name] = value;
   } else {
-    assign_value(x, v, e[1]);
+    assign_value(name, value, env[1]);
   }
 };
 
-const extend = (xs: string[], vs: any[], e: any) => {
+const extend = (e: any, xs: string[] = [], vs: any[] = []) => {
   if (vs.length > xs.length) console.error("too many arguments");
   if (vs.length < xs.length) console.error("too few arguments");
 
@@ -149,9 +158,7 @@ export class GolangVM {
       ENTER_SCOPE: (instr: ENTER_SCOPE) => {
         this.PC++;
         this.RTS.push({ tag: "BLOCK_FRAME", env: this.E });
-        const locals = instr.syms;
-        const unassigneds = locals.map(() => unassigned);
-        this.E = extend(locals, unassigneds, this.E);
+        this.E = extend(this.E);
       },
       EXIT_SCOPE: (instr: EXIT_SCOPE) => {
         this.PC++;
@@ -160,6 +167,10 @@ export class GolangVM {
       LD: (instr: LD) => {
         this.PC++;
         this.OS.push(lookup(instr.sym, this.E));
+      },
+      DEFINE: (instr: DEFINE) => {
+        this.PC++;
+        define_name(instr.sym, this.E);
       },
       ASSIGN: (instr: ASSIGN) => {
         this.PC++;
@@ -186,7 +197,7 @@ export class GolangVM {
           return;
         }
         this.RTS.push({ tag: "CALL_FRAME", addr: this.PC + 1, env: this.E });
-        this.E = extend(sf.params, args, sf.env);
+        this.E = extend(sf.env, sf.params, args);
         this.PC = sf.addr;
       },
       RESET: (instr: RESET) => {

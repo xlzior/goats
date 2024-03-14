@@ -1,10 +1,4 @@
-export type RunnerResult = RunnerResultSuccess | RunnerResultError;
-
-type RunnerResultSuccess = {
-  value: any;
-};
-
-type RunnerResultError = {
+export type RunnerResult = {
   value?: any;
-  error: string;
+  error?: string;
 };

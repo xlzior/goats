@@ -29,6 +29,11 @@ export type RESET = {
   tag: "RESET";
 };
 
+export type DEFINE = {
+  tag: "DEFINE";
+  sym: string;
+};
+
 export type ASSIGN = {
   tag: "ASSIGN";
   sym: string;
@@ -41,7 +46,6 @@ export type CALL = {
 
 export type ENTER_SCOPE = {
   tag: "ENTER_SCOPE";
-  syms: string[];
 };
 
 export type POP = {
@@ -75,6 +79,7 @@ export type Instruction =
   | GOTO
   | JOF
   | RESET
+  | DEFINE
   | ASSIGN
   | LDF
   | CALL
