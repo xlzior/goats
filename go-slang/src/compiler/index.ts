@@ -182,7 +182,7 @@ export class GolangCompiler {
         if (name === "true" || name === "false") {
           instr = {
             tag: "LDC",
-            val: name === "true"
+            val: name === "true",
           };
         } else {
           instr = {
@@ -223,21 +223,21 @@ export class GolangCompiler {
         const one_literal_ast: BasicLit = {
           _type: NodeType.BASIC_LIT,
           Kind: "INT",
-          Value: "1"
-        }
+          Value: "1",
+        };
         const binary_expr_ast: BinaryExpr = {
           _type: NodeType.BINARY_EXPR,
           Op: astNode.Tok === Token.INC ? Token.ADD : Token.SUB,
           X: astNode.X,
-          Y: one_literal_ast
+          Y: one_literal_ast,
         };
         const assign_stmt_ast: AssignStmt = {
           _type: NodeType.ASSIGN_STMT,
           Lhs: [astNode.X],
           Rhs: [binary_expr_ast],
-          Tok: Token.ASSIGN
-        }
-        this.compile(assign_stmt_ast)
+          Tok: Token.ASSIGN,
+        };
+        this.compile(assign_stmt_ast);
       },
     };
   }
@@ -264,7 +264,7 @@ export class GolangCompiler {
     } else {
       console.error(astNode._type, "not implemented");
       console.error(astNode);
-      throw new Error(`${astNode._type} not implemented`) // to make TDD tests fail
+      throw new Error(`${astNode._type} not implemented`); // to make TDD tests fail
     }
   }
 
