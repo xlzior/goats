@@ -44,7 +44,10 @@ const compoundAssignmentToBinaryOperator = new Map([
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
 ]);
 
-function hasNewVariableInDefineStmt(identifiers: Ident[], curr_env_frame: Set<string>) {
+function hasNewVariableInDefineStmt(
+  identifiers: Ident[],
+  curr_env_frame: Set<string>,
+) {
   for (const ident of identifiers) {
     if (!curr_env_frame.has(ident.Name)) return true;
   }
@@ -146,10 +149,12 @@ export class GolangCompiler {
         this.compile_env.pop();
       },
       AssignStmt: (astNode: AssignStmt) => {
-
-        const current_frame = peek(this.compile_env)
-        if (astNode.Tok === Token.DEFINE && !hasNewVariableInDefineStmt(astNode.Lhs, current_frame)) {
-          throw new Error("no new variables on left side of :=")
+        const current_frame = peek(this.compile_env);
+        if (
+          astNode.Tok === Token.DEFINE &&
+          !hasNewVariableInDefineStmt(astNode.Lhs, current_frame)
+        ) {
+          throw new Error("no new variables on left side of :=");
         }
 
         astNode.Rhs.forEach((expr, i) => {
@@ -173,7 +178,7 @@ export class GolangCompiler {
         });
 
         astNode.Lhs.reverse().forEach((ident) => {
-          current_frame.add(ident.Name)
+          current_frame.add(ident.Name);
           if (astNode.Tok === Token.DEFINE) {
             this.instrs[this.wc++] = { tag: "DEFINE", sym: ident.Name };
           }
