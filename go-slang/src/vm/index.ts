@@ -96,9 +96,9 @@ const extend = (e: any, xs: string[] = [], vs: any[] = []) => {
   return [new_frame, e];
 };
 
-const unassigned = { tag: "unassigned" };
+const unassigned = { _type: "unassigned" };
 
-const is_unassigned = (v: any) => v.tag === "unassigned";
+const is_unassigned = (v: any) => v._type === "unassigned";
 
 export class GolangVM {
   private OS: Array<any>;
@@ -115,7 +115,7 @@ export class GolangVM {
 
     for (const key in builtin_mapping) {
       global_frame[key] = {
-        tag: "BUILTIN",
+        _type: "BUILTIN",
         sym: key,
         arity: 1, // TODO: find the arity of the function
       };
@@ -153,7 +153,7 @@ export class GolangVM {
       },
       ENTER_SCOPE: (instr: ENTER_SCOPE) => {
         this.PC++;
-        this.RTS.push({ tag: "BLOCK_FRAME", env: this.E });
+        this.RTS.push({ _type: "BLOCK_FRAME", env: this.E });
         this.E = extend(this.E);
       },
       EXIT_SCOPE: (instr: EXIT_SCOPE) => {
@@ -175,7 +175,7 @@ export class GolangVM {
       LDF: (instr: LDF) => {
         this.PC++;
         this.OS.push({
-          tag: "CLOSURE",
+          _type: "CLOSURE",
           params: instr.params,
           addr: instr.addr,
           env: this.E,
@@ -186,19 +186,19 @@ export class GolangVM {
         let args = [];
         for (let i = arity - 1; i >= 0; i--) args.push(this.OS.pop());
         const sf = this.OS.pop();
-        if (sf.tag === "BUILTIN") {
+        if (sf._type === "BUILTIN") {
           this.PC++;
           const builtin = this.builtin_mapping[sf.sym](...args);
           this.OS.push(builtin);
           return;
         }
-        this.RTS.push({ tag: "CALL_FRAME", addr: this.PC + 1, env: this.E });
+        this.RTS.push({ _type: "CALL_FRAME", addr: this.PC + 1, env: this.E });
         this.E = extend(sf.env, sf.params, args);
         this.PC = sf.addr;
       },
       RESET: (instr: RESET) => {
         const top_frame = this.RTS.pop();
-        if (top_frame.tag === "CALL_FRAME") {
+        if (top_frame._type === "CALL_FRAME") {
           this.PC = top_frame.addr;
           this.E = top_frame.env;
         }
@@ -207,12 +207,12 @@ export class GolangVM {
   }
 
   run(instrs: Instruction[]) {
-    while (!(instrs[this.PC].tag === "DONE")) {
+    while (!(instrs[this.PC]._type === "DONE")) {
       const instr = instrs[this.PC];
-      if (this.microcode[instr.tag]) {
-        this.microcode[instr.tag](instr);
+      if (this.microcode[instr._type]) {
+        this.microcode[instr._type](instr);
       } else {
-        throw new Error(`${instr.tag} not implemented`);
+        throw new Error(`${instr._type} not implemented`);
       }
     }
     return peek(this.OS);
