@@ -130,50 +130,40 @@ export class GolangVM {
     this.RTS = [];
     this.microcode = {
       LDC: (instr: LDC) => {
-        this.PC++;
         this.OS.push(instr.val);
       },
       UNOP: (instr: UNOP) => {
-        this.PC++;
         this.OS.push(apply_unop(instr.sym, this.OS.pop()));
       },
       BINOP: (instr: BINOP) => {
-        this.PC++;
         this.OS.push(apply_binop(instr.sym, this.OS.pop(), this.OS.pop()));
       },
       POP: (instr: POP) => {
-        this.PC++;
         this.OS.pop();
       },
       JOF: (instr: JOF) => {
-        this.PC = this.OS.pop() ? this.PC + 1 : instr.addr;
+        this.PC = this.OS.pop() ? this.PC : instr.addr;
       },
       GOTO: (instr: GOTO) => {
         this.PC = instr.addr;
       },
       ENTER_SCOPE: (instr: ENTER_SCOPE) => {
-        this.PC++;
         this.RTS.push({ _type: "BLOCK_FRAME", env: this.E });
         this.E = extend(this.E);
       },
       EXIT_SCOPE: (instr: EXIT_SCOPE) => {
-        this.PC++;
         this.E = this.RTS.pop().env;
       },
       LD: (instr: LD) => {
-        this.PC++;
         this.OS.push(lookup(instr.sym, this.E));
       },
       DEFINE: (instr: DEFINE) => {
-        this.PC++;
         define_name(instr.sym, this.E);
       },
       ASSIGN: (instr: ASSIGN) => {
-        this.PC++;
         assign_value(instr.sym, peek(this.OS), this.E);
       },
       LDF: (instr: LDF) => {
-        this.PC++;
         this.OS.push({
           _type: "CLOSURE",
           params: instr.params,
@@ -187,16 +177,16 @@ export class GolangVM {
         for (let i = arity - 1; i >= 0; i--) args.push(this.OS.pop());
         const sf = this.OS.pop();
         if (sf._type === "BUILTIN") {
-          this.PC++;
           const builtin = this.builtin_mapping[sf.sym](...args);
           this.OS.push(builtin);
           return;
         }
-        this.RTS.push({ _type: "CALL_FRAME", addr: this.PC + 1, env: this.E });
+        this.RTS.push({ _type: "CALL_FRAME", addr: this.PC, env: this.E });
         this.E = extend(sf.env, sf.params, args);
         this.PC = sf.addr;
       },
       RESET: (instr: RESET) => {
+        this.PC--;
         const top_frame = this.RTS.pop();
         if (top_frame._type === "CALL_FRAME") {
           this.PC = top_frame.addr;
@@ -208,7 +198,7 @@ export class GolangVM {
 
   run(instrs: Instruction[]) {
     while (!(instrs[this.PC]._type === "DONE")) {
-      const instr = instrs[this.PC];
+      const instr = instrs[this.PC++];
       if (this.microcode[instr._type]) {
         this.microcode[instr._type](instr);
       } else {
