@@ -21,7 +21,12 @@ import {
   IncDecStmt,
 } from "../types/ast";
 
-import { GOTO, JOF, Instruction } from "../types/vm_instructions";
+import {
+  GOTO,
+  JOF,
+  Instruction,
+  InstructionType,
+} from "../types/vm_instructions";
 
 function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
@@ -61,7 +66,7 @@ export class GolangCompiler {
     this.compile_ast = {
       BasicLit: (astNode: BasicLit) => {
         this.instrs[this.wc++] = {
-          tag: "LDC",
+          tag: InstructionType.LDC,
           val:
             astNode.Kind === "STRING"
               ? stripQuotes(astNode.Value as string)
@@ -81,11 +86,14 @@ export class GolangCompiler {
         }
         this.compile(astNode.X);
         this.compile(astNode.Y);
-        this.instrs[this.wc++] = { tag: "BINOP", sym: astNode.Op };
+        this.instrs[this.wc++] = {
+          tag: InstructionType.BINOP,
+          sym: astNode.Op,
+        };
       },
       UnaryExpr: (astNode: UnaryExpr) => {
         this.compile(astNode.X);
-        this.instrs[this.wc++] = { tag: "UNOP", sym: astNode.Op };
+        this.instrs[this.wc++] = { tag: InstructionType.UNOP, sym: astNode.Op };
       },
       ParenExpr: (astNode: ParenExpr) => {
         this.compile(astNode.X);
@@ -95,41 +103,50 @@ export class GolangCompiler {
           e.Names.map((name) => name.Name),
         );
         this.instrs[this.wc++] = {
-          tag: "LDF",
+          tag: InstructionType.LDF,
           params: params,
           addr: this.wc + 1,
         };
-        const goto_instruction: GOTO = { tag: "GOTO", addr: -1 };
+        const goto_instruction: GOTO = { tag: InstructionType.GOTO, addr: -1 };
         this.instrs[this.wc++] = goto_instruction;
         this.compile(astNode.Body);
-        this.instrs[this.wc++] = { tag: "LDC", val: undefined };
-        this.instrs[this.wc++] = { tag: "RESET" };
+        this.instrs[this.wc++] = { tag: InstructionType.LDC, val: undefined };
+        this.instrs[this.wc++] = { tag: InstructionType.RESET };
         goto_instruction.addr = this.wc;
-        this.instrs[this.wc++] = { tag: "DEFINE", sym: astNode.Name.Name };
-        this.instrs[this.wc++] = { tag: "ASSIGN", sym: astNode.Name.Name };
+        this.instrs[this.wc++] = {
+          tag: InstructionType.DEFINE,
+          sym: astNode.Name.Name,
+        };
+        this.instrs[this.wc++] = {
+          tag: InstructionType.ASSIGN,
+          sym: astNode.Name.Name,
+        };
       },
       CallExpr: (astNode: CallExpr) => {
         this.compile(astNode.Fun);
         astNode.Args.forEach((arg) => this.compile(arg));
-        this.instrs[this.wc++] = { tag: "CALL", arity: astNode.Args.length };
+        this.instrs[this.wc++] = {
+          tag: InstructionType.CALL,
+          arity: astNode.Args.length,
+        };
       },
       BlockStmt: (astNode: BlockStmt) => {
         // empty block
         if (astNode.List.length === 0) {
-          this.instrs[this.wc++] = { tag: "LDC", val: undefined };
+          this.instrs[this.wc++] = { tag: InstructionType.LDC, val: undefined };
           return;
         }
 
-        this.instrs[this.wc++] = { tag: "ENTER_SCOPE" };
+        this.instrs[this.wc++] = { tag: InstructionType.ENTER_SCOPE };
 
         astNode.List.forEach((stmt, i) => {
           this.compile(stmt);
           if (i < astNode.List.length - 1) {
-            this.instrs[this.wc++] = { tag: "POP" };
+            this.instrs[this.wc++] = { tag: InstructionType.POP };
           }
         });
 
-        this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
+        this.instrs[this.wc++] = { tag: InstructionType.EXIT_SCOPE };
       },
       AssignStmt: (astNode: AssignStmt) => {
         astNode.Rhs.forEach((expr, i) => {
@@ -154,10 +171,16 @@ export class GolangCompiler {
 
         astNode.Lhs.reverse().forEach((ident) => {
           if (astNode.Tok === Token.DEFINE) {
-            this.instrs[this.wc++] = { tag: "DEFINE", sym: ident.Name };
+            this.instrs[this.wc++] = {
+              tag: InstructionType.DEFINE,
+              sym: ident.Name,
+            };
           }
-          this.instrs[this.wc++] = { tag: "ASSIGN", sym: ident.Name };
-          this.instrs[this.wc++] = { tag: "POP" };
+          this.instrs[this.wc++] = {
+            tag: InstructionType.ASSIGN,
+            sym: ident.Name,
+          };
+          this.instrs[this.wc++] = { tag: InstructionType.POP };
         });
       },
       Ident: (astNode: Ident) => {
@@ -168,12 +191,12 @@ export class GolangCompiler {
         // and continue treating it like an Ident / LD instruction
         if (name === "true" || name === "false") {
           instr = {
-            tag: "LDC",
+            tag: InstructionType.LDC,
             val: name === "true",
           };
         } else {
           instr = {
-            tag: "LD",
+            tag: InstructionType.LD,
             sym: name,
           };
         }
@@ -183,7 +206,7 @@ export class GolangCompiler {
         astNode.Results.forEach((result) => {
           this.compile(result);
         });
-        this.instrs[this.wc++] = { tag: "RESET" };
+        this.instrs[this.wc++] = { tag: InstructionType.RESET };
       },
       ExprStmt: (astNode: ExprStmt) => {
         this.compile(astNode.X);
@@ -198,11 +221,17 @@ export class GolangCompiler {
       ForStmt: (astNode: ForStmt) => {
         const loop_start = this.wc;
         this.compile(astNode.Cond);
-        const jump_on_false_instruction: JOF = { tag: "JOF", addr: -1 };
+        const jump_on_false_instruction: JOF = {
+          tag: InstructionType.JOF,
+          addr: -1,
+        };
         this.instrs[this.wc++] = jump_on_false_instruction;
         this.compile(astNode.Body);
-        this.instrs[this.wc++] = { tag: "POP" };
-        this.instrs[this.wc++] = { tag: "GOTO", addr: loop_start };
+        this.instrs[this.wc++] = { tag: InstructionType.POP };
+        this.instrs[this.wc++] = {
+          tag: InstructionType.GOTO,
+          addr: loop_start,
+        };
         jump_on_false_instruction.addr = this.wc;
       },
       IncDecStmt: (astNode: IncDecStmt) => {
@@ -235,10 +264,13 @@ export class GolangCompiler {
     alt: Expr | BlockStmt,
   ) {
     this.compile(pred);
-    const jump_on_false_instruction: JOF = { tag: "JOF", addr: -1 };
+    const jump_on_false_instruction: JOF = {
+      tag: InstructionType.JOF,
+      addr: -1,
+    };
     this.instrs[this.wc++] = jump_on_false_instruction;
     this.compile(cons);
-    const goto_instruction: GOTO = { tag: "GOTO", addr: -1 };
+    const goto_instruction: GOTO = { tag: InstructionType.GOTO, addr: -1 };
     this.instrs[this.wc++] = goto_instruction;
     jump_on_false_instruction.addr = this.wc;
     this.compile(alt);
@@ -262,7 +294,7 @@ export class GolangCompiler {
     };
 
     this.compile(block);
-    this.instrs[this.wc] = { tag: "DONE" };
+    this.instrs[this.wc] = { tag: InstructionType.DONE };
     return this.instrs;
   }
 }
