@@ -101,10 +101,89 @@ describe("Golang runner for evaluating definition statements", () => {
       a, b, d := 1, 2, 4
       return a + b + c + d
     }`;
-    const result = await golangRunner.execute(program);
-    console.log(result)
+    const { value } = await golangRunner.execute(program);
     const expected = 10;
-    expect(result.value).toEqual(expected);
+    expect(value).toEqual(expected);
+  });
+
+  test("redefining the same variables but has 2 new variables with multiple define should not error", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 888, 999, 3
+      a, b, d, e := 1, 2, 4, 5
+      return a + b + c + d + e
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 15;
+    expect(value).toEqual(expected);
+  });
+
+  test("redefining the same variables with new variables with multiple define should not error in 1 level of nesting", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 888, 999, 3
+      a, b, d := 1, 2, 4
+      {
+        a, b, c := 123, 456, 30
+        a, b, d := 11, 22, 44
+        return a + b + c + d;
+      }
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 107;
+    expect(value).toEqual(expected);
+  });
+
+  test("redefining the same variables with new variables with multiple define should not error in 2 levels of nesting", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 888, 999, 3
+      a, b, d := 1, 2, 4
+      {
+        a, b, c := 123, 456, 30
+        a, b, d := 11, 22, 44
+        {
+          a, b, c := 33, 126, 931
+          a, b, d := 1131, 2132, 13
+          return a + b + c + d;
+        }
+      }
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 4207;
+    expect(value).toEqual(expected);
+  });
+
+  test("redefining the same variables with new variables with multiple define should not error in 3 levels of nesting", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 888, 999, 3
+      a, b, d := 1, 2, 4
+      {
+        a, b, c := 123, 456, 30
+        a, b, d := 11, 22, 44
+        {
+          a, b, c := 33, 126, 931
+          a, b, d := 1131, 2132, 13
+          {
+            a, b, c := 0, 1, 2
+            a, b, d := 77, 88, 99
+            return a + b + c + d
+          }
+        }
+      }
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 266;
+    expect(value).toEqual(expected);
   });
 });
 
