@@ -26,7 +26,7 @@ function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
 }
 
-function peek(stack: Array<Set<string>>) {
+function peek<T>(stack: Array<T>): T {
   return stack[stack.length - 1];
 }
 
@@ -48,10 +48,7 @@ function hasNewVariableInDefineStmt(
   identifiers: Ident[],
   curr_env_frame: Set<string>,
 ) {
-  for (const ident of identifiers) {
-    if (!curr_env_frame.has(ident.Name)) return true;
-  }
-  return false;
+  return identifiers.some((ident) => !curr_env_frame.has(ident.Name));
 }
 
 const main_call: CallExpr = {
@@ -178,8 +175,8 @@ export class GolangCompiler {
         });
 
         astNode.Lhs.reverse().forEach((ident) => {
-          current_frame.add(ident.Name);
           if (astNode.Tok === Token.DEFINE) {
+            current_frame.add(ident.Name);
             this.instrs[this.wc++] = { tag: "DEFINE", sym: ident.Name };
           }
           this.instrs[this.wc++] = { tag: "ASSIGN", sym: ident.Name };
