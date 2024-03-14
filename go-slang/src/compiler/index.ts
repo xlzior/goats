@@ -23,20 +23,6 @@ import {
 
 import { GOTO, JOF, Instruction } from "../types/vm_instructions";
 
-function scan(statement: Stmt): string[] {
-  switch (statement._type) {
-    case NodeType.FUNC_DECL:
-      const func_decl = statement as FuncDecl;
-      return [func_decl.Name.Name];
-    case NodeType.ASSIGN_STMT:
-      const stmt = statement as AssignStmt;
-      if (stmt.Tok === Token.DEFINE)
-        return (statement as AssignStmt).Lhs.map((e) => e.Name);
-    default:
-      return [];
-  }
-}
-
 function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
 }
@@ -119,6 +105,7 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { tag: "LDC", val: undefined };
         this.instrs[this.wc++] = { tag: "RESET" };
         goto_instruction.addr = this.wc;
+        this.instrs[this.wc++] = { tag: "DEFINE", sym: astNode.Name.Name };
         this.instrs[this.wc++] = { tag: "ASSIGN", sym: astNode.Name.Name };
       },
       CallExpr: (astNode: CallExpr) => {
@@ -133,10 +120,7 @@ export class GolangCompiler {
           return;
         }
 
-        const locals = astNode.List.flatMap(scan);
-
-        if (locals.length > 0)
-          this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals };
+        this.instrs[this.wc++] = { tag: "ENTER_SCOPE" };
 
         astNode.List.forEach((stmt, i) => {
           this.compile(stmt);
@@ -145,7 +129,7 @@ export class GolangCompiler {
           }
         });
 
-        if (locals.length > 0) this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
+        this.instrs[this.wc++] = { tag: "EXIT_SCOPE" };
       },
       AssignStmt: (astNode: AssignStmt) => {
         astNode.Rhs.forEach((expr, i) => {
@@ -169,6 +153,9 @@ export class GolangCompiler {
         });
 
         astNode.Lhs.reverse().forEach((ident) => {
+          if (astNode.Tok === Token.DEFINE) {
+            this.instrs[this.wc++] = { tag: "DEFINE", sym: ident.Name };
+          }
           this.instrs[this.wc++] = { tag: "ASSIGN", sym: ident.Name };
           this.instrs[this.wc++] = { tag: "POP" };
         });

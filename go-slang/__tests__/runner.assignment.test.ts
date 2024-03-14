@@ -63,6 +63,34 @@ describe("Golang runner for evaluating definition statements", () => {
     const expected = 321;
     expect(value).toEqual(expected);
   });
+
+  test("redefining the same variable should error", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a := 5
+      a := 5
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result.error).toContain(
+      "a has already been defined in this environment",
+    );
+  });
+
+  test("redefining the same variable with multiple define should error", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 5, 6, 7
+      a, b, c := 5, 6, 7
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result.error).toContain(
+      "has already been defined in this environment",
+    );
+  });
 });
 
 describe("Golang runner for evaluating assignment statements", () => {

@@ -2,8 +2,10 @@ import { GolangRunner } from "../src";
 
 let golangRunner: GolangRunner;
 
+const println = jest.fn();
 beforeEach(() => {
-  golangRunner = new GolangRunner();
+  println.mockClear();
+  golangRunner = new GolangRunner({ Println: println });
 });
 
 describe("Golang runner for evaluating assignments in blocks", () => {
@@ -68,5 +70,24 @@ describe("Golang runner for evaluating assignments in blocks", () => {
     const { value } = await golangRunner.execute(program);
     const expected = 15;
     expect(value).toEqual(expected);
+  });
+
+  test("before defining x inside block, x in outer block can still be accessed", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := 10
+      {
+          Println(x)
+          x := 45 + x
+          Println(x)
+      }
+      Println(x + 20)
+    }`;
+    await golangRunner.execute(program);
+    expect(println).toHaveBeenNthCalledWith(1, 10);
+    expect(println).toHaveBeenNthCalledWith(2, 55);
+    expect(println).toHaveBeenNthCalledWith(3, 30);
   });
 });

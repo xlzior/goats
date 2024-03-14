@@ -25,7 +25,7 @@ export class GolangRunner {
 
       return { value: result };
     } catch (error: any) {
-      return { error };
+      return { error: error.message };
     }
   }
 }
