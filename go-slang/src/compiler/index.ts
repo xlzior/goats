@@ -1,3 +1,4 @@
+import { BuiltinFunction } from "../types";
 import {
   File,
   BasicLit,
@@ -63,10 +64,10 @@ export class GolangCompiler {
   private compile_ast: any;
   private compile_env: Array<Array<string>>; // stack of arrays
 
-  constructor() {
+  constructor(builtin_mapping: Record<string, BuiltinFunction>) {
     this.wc = 0;
     this.instrs = [];
-    this.compile_env = [];
+    this.compile_env = [Object.keys(builtin_mapping)];
     this.compile_ast = {
       BasicLit: (astNode: BasicLit) => {
         this.instrs[this.wc++] = {

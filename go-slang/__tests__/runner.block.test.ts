@@ -5,7 +5,7 @@ let golangRunner: GolangRunner;
 const println = jest.fn();
 beforeEach(() => {
   println.mockClear();
-  golangRunner = new GolangRunner({ Println: println });
+  golangRunner = new GolangRunner({ Println: { arity: 1, apply: println } });
 });
 
 describe("Golang runner for evaluating assignments in blocks", () => {

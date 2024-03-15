@@ -1,3 +1,4 @@
+import { BuiltinFunction } from "../types";
 import { Token } from "../types/ast";
 import {
   LDC,
@@ -69,7 +70,7 @@ export class GolangVM {
   private RTS: Array<number>;
   private memory: Memory;
   private microcode: any;
-  private builtin_mapping: Record<string, any>;
+  private builtin_array: Array<BuiltinFunction>;
 
   pop_os() {
     const address = this.OS.pop();
@@ -85,14 +86,40 @@ export class GolangVM {
     this.OS.push(this.memory.js_value_to_address(value));
   }
 
-  constructor(builtin_mapping: Record<string, any>) {
-    this.builtin_mapping = builtin_mapping;
+  apply_builtin(id: number) {
+    const { arity, apply } = this.builtin_array[id];
+    const args = [];
+    for (let i = 0; i < arity; i++) {
+      args.push(this.pop_os());
+    }
+    const result = apply.apply(null, args);
+    this.push_os(result);
+  }
+
+  constructor(builtin_mapping: Record<string, BuiltinFunction>) {
     this.memory = new Memory(1000000);
+    this.builtin_array = Object.values(builtin_mapping);
+
+    const empty_environment = this.memory.environment.allocate(0);
+    const global_frame = this.memory.frame.allocate(this.builtin_array.length);
+
+    this.builtin_array.forEach((fn, i) => {
+      this.memory.heap.set_child(
+        global_frame,
+        i,
+        this.memory.builtin.allocate(i),
+      );
+    });
+
+    const global_environment = this.memory.environment.extend(
+      global_frame,
+      empty_environment,
+    );
+
     this.OS = [];
     this.PC = 0;
     this.RTS = [];
-    // TODO: initialise global frame
-    this.E = this.memory.environment.allocate(0);
+    this.E = global_environment;
     this.microcode = {
       LDC: (instr: LDC) => {
         this.push_os(instr.val);
@@ -149,19 +176,24 @@ export class GolangVM {
       CALL: (instr: CALL) => {
         const arity = instr.arity;
         let fun = peek(this.OS, arity);
-        // TODO: implement built-in functions
 
-        const frame_address = this.memory.frame.allocate(arity);
-        for (let i = arity - 1; i >= 0; i--) {
-          this.memory.heap.set_child(frame_address, i, this.OS.pop());
+        if (this.memory.heap.get_tag(fun) === Tag.Builtin) {
+          return this.apply_builtin(this.memory.builtin.get_id(fun));
         }
-        this.OS.pop(); // pop fun
-        this.RTS.push(this.memory.callframe.allocate(this.E, this.PC));
-        this.E = this.memory.environment.extend(
-          frame_address,
-          this.memory.closure.get_environment(fun),
-        );
-        this.PC = this.memory.closure.get_pc(fun);
+
+        if (this.memory.heap.get_tag(fun) === Tag.Closure) {
+          const frame_address = this.memory.frame.allocate(arity);
+          for (let i = arity - 1; i >= 0; i--) {
+            this.memory.heap.set_child(frame_address, i, this.OS.pop());
+          }
+          this.OS.pop(); // pop fun
+          this.RTS.push(this.memory.callframe.allocate(this.E, this.PC));
+          this.E = this.memory.environment.extend(
+            frame_address,
+            this.memory.closure.get_environment(fun),
+          );
+          this.PC = this.memory.closure.get_pc(fun);
+        }
       },
       RESET: (instr: RESET) => {
         this.PC--;
