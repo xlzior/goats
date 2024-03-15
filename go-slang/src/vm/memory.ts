@@ -5,11 +5,14 @@ export class Memory {
   heap: Heap;
   False: number;
   True: number;
+  // TODO: go does not have undefined
+  Undefined: number;
 
   constructor(heap_size: number) {
     this.heap = new Heap(heap_size);
     this.False = this.heap.allocate(Tag.False, 1);
     this.True = this.heap.allocate(Tag.True, 1);
+    this.Undefined = this.heap.allocate(Tag.Undefined, 1);
   }
 
   address_to_js_value(address: number) {
@@ -18,6 +21,8 @@ export class Memory {
         return false;
       case Tag.True:
         return true;
+      case Tag.Undefined:
+        return undefined;
       case Tag.Number:
         return this.heap.get(address + 1);
       case Tag.Closure:
@@ -34,10 +39,12 @@ export class Memory {
       return this.True;
     } else if (value === false) {
       return this.False;
+    } else if (value === undefined) {
+      return this.Undefined;
     } else if (typeof value === "number") {
       return this.number.allocate(value);
     }
-    return -1;
+    throw new Error(`Could not convert JS value ${value} to address`);
   }
 
   number = {
