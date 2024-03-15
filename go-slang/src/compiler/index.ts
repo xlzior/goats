@@ -100,9 +100,11 @@ export class GolangCompiler {
         this.compile(astNode.X);
       },
       FuncDecl: (astNode: FuncDecl) => {
+        // compiling the function itself: params and body
         const params = astNode.Type.Params.List.flatMap((e) =>
           e.Names.map((name) => name.Name),
         );
+        this.compile_env.push(params);
         this.instrs[this.wc++] = {
           _type: "LDF",
           params: params,
@@ -114,7 +116,9 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { _type: "LDC", val: undefined };
         this.instrs[this.wc++] = { _type: "RESET" };
         goto_instruction.addr = this.wc;
+        this.compile_env.pop();
 
+        // compiling the name of the function
         const name = astNode.Name.Name;
         const current_frame = peek(this.compile_env);
         if (current_frame.includes(name)) {
@@ -134,13 +138,13 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { _type: "CALL", arity: astNode.Args.length };
       },
       BlockStmt: (astNode: BlockStmt) => {
-        this.compile_env.push([]);
         // empty block
         if (astNode.List.length === 0) {
           this.instrs[this.wc++] = { _type: "LDC", val: undefined };
           return;
         }
 
+        this.compile_env.push([]);
         const enter_scope_instr: ENTER_SCOPE = { _type: "ENTER_SCOPE", num: 0 };
         this.instrs[this.wc++] = enter_scope_instr;
 
