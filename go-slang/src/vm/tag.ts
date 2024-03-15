@@ -1,8 +1,9 @@
 export enum Tag {
   False,
   True,
-  Number,
+  Undefined,
   Nil,
+  Number,
   Blockframe,
   Callframe,
   Closure,
