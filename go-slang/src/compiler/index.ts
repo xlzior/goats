@@ -188,7 +188,7 @@ export class GolangCompiler {
           }
         });
 
-        astNode.Lhs.reverse().forEach((ident) => {
+        astNode.Lhs.reverse().forEach((ident, i) => {
           if (
             astNode.Tok === Token.DEFINE &&
             !current_frame.includes(ident.Name)
@@ -201,7 +201,9 @@ export class GolangCompiler {
             sym: ident.Name,
             pos: this.cte_position(ident.Name),
           };
-          this.instrs[this.wc++] = { _type: "POP" };
+          if (i < astNode.Lhs.length - 1) {
+            this.instrs[this.wc++] = { _type: "POP" };
+          }
         });
       },
       Ident: (astNode: Ident) => {
