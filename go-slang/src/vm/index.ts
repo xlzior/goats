@@ -73,7 +73,11 @@ export class GolangVM {
 
   pop_os() {
     const address = this.OS.pop();
-    if (address === undefined) throw new Error(`Tried to pop from an empty OS`);
+    if (address === undefined) {
+      return undefined;
+      // TODO: throw error? sign that there is an unecessary pop
+      // throw new Error(`Tried to pop from an empty OS`);
+    }
     return this.memory.address_to_js_value(address);
   }
 
