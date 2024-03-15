@@ -16,7 +16,8 @@ import {
   Instruction,
   DEFINE,
 } from "../types/vm_instructions";
-import { Memory, Tag } from "./heap";
+import { Memory } from "./memory";
+import { Tag } from "./tag";
 
 function peek<T>(stack: Array<T>, index: number = 0) {
   if (stack.length === 0) throw new Error("Stack is empty!");
@@ -60,63 +61,6 @@ const unop_microcode: any = {
 };
 
 const apply_unop = (op: Token, v: any) => unop_microcode[op](v);
-
-// TODO: replace with low level memory
-const define_name = (name: string, env: any[]) => {
-  env[0][name] = unassigned;
-};
-
-const lookup = (name: string, env: any[]): any => {
-  if (env.length < 2) throw new Error(`unbound name: ${name}`);
-
-  if (env[0].hasOwnProperty(name)) {
-    const v = env[0][name];
-    if (is_unassigned(v)) throw new Error(`unassigned name: ${name}`);
-    return v;
-  }
-
-  return lookup(name, env[1]);
-};
-
-const assign_value = (name: string, value: any, env: any[]) => {
-  if (env.length < 2) throw new Error(`unbound name: ${name}`);
-
-  if (env[0].hasOwnProperty(name)) {
-    env[0][name] = value;
-  } else {
-    assign_value(name, value, env[1]);
-  }
-};
-
-const extend = (e: any, xs: string[] = [], vs: any[] = []) => {
-  if (vs.length > xs.length) console.error("too many arguments");
-  if (vs.length < xs.length) console.error("too few arguments");
-
-  const new_frame = Object.fromEntries(
-    xs.map((key, index) => [key, vs[index]]),
-  );
-  return [new_frame, e];
-};
-
-// TODO: go has no unassigned
-const unassigned = { _type: "unassigned" };
-const is_unassigned = (v: any) => v._type === "unassigned";
-
-function initialise_environment(builtin_mapping: Record<string, any>) {
-  const global_frame: Record<string, any> = {};
-
-  for (const key in builtin_mapping) {
-    global_frame[key] = {
-      _type: "BUILTIN",
-      sym: key,
-      arity: 1, // TODO: find the arity of the function
-    };
-  }
-
-  const empty_environment: any[] = [];
-  const global_environment = [global_frame, empty_environment];
-  return global_environment;
-}
 
 export class GolangVM {
   private OS: Array<number>;
@@ -169,7 +113,9 @@ export class GolangVM {
         const frame_address = this.memory.frame.allocate(instr.num);
         this.E = this.memory.environment.extend(frame_address, this.E);
         for (let i = 0; i < instr.num; i++) {
-          this.memory.heap.set_child(frame_address, i, unassigned);
+          // initialise variables to 0
+          // TODO: how to initialise the variables? unassigned?
+          this.memory.heap.set_child(frame_address, i, 0);
         }
       },
       EXIT_SCOPE: (instr: EXIT_SCOPE) => {
@@ -229,13 +175,11 @@ export class GolangVM {
   run(instrs: Instruction[]) {
     while (!(instrs[this.PC]._type === "DONE")) {
       const instr = instrs[this.PC++];
-      // console.log(instr);
       if (this.microcode[instr._type]) {
         this.microcode[instr._type](instr);
       } else {
         throw new Error(`${instr._type} not implemented`);
       }
-      // console.log(this.OS.map((addr) => this.memory.address_to_js_value(addr)));
     }
     return this.pop_os();
   }
