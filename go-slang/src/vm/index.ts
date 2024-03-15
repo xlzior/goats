@@ -97,7 +97,7 @@ export class GolangVM {
   }
 
   constructor(builtin_mapping: Record<string, BuiltinFunction>) {
-    this.memory = new Memory(1000000);
+    this.memory = new Memory(10000000);
     this.builtin_array = Object.values(builtin_mapping);
 
     const empty_environment = this.memory.environment.allocate(0);
