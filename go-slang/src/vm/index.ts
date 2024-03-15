@@ -176,12 +176,13 @@ export class GolangVM {
       CALL: (instr: CALL) => {
         const arity = instr.arity;
         let fun = peek(this.OS, arity);
+        const tag = this.memory.heap.get_tag(fun);
 
-        if (this.memory.heap.get_tag(fun) === Tag.Builtin) {
+        if (tag === Tag.Builtin) {
           return this.apply_builtin(this.memory.builtin.get_id(fun));
         }
 
-        if (this.memory.heap.get_tag(fun) === Tag.Closure) {
+        if (tag === Tag.Closure) {
           const frame_address = this.memory.frame.allocate(arity);
           for (let i = arity - 1; i >= 0; i--) {
             this.memory.heap.set_child(frame_address, i, this.OS.pop());
@@ -193,7 +194,10 @@ export class GolangVM {
             this.memory.closure.get_environment(fun),
           );
           this.PC = this.memory.closure.get_pc(fun);
+          return;
         }
+
+        throw new Error(`Tried to CALL on a non-function type: tag ${tag}`);
       },
       RESET: (instr: RESET) => {
         this.PC--;
