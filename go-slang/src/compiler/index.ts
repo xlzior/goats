@@ -101,7 +101,6 @@ export class GolangCompiler {
         this.compile(astNode.X);
       },
       FuncDecl: (astNode: FuncDecl) => {
-        // compiling the function itself: params and body
         const params = astNode.Type.Params.List.flatMap((e) =>
           e.Names.map((name) => name.Name),
         );
@@ -119,12 +118,10 @@ export class GolangCompiler {
         goto_instruction.addr = this.wc;
         this.compile_env.pop();
 
-        // compiling the name of the function
-        const name = astNode.Name.Name;
         this.instrs[this.wc++] = {
           _type: "ASSIGN",
-          sym: name,
-          pos: this.cte_position(name),
+          sym: astNode.Name.Name,
+          pos: this.cte_position(astNode.Name.Name),
         };
       },
       CallExpr: (astNode: CallExpr) => {
