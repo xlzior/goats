@@ -121,11 +121,6 @@ export class GolangCompiler {
 
         // compiling the name of the function
         const name = astNode.Name.Name;
-        const current_frame = peek(this.compile_env);
-        if (current_frame.includes(name)) {
-          throw new Error(`${name} redeclared in this block`);
-        }
-        current_frame.push(name);
         this.instrs[this.wc++] = { _type: "DEFINE", sym: name };
         this.instrs[this.wc++] = {
           _type: "ASSIGN",
@@ -145,7 +140,10 @@ export class GolangCompiler {
           return;
         }
 
-        this.compile_env.push([]);
+        const func_decls = astNode.List.filter(
+          (val) => val._type === NodeType.FUNC_DECL,
+        ).map((func) => (func as FuncDecl).Name.Name);
+        this.compile_env.push(func_decls);
         const enter_scope_instr: ENTER_SCOPE = { _type: "ENTER_SCOPE", num: 0 };
         this.instrs[this.wc++] = enter_scope_instr;
 

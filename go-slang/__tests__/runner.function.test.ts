@@ -184,11 +184,11 @@ describe("Golang runner for evaluating functions", () => {
     const program = `
     package main
 
-    func first() {
+    func first() int {
       return second()
     }
 
-    func second() {
+    func second() int {
       return 3
     }
   
