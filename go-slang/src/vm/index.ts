@@ -16,10 +16,11 @@ import {
   Instruction,
   DEFINE,
 } from "../types/vm_instructions";
+import { Memory, Tag } from "./heap";
 
-function peek(stack: Array<any>) {
+function peek<T>(stack: Array<T>, index: number = 0) {
   if (stack.length === 0) throw new Error("Stack is empty!");
-  return stack[stack.length - 1];
+  return stack[stack.length - 1 - index];
 }
 
 const is_number = (val: any) => typeof val === "number";
@@ -44,7 +45,7 @@ const binop_microcode: any = {
   "!=": (x: number, y: number) => x !== y,
 };
 
-const apply_binop = (op: Token, v2: number, v1: number) =>
+const apply_binop = (op: Token, v2: any, v1: any) =>
   binop_microcode[op](v1, v2);
 
 const unop_microcode: any = {
@@ -58,8 +59,9 @@ const unop_microcode: any = {
   },
 };
 
-const apply_unop = (op: Token, v: number | boolean) => unop_microcode[op](v);
+const apply_unop = (op: Token, v: any) => unop_microcode[op](v);
 
+// TODO: replace with low level memory
 const define_name = (name: string, env: any[]) => {
   env[0][name] = unassigned;
 };
@@ -96,102 +98,130 @@ const extend = (e: any, xs: string[] = [], vs: any[] = []) => {
   return [new_frame, e];
 };
 
+// TODO: go has no unassigned
 const unassigned = { _type: "unassigned" };
-
 const is_unassigned = (v: any) => v._type === "unassigned";
 
+function initialise_environment(builtin_mapping: Record<string, any>) {
+  const global_frame: Record<string, any> = {};
+
+  for (const key in builtin_mapping) {
+    global_frame[key] = {
+      _type: "BUILTIN",
+      sym: key,
+      arity: 1, // TODO: find the arity of the function
+    };
+  }
+
+  const empty_environment: any[] = [];
+  const global_environment = [global_frame, empty_environment];
+  return global_environment;
+}
+
 export class GolangVM {
-  private OS: Array<any>;
+  private OS: Array<number>;
   private PC: number;
-  private E: Array<any>;
-  private RTS: Array<any>;
+  private E: number;
+  private RTS: Array<number>;
+  private memory: Memory;
   private microcode: any;
   private builtin_mapping: Record<string, any>;
 
+  pop_os() {
+    const address = this.OS.pop();
+    if (address === undefined) throw new Error(`Tried to pop from an empty OS`);
+    return this.memory.address_to_js_value(address);
+  }
+
+  push_os(value: any) {
+    this.OS.push(this.memory.js_value_to_address(value));
+  }
+
   constructor(builtin_mapping: Record<string, any>) {
     this.builtin_mapping = builtin_mapping;
-
-    const global_frame: Record<string, any> = {};
-
-    for (const key in builtin_mapping) {
-      global_frame[key] = {
-        _type: "BUILTIN",
-        sym: key,
-        arity: 1, // TODO: find the arity of the function
-      };
-    }
-
-    const empty_environment: any[] = [];
-    const global_environment = [global_frame, empty_environment];
-
+    this.memory = new Memory(1000000);
     this.OS = [];
     this.PC = 0;
-    this.E = global_environment;
     this.RTS = [];
+    // TODO: initialise global frame
+    this.E = this.memory.environment.allocate(0);
     this.microcode = {
       LDC: (instr: LDC) => {
-        this.OS.push(instr.val);
+        this.push_os(instr.val);
       },
       UNOP: (instr: UNOP) => {
-        this.OS.push(apply_unop(instr.sym, this.OS.pop()));
+        this.push_os(apply_unop(instr.sym, this.pop_os()));
       },
       BINOP: (instr: BINOP) => {
-        this.OS.push(apply_binop(instr.sym, this.OS.pop(), this.OS.pop()));
+        this.push_os(apply_binop(instr.sym, this.pop_os(), this.pop_os()));
       },
       POP: (instr: POP) => {
-        this.OS.pop();
+        this.pop_os();
       },
       JOF: (instr: JOF) => {
-        this.PC = this.OS.pop() ? this.PC : instr.addr;
+        this.PC = this.pop_os() ? this.PC : instr.addr;
       },
       GOTO: (instr: GOTO) => {
         this.PC = instr.addr;
       },
       ENTER_SCOPE: (instr: ENTER_SCOPE) => {
-        this.RTS.push({ _type: "BLOCK_FRAME", env: this.E });
-        this.E = extend(this.E);
+        this.RTS.push(this.memory.blockframe.allocate(this.E));
+        const frame_address = this.memory.frame.allocate(instr.num);
+        this.E = this.memory.environment.extend(frame_address, this.E);
+        for (let i = 0; i < instr.num; i++) {
+          this.memory.heap.set_child(frame_address, i, unassigned);
+        }
       },
       EXIT_SCOPE: (instr: EXIT_SCOPE) => {
-        this.E = this.RTS.pop().env;
+        const scope = this.RTS.pop();
+        if (scope === undefined)
+          throw new Error(`Tried to exit scope when RTS is empty`);
+        this.E = this.memory.blockframe.get_environment(scope);
       },
       LD: (instr: LD) => {
-        this.OS.push(lookup(instr.sym, this.E));
+        const val = this.memory.environment.get_value(this.E, instr.pos);
+        this.OS.push(val);
       },
       DEFINE: (instr: DEFINE) => {
-        define_name(instr.sym, this.E);
+        // TODO
       },
       ASSIGN: (instr: ASSIGN) => {
-        assign_value(instr.sym, peek(this.OS), this.E);
+        this.memory.environment.set_value(this.E, instr.pos, peek(this.OS));
       },
       LDF: (instr: LDF) => {
-        this.OS.push({
-          _type: "CLOSURE",
-          params: instr.params,
-          addr: instr.addr,
-          env: this.E,
-        });
+        const closure_address = this.memory.closure.allocate(
+          instr.params.length,
+          instr.addr,
+          this.E,
+        );
+        this.OS.push(closure_address);
       },
       CALL: (instr: CALL) => {
         const arity = instr.arity;
-        let args = [];
-        for (let i = arity - 1; i >= 0; i--) args.push(this.OS.pop());
-        const sf = this.OS.pop();
-        if (sf._type === "BUILTIN") {
-          const builtin = this.builtin_mapping[sf.sym](...args);
-          this.OS.push(builtin);
-          return;
+        let fun = peek(this.OS, arity);
+        // TODO: implement built-in functions
+
+        const frame_address = this.memory.frame.allocate(arity);
+        for (let i = arity - 1; i >= 0; i--) {
+          this.memory.heap.set_child(frame_address, i, this.OS.pop());
         }
-        this.RTS.push({ _type: "CALL_FRAME", addr: this.PC, env: this.E });
-        this.E = extend(sf.env, sf.params, args);
-        this.PC = sf.addr;
+        this.OS.pop(); // pop fun
+        this.RTS.push(this.memory.callframe.allocate(this.E, this.PC));
+        this.E = this.memory.environment.extend(
+          frame_address,
+          this.memory.closure.get_environment(fun),
+        );
+        this.PC = this.memory.closure.get_pc(fun);
       },
       RESET: (instr: RESET) => {
         this.PC--;
         const top_frame = this.RTS.pop();
-        if (top_frame._type === "CALL_FRAME") {
-          this.PC = top_frame.addr;
-          this.E = top_frame.env;
+        if (top_frame === undefined) {
+          throw new Error(`Tried to RESET where RTS is empty`);
         }
+        if (this.memory.heap.get_tag(top_frame) === Tag.Callframe)
+          this.PC = this.memory.callframe.get_pc(top_frame);
+        this.E = this.memory.callframe.get_environment(top_frame);
       },
     };
   }
@@ -199,12 +229,14 @@ export class GolangVM {
   run(instrs: Instruction[]) {
     while (!(instrs[this.PC]._type === "DONE")) {
       const instr = instrs[this.PC++];
+      // console.log(instr);
       if (this.microcode[instr._type]) {
         this.microcode[instr._type](instr);
       } else {
         throw new Error(`${instr._type} not implemented`);
       }
+      // console.log(this.OS.map((addr) => this.memory.address_to_js_value(addr)));
     }
-    return peek(this.OS);
+    return this.pop_os();
   }
 }

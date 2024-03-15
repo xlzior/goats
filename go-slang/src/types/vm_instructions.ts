@@ -37,6 +37,7 @@ export type DEFINE = {
 export type ASSIGN = {
   _type: "ASSIGN";
   sym: string;
+  pos: [number, number];
 };
 
 export type CALL = {
@@ -46,6 +47,7 @@ export type CALL = {
 
 export type ENTER_SCOPE = {
   _type: "ENTER_SCOPE";
+  num: number;
 };
 
 export type POP = {

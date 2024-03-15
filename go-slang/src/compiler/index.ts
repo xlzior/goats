@@ -20,7 +20,7 @@ import {
   IncDecStmt,
 } from "../types/ast";
 
-import { GOTO, JOF, Instruction } from "../types/vm_instructions";
+import { GOTO, JOF, Instruction, ENTER_SCOPE } from "../types/vm_instructions";
 
 function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
@@ -115,14 +115,18 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { _type: "RESET" };
         goto_instruction.addr = this.wc;
 
-        const function_name = astNode.Name.Name;
+        const name = astNode.Name.Name;
         const current_frame = peek(this.compile_env);
-        if (current_frame.includes(function_name)) {
-          throw new Error(`${function_name} redeclared in this block`);
+        if (current_frame.includes(name)) {
+          throw new Error(`${name} redeclared in this block`);
         }
-        current_frame.push(function_name);
-        this.instrs[this.wc++] = { _type: "DEFINE", sym: function_name };
-        this.instrs[this.wc++] = { _type: "ASSIGN", sym: function_name };
+        current_frame.push(name);
+        this.instrs[this.wc++] = { _type: "DEFINE", sym: name };
+        this.instrs[this.wc++] = {
+          _type: "ASSIGN",
+          sym: name,
+          pos: this.cte_position(name),
+        };
       },
       CallExpr: (astNode: CallExpr) => {
         this.compile(astNode.Fun);
@@ -137,7 +141,8 @@ export class GolangCompiler {
           return;
         }
 
-        this.instrs[this.wc++] = { _type: "ENTER_SCOPE" };
+        const enter_scope_instr: ENTER_SCOPE = { _type: "ENTER_SCOPE", num: 0 };
+        this.instrs[this.wc++] = enter_scope_instr;
 
         astNode.List.forEach((stmt, i) => {
           this.compile(stmt);
@@ -147,6 +152,7 @@ export class GolangCompiler {
         });
 
         this.instrs[this.wc++] = { _type: "EXIT_SCOPE" };
+        enter_scope_instr.num = peek(this.compile_env).length;
         this.compile_env.pop();
       },
       AssignStmt: (astNode: AssignStmt) => {
@@ -186,7 +192,11 @@ export class GolangCompiler {
             current_frame.push(ident.Name);
             this.instrs[this.wc++] = { _type: "DEFINE", sym: ident.Name };
           }
-          this.instrs[this.wc++] = { _type: "ASSIGN", sym: ident.Name };
+          this.instrs[this.wc++] = {
+            _type: "ASSIGN",
+            sym: ident.Name,
+            pos: this.cte_position(ident.Name),
+          };
           this.instrs[this.wc++] = { _type: "POP" };
         });
       },
