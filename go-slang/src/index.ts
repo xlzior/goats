@@ -1,7 +1,7 @@
 import { GolangParser } from "./parser";
 import { GolangCompiler } from "./compiler";
 import { GolangVM } from "./vm";
-import { RunnerResult } from "./types";
+import { BuiltinFunction, RunnerResult } from "./types";
 
 // Facade class that contains parser, compiler and vm / main entry point
 export class GolangRunner {
@@ -9,9 +9,9 @@ export class GolangRunner {
   private compiler: GolangCompiler;
   private vm: GolangVM;
 
-  constructor(builtin_mapping: Record<string, any> = {}) {
+  constructor(builtin_mapping: Record<string, BuiltinFunction> = {}) {
     this.parser = new GolangParser();
-    this.compiler = new GolangCompiler();
+    this.compiler = new GolangCompiler(builtin_mapping);
     this.vm = new GolangVM(builtin_mapping);
   }
 
