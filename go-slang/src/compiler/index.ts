@@ -44,8 +44,8 @@ const compoundAssignmentToBinaryOperator = new Map([
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
 ]);
 
-function noNewVariables(identifiers: Ident[], curr_env_frame: Set<string>) {
-  return identifiers.every((ident) => curr_env_frame.has(ident.Name));
+function noNewVariables(identifiers: Ident[], curr_env_frame: Array<string>) {
+  return identifiers.every((ident) => curr_env_frame.includes(ident.Name));
 }
 
 const main_call: CallExpr = {
@@ -61,7 +61,7 @@ export class GolangCompiler {
   private wc: number;
   private instrs: Array<Instruction>;
   private compile_ast: any;
-  private compile_env: Array<Set<string>>; // represented as a stack of sets
+  private compile_env: Array<Array<string>>; // stack of arrays
 
   constructor() {
     this.wc = 0;
@@ -114,8 +114,15 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { _type: "LDC", val: undefined };
         this.instrs[this.wc++] = { _type: "RESET" };
         goto_instruction.addr = this.wc;
-        this.instrs[this.wc++] = { _type: "DEFINE", sym: astNode.Name.Name };
-        this.instrs[this.wc++] = { _type: "ASSIGN", sym: astNode.Name.Name };
+
+        const function_name = astNode.Name.Name;
+        const current_frame = peek(this.compile_env);
+        if (current_frame.includes(function_name)) {
+          throw new Error(`${function_name} redeclared in this block`);
+        }
+        current_frame.push(function_name);
+        this.instrs[this.wc++] = { _type: "DEFINE", sym: function_name };
+        this.instrs[this.wc++] = { _type: "ASSIGN", sym: function_name };
       },
       CallExpr: (astNode: CallExpr) => {
         this.compile(astNode.Fun);
@@ -123,7 +130,7 @@ export class GolangCompiler {
         this.instrs[this.wc++] = { _type: "CALL", arity: astNode.Args.length };
       },
       BlockStmt: (astNode: BlockStmt) => {
-        this.compile_env.push(new Set());
+        this.compile_env.push([]);
         // empty block
         if (astNode.List.length === 0) {
           this.instrs[this.wc++] = { _type: "LDC", val: undefined };
@@ -172,8 +179,11 @@ export class GolangCompiler {
         });
 
         astNode.Lhs.reverse().forEach((ident) => {
-          if (astNode.Tok === Token.DEFINE) {
-            current_frame.add(ident.Name);
+          if (
+            astNode.Tok === Token.DEFINE &&
+            !current_frame.includes(ident.Name)
+          ) {
+            current_frame.push(ident.Name);
             this.instrs[this.wc++] = { _type: "DEFINE", sym: ident.Name };
           }
           this.instrs[this.wc++] = { _type: "ASSIGN", sym: ident.Name };
@@ -195,6 +205,7 @@ export class GolangCompiler {
           instr = {
             _type: "LD",
             sym: name,
+            pos: this.cte_position(name),
           };
         }
         this.instrs[this.wc++] = instr;
@@ -249,6 +260,17 @@ export class GolangCompiler {
     };
   }
 
+  private cte_position(name: string): [number, number] {
+    for (let i = this.compile_env.length - 1; i >= 0; i--) {
+      const frame = this.compile_env[i];
+      const j = frame.indexOf(name);
+      if (j >= 0) {
+        return [i, j];
+      }
+    }
+    throw new Error(`${name} not found in compile-time environment`);
+  }
+
   private compile_conditional(
     pred: Expr,
     cons: Expr | BlockStmt,
@@ -269,7 +291,6 @@ export class GolangCompiler {
     if (this.compile_ast[astNode._type] !== undefined) {
       this.compile_ast[astNode._type](astNode);
     } else {
-      console.error(astNode._type, "not implemented");
       console.error(astNode);
       throw new Error(`${astNode._type} not implemented`); // to make TDD tests fail
     }

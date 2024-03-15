@@ -59,6 +59,7 @@ export type EXIT_SCOPE = {
 export type LD = {
   _type: "LD";
   sym: string;
+  pos: [number, number];
 };
 
 export type LDF = {
