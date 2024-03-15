@@ -29,11 +29,6 @@ export type RESET = {
   _type: "RESET";
 };
 
-export type DEFINE = {
-  _type: "DEFINE";
-  sym: string;
-};
-
 export type ASSIGN = {
   _type: "ASSIGN";
   sym: string;
@@ -82,7 +77,6 @@ export type Instruction =
   | GOTO
   | JOF
   | RESET
-  | DEFINE
   | ASSIGN
   | LDF
   | CALL
