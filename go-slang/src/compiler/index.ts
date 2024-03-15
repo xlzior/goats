@@ -121,7 +121,6 @@ export class GolangCompiler {
 
         // compiling the name of the function
         const name = astNode.Name.Name;
-        this.instrs[this.wc++] = { _type: "DEFINE", sym: name };
         this.instrs[this.wc++] = {
           _type: "ASSIGN",
           sym: name,
@@ -193,7 +192,6 @@ export class GolangCompiler {
             !current_frame.includes(ident.Name)
           ) {
             current_frame.push(ident.Name);
-            this.instrs[this.wc++] = { _type: "DEFINE", sym: ident.Name };
           }
           this.instrs[this.wc++] = {
             _type: "ASSIGN",

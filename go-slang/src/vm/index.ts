@@ -15,7 +15,6 @@ import {
   RESET,
   JOF,
   Instruction,
-  DEFINE,
 } from "../types/vm_instructions";
 import { Memory } from "./memory";
 import { Tag } from "./tag";
@@ -158,9 +157,6 @@ export class GolangVM {
       LD: (instr: LD) => {
         const val = this.memory.environment.get_value(this.E, instr.pos);
         this.OS.push(val);
-      },
-      DEFINE: (instr: DEFINE) => {
-        // TODO
       },
       ASSIGN: (instr: ASSIGN) => {
         this.memory.environment.set_value(this.E, instr.pos, peek(this.OS));
