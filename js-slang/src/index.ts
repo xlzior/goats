@@ -233,16 +233,13 @@ export async function runFilesInContext(
 
   if (context.chapter === Chapter.GOLANG) {
 
-    // const builtin_mapping: Record<string, BuiltinFunction> = {
-    //   Println: {
-    //     arity: 1,
-    //     apply: (v: any) => context.nativeStorage.builtins.get('Println')
-    //   },
-    // };
+    const builtin_mapping: Record<string, BuiltinFunction> = {
+      Println: {
+        arity: 1,
+        apply: context.nativeStorage.builtins.get('Println')
+      },
+    };
 
-    const builtin_mapping: Record<string, any> = {
-      Println: context.nativeStorage.builtins.get('Println')
-    }
     const runner = new GolangRunner(builtin_mapping)
     const result = await runner.execute(code)
     if ('error' in result) {
