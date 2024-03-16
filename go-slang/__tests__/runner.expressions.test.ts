@@ -216,7 +216,33 @@ describe("Golang runner for evaluating logical expressions", () => {
 
 describe("Golang runner for evaluating string expressions", () => {
 
-  test("evaluate program with string", async () => {
+  test("evaluate program with empty string should return empty string", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := ""
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with concatenating 2 empty string should return empty string", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "" + ""
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string should return string value", async () => {
     const program = `
     package main
   
@@ -242,16 +268,44 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
+  test("evaluate program with string of numbers with concatenation should return concatenated string value", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "123"
+      y := "456"
+      z := x + y
+      return z
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "123456";
+    expect(value).toEqual(expected);
+  });
+
   test("evaluate program with string of true is treated as a literal string, not boolean", async () => {
     const program = `
     package main
   
-    func main() {,
+    func main() {
       x := "true"
       return x
     }`;
     const { value } = await golangRunner.execute(program);
     const expected = "true";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string of false is treated as a literal string, not boolean", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "false"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "false";
     expect(value).toEqual(expected);
   });
 

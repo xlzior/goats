@@ -11,12 +11,14 @@ export class Memory {
   True: number;
   // TODO: go does not have undefined
   Undefined: number;
+  string_pool: Map<number, string>; // <string address, actual string value>
 
   constructor(heap_size: number) {
     this.heap = new Heap(heap_size);
     this.False = this.heap.allocate(Tag.False, 1);
     this.True = this.heap.allocate(Tag.True, 1);
     this.Undefined = this.heap.allocate(Tag.Undefined, 1);
+    this.string_pool = new Map();
   }
 
   address_to_js_value(address: number) {
@@ -33,6 +35,8 @@ export class Memory {
         return "<closure>";
       case Tag.Builtin:
         return "<builtin>";
+      case Tag.String:
+        return this.string.get_string(address)
       default:
         return "<internals>";
     }
@@ -47,6 +51,8 @@ export class Memory {
       return this.Undefined;
     } else if (is_number(value)) {
       return this.number.allocate(value);
+    } else if (is_string(value)) {
+      return this.string.allocate(value);
     }
     throw new Error(`Could not convert JS value ${value} to address`);
   }
@@ -58,6 +64,22 @@ export class Memory {
       return number_address;
     },
   };
+
+  string = {
+    allocate: (new_string_val: string) => {
+      for (const [existing_addr, existing_string_val] of this.string_pool) {
+        if (existing_string_val === new_string_val) return existing_addr
+      }
+      const string_address = this.heap.allocate(Tag.String, 1);
+      this.string_pool.set(string_address, new_string_val)
+      return string_address;
+    },
+    get_string: (address: number): string => {
+      const string_val = this.string_pool.get(address); 
+      if (string_val === undefined) throw new Error("String value not found")
+      return string_val; 
+    }
+  }
 
   builtin = {
     allocate: (id: number) => {

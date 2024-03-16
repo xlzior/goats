@@ -10,4 +10,5 @@ export enum Tag {
   Frame,
   Environment,
   Builtin,
+  String,
 }
