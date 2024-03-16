@@ -18,11 +18,7 @@ import {
 } from "../types/vm_instructions";
 import { Memory } from "./memory";
 import { Tag } from "./tag";
-import {
-  is_number,
-  is_string,
-  is_boolean
-} from "../utils"
+import { is_number, is_string, is_boolean } from "../utils";
 
 function peek<T>(stack: Array<T>, index: number = 0) {
   if (stack.length === 0) throw new Error("Stack is empty!");

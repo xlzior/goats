@@ -1,9 +1,6 @@
 import { Heap } from "./heap";
 import { Tag } from "./tag";
-import {
-  is_string,
-  is_number
-} from "../utils"
+import { is_string, is_number } from "../utils";
 
 export class Memory {
   heap: Heap;
@@ -36,7 +33,7 @@ export class Memory {
       case Tag.Builtin:
         return "<builtin>";
       case Tag.String:
-        return this.string.get_string(address)
+        return this.string.get_string(address);
       default:
         return "<internals>";
     }
@@ -68,18 +65,18 @@ export class Memory {
   string = {
     allocate: (new_string_val: string) => {
       for (const [existing_addr, existing_string_val] of this.string_pool) {
-        if (existing_string_val === new_string_val) return existing_addr
+        if (existing_string_val === new_string_val) return existing_addr;
       }
       const string_address = this.heap.allocate(Tag.String, 1);
-      this.string_pool.set(string_address, new_string_val)
+      this.string_pool.set(string_address, new_string_val);
       return string_address;
     },
     get_string: (address: number): string => {
-      const string_val = this.string_pool.get(address); 
-      if (string_val === undefined) throw new Error("String value not found")
-      return string_val; 
-    }
-  }
+      const string_val = this.string_pool.get(address);
+      if (string_val === undefined) throw new Error("String value not found");
+      return string_val;
+    },
+  };
 
   builtin = {
     allocate: (id: number) => {
