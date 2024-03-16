@@ -210,4 +210,160 @@ describe("Golang runner for evaluating logical expressions", () => {
     const expected = false;
     expect(actual.value).toEqual(expected);
   });
+
 });
+
+
+describe("Golang runner for evaluating string expressions", () => {
+
+  test("evaluate program with string", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello world"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "hello world";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string of numbers", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "123"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "123";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string of true is treated as a literal string, not boolean", async () => {
+    const program = `
+    package main
+  
+    func main() {,
+      x := "true"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "true";
+    expect(value).toEqual(expected);
+  });
+
+
+  test("evaluate program with string concatenation using + operator once", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello " + "world"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "hello world";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string concatenation using + operator multiple times", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "i " + "love " + "orange juice " + "for breakfast"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "i love orange juice for breakfast";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string concatenation using += operator once", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello "
+      x += "world"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "hello world";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string concatenation using += operator multiple times", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "i "
+      x += "love "
+      x += "orange juice "
+      x += "for breakfast"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "i love orange juice for breakfast";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string equality, true case", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello" == "hello"
+      return x
+    }`;
+    const { value }= await golangRunner.execute(program);
+    const expected = true;
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string equality, false case", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello" == "hellow"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = false;
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string assignment passed as reference", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello world"
+      y := x
+      return y
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "hello world";
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string assignment passed as reference with concatenation", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello "
+      y := x + "world"
+      return y
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = "hello world";
+    expect(value).toEqual(expected);
+  });
+
+})
