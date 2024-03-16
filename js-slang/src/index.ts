@@ -43,6 +43,7 @@ import {
   sourceFilesRunner
 } from './runner'
 import { GoError } from './errors/goErrors'
+import { BuiltinFunction } from 'go-slang/src/types'
 
 export interface IOptions {
   scheduler: 'preemptive' | 'async'
@@ -231,13 +232,22 @@ export async function runFilesInContext(
   }
 
   if (context.chapter === Chapter.GOLANG) {
+
+    // const builtin_mapping: Record<string, BuiltinFunction> = {
+    //   Println: {
+    //     arity: 1,
+    //     apply: (v: any) => context.nativeStorage.builtins.get('Println')
+    //   },
+    // };
+
     const builtin_mapping: Record<string, any> = {
       Println: context.nativeStorage.builtins.get('Println')
     }
     const runner = new GolangRunner(builtin_mapping)
     const result = await runner.execute(code)
     if ('error' in result) {
-      context.errors.push(new GoError(result.error))
+      const fallbackErrorMsg = "Some error occurred. Please try again later."
+      context.errors.push(new GoError(result.error ?? fallbackErrorMsg))
       return resolvedErrorPromise
     }
     return {

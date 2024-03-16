@@ -2,7 +2,7 @@ import { Tag } from "./tag";
 
 const WORD_SIZE = 8;
 const SIZE_OFFSET = 5;
-const NODE_SIZE = 10;
+// const NODE_SIZE = 10; // js-slang build failed due to unused var
 
 export class Heap {
   free: number = 0;
