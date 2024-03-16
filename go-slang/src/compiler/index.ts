@@ -1,27 +1,7 @@
 import { BuiltinFunction } from "../types";
-import {
-  File,
-  BasicLit,
-  BinaryExpr,
-  BlockStmt,
-  ExprStmt,
-  FuncDecl,
-  ReturnStmt,
-  Node,
-  NodeType,
-  AssignStmt,
-  Expr,
-  Ident,
-  CallExpr,
-  UnaryExpr,
-  ParenExpr,
-  IfStmt,
-  Token,
-  ForStmt,
-  IncDecStmt,
-} from "../types/ast";
-
+import * as AST from "../types/ast";
 import { GOTO, JOF, Instruction, ENTER_SCOPE } from "../types/vm_instructions";
+
 import { peek } from "../utils";
 import {
   MAIN_CALL,
@@ -41,9 +21,9 @@ export class GolangCompiler {
     this.compile_env = [Object.keys(builtin_mapping)];
   }
 
-  compile_program(rootAstNode: File) {
-    const block: BlockStmt = {
-      _type: NodeType.BLOCK_STMT,
+  compile_program(rootAstNode: AST.File) {
+    const block: AST.BlockStmt = {
+      _type: AST.NodeType.BLOCK_STMT,
       List: [...rootAstNode.Decls, MAIN_CALL],
     };
 
@@ -52,7 +32,7 @@ export class GolangCompiler {
     return this.instrs;
   }
 
-  private compile(astNode: Node) {
+  private compile(astNode: AST.Node) {
     if (this.compile_ast[astNode._type] !== undefined) {
       this.compile_ast[astNode._type](astNode);
     } else {
@@ -73,9 +53,9 @@ export class GolangCompiler {
   }
 
   private compile_conditional(
-    pred: Expr,
-    cons: Expr | BlockStmt,
-    alt: Expr | BlockStmt,
+    pred: AST.Expr,
+    cons: AST.Expr | AST.BlockStmt,
+    alt: AST.Expr | AST.BlockStmt,
   ) {
     this.compile(pred);
     const jump_on_false_instruction: JOF = { _type: "JOF", addr: -1 };
@@ -88,8 +68,8 @@ export class GolangCompiler {
     goto_instruction.addr = this.wc;
   }
 
-  private compile_ast: Record<NodeType, any> = {
-    BasicLit: (astNode: BasicLit) => {
+  private compile_ast: Record<AST.NodeType, any> = {
+    BasicLit: (astNode: AST.BasicLit) => {
       this.instrs[this.wc++] = {
         _type: "LDC",
         val:
@@ -98,29 +78,32 @@ export class GolangCompiler {
             : Number(astNode.Value), // can handle integers and floating point values
       };
     },
-    BinaryExpr: (astNode: BinaryExpr) => {
-      if (astNode.Op === Token.LAND) {
+    BinaryExpr: (astNode: AST.BinaryExpr) => {
+      if (astNode.Op === AST.Token.LAND) {
         // X && Y is "if X then Y else false"
-        const falseExpr: Ident = { _type: NodeType.IDENT, Name: "false" };
+        const falseExpr: AST.Ident = {
+          _type: AST.NodeType.IDENT,
+          Name: "false",
+        };
         return this.compile_conditional(astNode.X, astNode.Y, falseExpr);
       }
-      if (astNode.Op === Token.LOR) {
+      if (astNode.Op === AST.Token.LOR) {
         // X || Y is "if X then true else Y"
-        const trueExpr: Ident = { _type: NodeType.IDENT, Name: "true" };
+        const trueExpr: AST.Ident = { _type: AST.NodeType.IDENT, Name: "true" };
         return this.compile_conditional(astNode.X, trueExpr, astNode.Y);
       }
       this.compile(astNode.X);
       this.compile(astNode.Y);
       this.instrs[this.wc++] = { _type: "BINOP", sym: astNode.Op };
     },
-    UnaryExpr: (astNode: UnaryExpr) => {
+    UnaryExpr: (astNode: AST.UnaryExpr) => {
       this.compile(astNode.X);
       this.instrs[this.wc++] = { _type: "UNOP", sym: astNode.Op };
     },
-    ParenExpr: (astNode: ParenExpr) => {
+    ParenExpr: (astNode: AST.ParenExpr) => {
       this.compile(astNode.X);
     },
-    FuncDecl: (astNode: FuncDecl) => {
+    FuncDecl: (astNode: AST.FuncDecl) => {
       const params = astNode.Type.Params.List.flatMap((e) =>
         e.Names.map((name) => name.Name),
       );
@@ -144,12 +127,12 @@ export class GolangCompiler {
         pos: this.cte_position(astNode.Name.Name),
       };
     },
-    CallExpr: (astNode: CallExpr) => {
+    CallExpr: (astNode: AST.CallExpr) => {
       this.compile(astNode.Fun);
       astNode.Args.forEach((arg) => this.compile(arg));
       this.instrs[this.wc++] = { _type: "CALL", arity: astNode.Args.length };
     },
-    BlockStmt: (astNode: BlockStmt) => {
+    BlockStmt: (astNode: AST.BlockStmt) => {
       // empty block
       if (astNode.List.length === 0) {
         this.instrs[this.wc++] = { _type: "LDC", val: undefined };
@@ -157,8 +140,8 @@ export class GolangCompiler {
       }
 
       const func_decls = astNode.List.filter(
-        (val) => val._type === NodeType.FUNC_DECL,
-      ).map((func) => (func as FuncDecl).Name.Name);
+        (val) => val._type === AST.NodeType.FUNC_DECL,
+      ).map((func) => (func as AST.FuncDecl).Name.Name);
       this.compile_env.push(func_decls);
       const enter_scope_instr: ENTER_SCOPE = { _type: "ENTER_SCOPE", num: 0 };
       this.instrs[this.wc++] = enter_scope_instr;
@@ -174,17 +157,20 @@ export class GolangCompiler {
       enter_scope_instr.num = peek(this.compile_env).length;
       this.compile_env.pop();
     },
-    AssignStmt: (astNode: AssignStmt) => {
+    AssignStmt: (astNode: AST.AssignStmt) => {
       const current_frame = peek(this.compile_env);
       if (
-        astNode.Tok === Token.DEFINE &&
+        astNode.Tok === AST.Token.DEFINE &&
         noNewVariables(astNode.Lhs, current_frame)
       ) {
         throw new Error("no new variables on left side of :=");
       }
 
       astNode.Rhs.forEach((expr, i) => {
-        if (astNode.Tok === Token.DEFINE || astNode.Tok === Token.ASSIGN) {
+        if (
+          astNode.Tok === AST.Token.DEFINE ||
+          astNode.Tok === AST.Token.ASSIGN
+        ) {
           // simple assignment
           this.compile(expr);
         } else {
@@ -193,8 +179,8 @@ export class GolangCompiler {
           if (Op === undefined) {
             throw new Error(`operator not implemented: ${astNode.Tok}`);
           }
-          const desugared: BinaryExpr = {
-            _type: NodeType.BINARY_EXPR,
+          const desugared: AST.BinaryExpr = {
+            _type: AST.NodeType.BINARY_EXPR,
             Op,
             X: astNode.Lhs[i],
             Y: expr,
@@ -205,7 +191,7 @@ export class GolangCompiler {
 
       astNode.Lhs.reverse().forEach((ident, i) => {
         if (
-          astNode.Tok === Token.DEFINE &&
+          astNode.Tok === AST.Token.DEFINE &&
           !current_frame.includes(ident.Name)
         ) {
           current_frame.push(ident.Name);
@@ -220,7 +206,7 @@ export class GolangCompiler {
         }
       });
     },
-    Ident: (astNode: Ident) => {
+    Ident: (astNode: AST.Ident) => {
       const name = astNode.Name;
       let instr: Instruction;
       // Go treats boolean as Ident. Adds a LDC instruction
@@ -240,23 +226,23 @@ export class GolangCompiler {
       }
       this.instrs[this.wc++] = instr;
     },
-    ReturnStmt: (astNode: ReturnStmt) => {
+    ReturnStmt: (astNode: AST.ReturnStmt) => {
       astNode.Results.forEach((result) => {
         this.compile(result);
       });
       this.instrs[this.wc++] = { _type: "RESET" };
     },
-    ExprStmt: (astNode: ExprStmt) => {
+    ExprStmt: (astNode: AST.ExprStmt) => {
       this.compile(astNode.X);
     },
-    IfStmt: (astNode: IfStmt) => {
+    IfStmt: (astNode: AST.IfStmt) => {
       this.compile_conditional(
         astNode.Cond,
         astNode.Body,
-        astNode.Else ?? { _type: NodeType.BLOCK_STMT, List: [] },
+        astNode.Else ?? { _type: AST.NodeType.BLOCK_STMT, List: [] },
       );
     },
-    ForStmt: (astNode: ForStmt) => {
+    ForStmt: (astNode: AST.ForStmt) => {
       const loop_start = this.wc;
       this.compile(astNode.Cond);
       const jump_on_false_instruction: JOF = { _type: "JOF", addr: -1 };
@@ -266,24 +252,24 @@ export class GolangCompiler {
       this.instrs[this.wc++] = { _type: "GOTO", addr: loop_start };
       jump_on_false_instruction.addr = this.wc;
     },
-    IncDecStmt: (astNode: IncDecStmt) => {
+    IncDecStmt: (astNode: AST.IncDecStmt) => {
       // x++ desugar to x = x + 1
-      const one_literal_ast: BasicLit = {
-        _type: NodeType.BASIC_LIT,
+      const one_literal_ast: AST.BasicLit = {
+        _type: AST.NodeType.BASIC_LIT,
         Kind: "INT",
         Value: "1",
       };
-      const binary_expr_ast: BinaryExpr = {
-        _type: NodeType.BINARY_EXPR,
-        Op: astNode.Tok === Token.INC ? Token.ADD : Token.SUB,
+      const binary_expr_ast: AST.BinaryExpr = {
+        _type: AST.NodeType.BINARY_EXPR,
+        Op: astNode.Tok === AST.Token.INC ? AST.Token.ADD : AST.Token.SUB,
         X: astNode.X,
         Y: one_literal_ast,
       };
-      const assign_stmt_ast: AssignStmt = {
-        _type: NodeType.ASSIGN_STMT,
+      const assign_stmt_ast: AST.AssignStmt = {
+        _type: AST.NodeType.ASSIGN_STMT,
         Lhs: [astNode.X],
         Rhs: [binary_expr_ast],
-        Tok: Token.ASSIGN,
+        Tok: AST.Token.ASSIGN,
       };
       this.compile(assign_stmt_ast);
     },

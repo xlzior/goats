@@ -1,25 +1,11 @@
 import { BuiltinFunction } from "../types";
-import {
-  LDC,
-  UNOP,
-  BINOP,
-  POP,
-  GOTO,
-  ENTER_SCOPE,
-  EXIT_SCOPE,
-  LD,
-  ASSIGN,
-  LDF,
-  CALL,
-  RESET,
-  JOF,
-  Instruction,
-  DONE,
-} from "../types/vm_instructions";
+import * as VM from "../types/vm_instructions";
+
 import { peek } from "../utils";
+import { apply_unop, apply_binop } from "./utils";
+
 import { Memory } from "./memory";
 import { Tag } from "./tag";
-import { apply_unop, apply_binop } from "./utils";
 
 export class GolangVM {
   private OS: Array<number>;
@@ -54,7 +40,7 @@ export class GolangVM {
     return this.memory.environment.extend(global_frame, empty_environment);
   }
 
-  run(instrs: Instruction[]) {
+  run(instrs: VM.Instruction[]) {
     while (!(instrs[this.PC]._type === "DONE")) {
       const instr = instrs[this.PC++];
       if (this.microcode[instr._type]) {
@@ -90,26 +76,26 @@ export class GolangVM {
     this.push_os(result);
   }
 
-  private microcode: Record<Instruction["_type"], any> = {
-    LDC: (instr: LDC) => {
+  private microcode: Record<VM.Instruction["_type"], any> = {
+    LDC: (instr: VM.LDC) => {
       this.push_os(instr.val);
     },
-    UNOP: (instr: UNOP) => {
+    UNOP: (instr: VM.UNOP) => {
       this.push_os(apply_unop(instr.sym, this.pop_os()));
     },
-    BINOP: (instr: BINOP) => {
+    BINOP: (instr: VM.BINOP) => {
       this.push_os(apply_binop(instr.sym, this.pop_os(), this.pop_os()));
     },
-    POP: (instr: POP) => {
+    POP: (instr: VM.POP) => {
       this.pop_os();
     },
-    JOF: (instr: JOF) => {
+    JOF: (instr: VM.JOF) => {
       this.PC = this.pop_os() ? this.PC : instr.addr;
     },
-    GOTO: (instr: GOTO) => {
+    GOTO: (instr: VM.GOTO) => {
       this.PC = instr.addr;
     },
-    ENTER_SCOPE: (instr: ENTER_SCOPE) => {
+    ENTER_SCOPE: (instr: VM.ENTER_SCOPE) => {
       this.RTS.push(this.memory.blockframe.allocate(this.E));
       const frame_address = this.memory.frame.allocate(instr.num);
       this.E = this.memory.environment.extend(frame_address, this.E);
@@ -119,20 +105,20 @@ export class GolangVM {
         this.memory.heap.set_child(frame_address, i, 0);
       }
     },
-    EXIT_SCOPE: (instr: EXIT_SCOPE) => {
+    EXIT_SCOPE: (instr: VM.EXIT_SCOPE) => {
       const scope = this.RTS.pop();
       if (scope === undefined)
         throw new Error(`Tried to exit scope when RTS is empty`);
       this.E = this.memory.blockframe.get_environment(scope);
     },
-    LD: (instr: LD) => {
+    LD: (instr: VM.LD) => {
       const val = this.memory.environment.get_value(this.E, instr.pos);
       this.OS.push(val);
     },
-    ASSIGN: (instr: ASSIGN) => {
+    ASSIGN: (instr: VM.ASSIGN) => {
       this.memory.environment.set_value(this.E, instr.pos, peek(this.OS));
     },
-    LDF: (instr: LDF) => {
+    LDF: (instr: VM.LDF) => {
       const closure_address = this.memory.closure.allocate(
         instr.params.length,
         instr.addr,
@@ -140,7 +126,7 @@ export class GolangVM {
       );
       this.OS.push(closure_address);
     },
-    CALL: (instr: CALL) => {
+    CALL: (instr: VM.CALL) => {
       const arity = instr.arity;
       let fun = peek(this.OS, arity);
       const tag = this.memory.heap.get_tag(fun);
@@ -166,7 +152,7 @@ export class GolangVM {
 
       throw new Error(`Tried to CALL on a non-function type: tag ${tag}`);
     },
-    RESET: (instr: RESET) => {
+    RESET: (instr: VM.RESET) => {
       this.PC--;
       const top_frame = this.RTS.pop();
       if (top_frame === undefined) {
@@ -176,6 +162,6 @@ export class GolangVM {
         this.PC = this.memory.callframe.get_pc(top_frame);
       this.E = this.memory.callframe.get_environment(top_frame);
     },
-    DONE: (instr: DONE) => {},
+    DONE: (instr: VM.DONE) => {},
   };
 }
