@@ -1,5 +1,4 @@
 import { BuiltinFunction } from "../types";
-import { Token } from "../types/ast";
 import {
   LDC,
   UNOP,
@@ -16,48 +15,10 @@ import {
   JOF,
   Instruction,
 } from "../types/vm_instructions";
+import { peek } from "../utils";
 import { Memory } from "./memory";
 import { Tag } from "./tag";
-import { is_number, is_string, is_boolean } from "../utils";
-
-function peek<T>(stack: Array<T>, index: number = 0) {
-  if (stack.length === 0) throw new Error("Stack is empty!");
-  return stack[stack.length - 1 - index];
-}
-
-const binop_microcode: any = {
-  "+": (x: any, y: any) => {
-    if (!(is_number(x) && is_number(y)) && !(is_string(x) && is_string(y)))
-      throw new Error(`Expects two numbers or strings, got: ${x}, ${y}`);
-    return x + y;
-  },
-  "-": (x: number, y: number) => x - y,
-  "*": (x: number, y: number) => x * y,
-  "/": (x: number, y: number) => x / y,
-  "%": (x: number, y: number) => x % y,
-  "<": (x: number, y: number) => x < y,
-  "<=": (x: number, y: number) => x <= y,
-  ">=": (x: number, y: number) => x >= y,
-  ">": (x: number, y: number) => x > y,
-  "==": (x: number, y: number) => x === y,
-  "!=": (x: number, y: number) => x !== y,
-};
-
-const apply_binop = (op: Token, v2: any, v1: any) =>
-  binop_microcode[op](v1, v2);
-
-const unop_microcode: any = {
-  "-": (x: number) => {
-    if (!is_number(x)) throw new Error(`- expects a number, got: ${x}`);
-    return -x;
-  },
-  "!": (x: boolean) => {
-    if (!is_boolean(x)) throw new Error(`! expects a boolean, got: ${x}`);
-    return !x;
-  },
-};
-
-const apply_unop = (op: Token, v: any) => unop_microcode[op](v);
+import { apply_unop, apply_binop } from "./utils";
 
 export class GolangVM {
   private OS: Array<number>;

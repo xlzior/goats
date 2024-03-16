@@ -22,41 +22,13 @@ import {
 } from "../types/ast";
 
 import { GOTO, JOF, Instruction, ENTER_SCOPE } from "../types/vm_instructions";
-
-function stripQuotes(str: string) {
-  return str.replace(/^"|"$/g, "");
-}
-
-function peek<T>(stack: Array<T>): T {
-  return stack[stack.length - 1];
-}
-
-const compoundAssignmentToBinaryOperator = new Map([
-  [Token.ADD_ASSIGN, Token.ADD],
-  [Token.SUB_ASSIGN, Token.SUB],
-  [Token.MUL_ASSIGN, Token.MUL],
-  [Token.QUO_ASSIGN, Token.QUO],
-  [Token.REM_ASSIGN, Token.REM],
-  [Token.AND_ASSIGN, Token.AND],
-  [Token.OR_ASSIGN, Token.OR],
-  [Token.XOR_ASSIGN, Token.XOR],
-  [Token.SHL_ASSIGN, Token.SHL],
-  [Token.SHR_ASSIGN, Token.SHR],
-  [Token.AND_NOT_ASSIGN, Token.AND_NOT],
-]);
-
-function noNewVariables(identifiers: Ident[], curr_env_frame: Array<string>) {
-  return identifiers.every((ident) => curr_env_frame.includes(ident.Name));
-}
-
-const main_call: CallExpr = {
-  _type: NodeType.CALL_EXPR,
-  Args: [],
-  Fun: {
-    _type: NodeType.IDENT,
-    Name: "main",
-  },
-};
+import { peek } from "../utils";
+import {
+  MAIN_CALL,
+  stripQuotes,
+  noNewVariables,
+  compoundAssignmentToBinaryOperator,
+} from "./utils";
 
 export class GolangCompiler {
   private wc: number;
