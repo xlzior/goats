@@ -19,6 +19,7 @@ export enum NodeType {
   BINARY_EXPR = "BinaryExpr",
   UNARY_EXPR = "UnaryExpr",
   CALL_EXPR = "CallExpr",
+  PAREN_EXPR = "ParenExpr",
   BLOCK_STMT = "BlockStmt",
   ASSIGN_STMT = "AssignStmt",
   FOR_STMT = "ForStmt",
@@ -204,6 +205,7 @@ export interface UnaryExpr extends Expr {
 }
 
 export interface ParenExpr extends Expr {
+  _type: NodeType.PAREN_EXPR;
   X: Expr;
 }
 
