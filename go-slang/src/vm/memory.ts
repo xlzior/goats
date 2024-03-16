@@ -1,5 +1,9 @@
 import { Heap } from "./heap";
 import { Tag } from "./tag";
+import {
+  is_string,
+  is_number
+} from "../utils"
 
 export class Memory {
   heap: Heap;
@@ -41,7 +45,7 @@ export class Memory {
       return this.False;
     } else if (value === undefined) {
       return this.Undefined;
-    } else if (typeof value === "number") {
+    } else if (is_number(value)) {
       return this.number.allocate(value);
     }
     throw new Error(`Could not convert JS value ${value} to address`);

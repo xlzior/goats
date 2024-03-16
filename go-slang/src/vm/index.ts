@@ -18,15 +18,16 @@ import {
 } from "../types/vm_instructions";
 import { Memory } from "./memory";
 import { Tag } from "./tag";
+import {
+  is_number,
+  is_string,
+  is_boolean
+} from "../utils"
 
 function peek<T>(stack: Array<T>, index: number = 0) {
   if (stack.length === 0) throw new Error("Stack is empty!");
   return stack[stack.length - 1 - index];
 }
-
-const is_number = (val: any) => typeof val === "number";
-const is_string = (val: any) => typeof val === "string";
-const is_boolean = (val: any) => typeof val === "boolean";
 
 const binop_microcode: any = {
   "+": (x: any, y: any) => {
