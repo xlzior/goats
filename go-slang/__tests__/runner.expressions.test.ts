@@ -34,7 +34,7 @@ describe("Golang runner for evaluating binary expressions", () => {
     async ({ program, expected }) => {
       const actual = await golangRunner.execute(program);
       expect(actual.value).toEqual(expected);
-    }
+    },
   );
 
   test("evaluate program with multiple lines of binary expr should return the result of the last evaluated expr", async () => {
@@ -210,12 +210,9 @@ describe("Golang runner for evaluating logical expressions", () => {
     const expected = false;
     expect(actual.value).toEqual(expected);
   });
-
 });
 
-
 describe("Golang runner for evaluating string expressions", () => {
-
   test("evaluate program with empty string should return empty string", async () => {
     const program = `
     package main
@@ -309,7 +306,6 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-
   test("evaluate program with string concatenation using + operator once", async () => {
     const program = `
     package main
@@ -374,7 +370,20 @@ describe("Golang runner for evaluating string expressions", () => {
       x := "hello" == "hello"
       return x
     }`;
-    const { value }= await golangRunner.execute(program);
+    const { value } = await golangRunner.execute(program);
+    const expected = true;
+    expect(value).toEqual(expected);
+  });
+
+  test("evaluate program with string equality, true case with constructed string", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := "hello world" == "hello " + "world"
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
     const expected = true;
     expect(value).toEqual(expected);
   });
@@ -419,5 +428,4 @@ describe("Golang runner for evaluating string expressions", () => {
     const expected = "hello world";
     expect(value).toEqual(expected);
   });
-
-})
+});
