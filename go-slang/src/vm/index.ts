@@ -43,11 +43,7 @@ export class GolangVM {
   run(instrs: VM.Instruction[]) {
     while (!(instrs[this.PC]._type === "DONE")) {
       const instr = instrs[this.PC++];
-      if (this.microcode[instr._type]) {
-        this.microcode[instr._type](instr);
-      } else {
-        throw new Error(`${instr._type} not implemented`);
-      }
+      this.microcode[instr._type](instr);
     }
     return this.pop_os();
   }
