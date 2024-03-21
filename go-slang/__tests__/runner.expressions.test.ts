@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { Token } from "../src/types/ast";
 
 let golangRunner: GolangRunner;
 
@@ -427,5 +428,241 @@ describe("Golang runner for evaluating string expressions", () => {
     const { value } = await golangRunner.execute(program);
     const expected = "hello world";
     expect(value).toEqual(expected);
+  });
+});
+
+
+const binaryExprInputsForAdd: [number | string | boolean, number | string | boolean][] = [
+  [1, "hello"],      // (int, string)
+  [1, false],        // (int, bool)
+  ["hello", true],   // (string, bool)
+  [true, false]      // (bool, bool)
+];
+describe(`Testing incorrect types of binary expressions with operator: ${Token.ADD}`, () => {
+  test.each(binaryExprInputsForAdd)(
+    'Pairwise testing for binary expressions: %p %p',
+    async (operand1, operand2) => {
+      const program = `
+            package main
+
+            func main() {
+                x := ${operand1} ${Token.ADD} ${operand2};
+            }`;
+
+      const result = await golangRunner.execute(program);
+      expect(result).toHaveProperty("error");
+      expect(result.error).toContain(
+        `invalid operation: ${operand1} ${Token.ADD}  ${operand2}`
+      );
+    }
+  );
+});
+
+
+// Expect both operands to be integers
+const binaryOps = [
+  Token.SUB,
+  Token.MUL,
+  Token.QUO,
+  Token.REM,
+];
+
+const binaryExprInputs: [number | string | boolean, number | string | boolean][] = [
+  [1, "hello"],      // (int, string)
+  [1, false],        // (int, bool)
+  ["hello", "world"],// (string, string)
+  ["hello", true],   // (string, bool)
+  [true, false]      // (bool, bool)
+];
+
+binaryOps.forEach(operator => {
+  describe(`Testing incorrect types of binary expressions with operator: ${operator}`, () => {
+    test.each(binaryExprInputs)(
+      'Pairwise testing for binary expressions: %p %p',
+      async (operand1, operand2) => {
+        const program = `
+              package main
+
+              func main() {
+                  x := ${operand1} ${operator} ${operand2};
+              }`;
+
+        const result = await golangRunner.execute(program);
+        expect(result).toHaveProperty("error");
+        expect(result.error).toContain(
+          `invalid operation: ${operand1} ${operator} ${operand2}`
+        );
+      }
+    );
+  });
+});
+
+// Expect both operands to be booleans
+const logicalOps = [
+  Token.LAND,
+  Token.LOR
+];
+
+const logicalExprInputs: [number | string | boolean, number | string | boolean][] = [
+  [1, 2],            // (int, int)
+  [1, "hello"],      // (int, string)
+  [1, false],        // (int, bool)
+  ["hello", "world"],// (string, string)
+  ["hello", true],   // (string, bool)
+];
+
+logicalOps.forEach(operator => {
+  describe(`Testing incorrect types of logical expressions with operator: ${operator}`, () => {
+    test.each(logicalExprInputs)(
+      'Pairwise testing for logical expressions: %p %p',
+      async (operand1, operand2) => {
+        const program = `
+              package main
+
+              func main() {
+                  x := ${operand1} ${operator} ${operand2};
+              }`;
+
+        const result = await golangRunner.execute(program);
+        expect(result).toHaveProperty("error");
+        expect(result.error).toContain(
+          `invalid operation: ${operand1} ${operator} ${operand2}`
+        );
+      }
+    );
+  });
+});
+
+// Expect both operands to be of the same type, except bool
+// E.g. int and int, string and string
+const comparisonOps = [
+  Token.LSS,
+  Token.LEQ,
+  Token.GTR,
+  Token.GEQ,
+];
+
+const comparisonExprInputs: [number | string | boolean, number | string | boolean][] = [
+  [1, "hello"],      // (int, string)
+  [1, false],        // (int, bool)
+  ["hello", true],   // (string, bool)
+  [true, false],    //  (bool, bool)
+];
+
+comparisonOps.forEach(operator => {
+  describe(`Testing incorrect types of equality expressions with operator: ${operator}`, () => {
+    test.each(comparisonExprInputs)(
+      'Pairwise testing for comparison expressions: %p %p',
+      async (operand1, operand2) => {
+        const program = `
+              package main
+
+              func main() {
+                  x := ${operand1} ${operator} ${operand2};
+              }`;
+
+        const result = await golangRunner.execute(program);
+        expect(result).toHaveProperty("error");
+        expect(result.error).toContain(
+          `invalid operation: ${operand1} ${operator} ${operand2}`
+        );
+      }
+    );
+  });
+});
+
+
+// Expect both operands to be of the same type.
+// E.g. int and int, string and string, bool and bool
+const equalityOps = [
+  Token.EQL,
+  Token.NEQ
+];
+
+const equalityExprInputs: [number | string | boolean, number | string | boolean][] = [
+  [1, "hello"],      // (int, string)
+  [1, false],        // (int, bool)
+  ["hello", true],   // (string, bool)
+];
+
+equalityOps.forEach(operator => {
+  describe(`Testing incorrect types of equality expressions with operator: ${operator}`, () => {
+    test.each(equalityExprInputs)(
+      'Pairwise testing for equality expressions: %p %p',
+      async (operand1, operand2) => {
+        const program = `
+              package main
+
+              func main() {
+                  x := ${operand1} ${operator} ${operand2};
+              }`;
+
+        const result = await golangRunner.execute(program);
+        expect(result).toHaveProperty("error");
+        expect(result.error).toContain(
+          `invalid operation: ${operand1} ${operator} ${operand2}`
+        );
+      }
+    );
+  });
+});
+
+describe('Incorrect types for unary minus operator', () => {
+  test("unary minus with string", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := -"hello"
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty("error");
+    expect(result.error).toContain(
+      `invalid operation: -`
+    );
+  });
+
+  test("unary minus with bool", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := -true
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty("error");
+    expect(result.error).toContain(
+      `invalid operation: -`
+    );
+  });
+});
+
+describe('Incorrect types for unary not operator', () => {
+  test("unary not with string", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := !"hello"
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty("error");
+    expect(result.error).toContain(
+      `invalid operation: !`
+    );
+  });
+
+  test("unary not with int", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := !5
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty("error");
+    expect(result.error).toContain(
+      `invalid operation: !`
+    );
   });
 });
