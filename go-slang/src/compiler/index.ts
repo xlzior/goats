@@ -33,12 +33,9 @@ export class GolangCompiler {
   }
 
   private compile(astNode: AST.Node) {
-    if (this.compile_ast[astNode._type] !== undefined) {
-      this.compile_ast[astNode._type](astNode);
-    } else {
-      console.error(astNode);
-      throw new Error(`${astNode._type} not implemented`); // to make TDD tests fail
-    }
+    if (this.compile_ast[astNode._type] === undefined) 
+      throw new Error(`${astNode._type} not supported`);
+    this.compile_ast[astNode._type](astNode);
   }
 
   private cte_position(name: string): [number, number] {
