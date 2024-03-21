@@ -550,7 +550,7 @@ const comparisonExprInputs: [number | string | boolean, number | string | boolea
 ];
 
 comparisonOps.forEach(operator => {
-  describe(`Testing incorrect types of equality expressions with operator: ${operator}`, () => {
+  describe(`Testing incorrect types of comparison expressions with operator: ${operator}`, () => {
     test.each(comparisonExprInputs)(
       'Pairwise testing for comparison expressions: %p %p',
       async (operand1, operand2) => {
