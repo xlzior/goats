@@ -200,3 +200,116 @@ describe("Golang runner for evaluating functions", () => {
     expect(value).toEqual(expected);
   });
 });
+
+describe("Golang runner error handling for functions", () => { 
+
+  const ERROR = 'error'
+
+  test("Calling a variable as a function", async () => {
+    const program = `
+    package main
+
+    func main() {
+      add := 1;
+      y := add(1,2)
+      return y
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "invalid operation: cannot call non-function",
+    );
+  });
+
+  test("Calling an undefined function", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := add(1,2)
+      return x
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "undefined: add",
+    );
+  });
+
+  test("Passing too little arguments to a function", async () => {
+    const program = `
+    package main
+
+    func add(x int, y int) int {
+      return x + y;
+    }
+
+    func main() {
+      x := add(1)
+      return x
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "not enough arguments in function call",
+    );
+  });
+
+  test("Passing too many arguments to a function", async () => {
+    const program = `
+    package main
+
+    func add(x int, y int) int {
+      return x + y;
+    }
+
+    func main() {
+      x := add(1,2,3)
+      return x
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "too many arguments in function call",
+    );
+  });
+
+  test("Passing wrong argument type to a function", async () => {
+    const program = `
+    package main
+
+    func add(x int, y int) int {
+      return x + y;
+    }
+
+    func main() {
+      x := add(1, "hello")
+      return x
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      'cannot use "hello" as int value in argument to add',
+    );
+  });
+
+  test("Declaring a function with the wrong return type", async () => {
+    const program = `
+    package main
+
+    func add(x int) string {
+      return x + 10;
+    }
+
+    func main() {
+      x := add(1)
+      return x
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "cannot use x + 10 (value of type int) as string value in return statement",
+    );
+  });
+
+})
