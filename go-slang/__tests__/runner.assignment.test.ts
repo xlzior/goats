@@ -64,34 +64,6 @@ describe("Golang runner for evaluating definition statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("redefining the same variable should error", async () => {
-    const program = `
-    package main
-
-    func main() {
-      a := 5
-      a := 5
-    }`;
-    const result = await golangRunner.execute(program);
-    expect(result.error).toContain(
-      "no new variables on left side of :=",
-    );
-  });
-
-  test("redefining the same variable with multiple define should error", async () => {
-    const program = `
-    package main
-
-    func main() {
-      a, b, c := 5, 6, 7
-      a, b, c := 5, 6, 7
-    }`;
-    const result = await golangRunner.execute(program);
-    expect(result.error).toContain(
-      "no new variables on left side of :=",
-    );
-  });
-
   test("redefining the same variables but has 1 new variable with multiple define should not error", async () => {
     const program = `
     package main
@@ -386,3 +358,131 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 });
+
+describe("Golang runner error handling for assignments", () => {
+
+  const ERROR = "error" // error property in result
+
+  test("redefining the same variable", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a := 5
+      a := 5
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "no new variables on left side of :=",
+    );
+  });
+
+  test("redefining the same variable with multiple define", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 5, 6, 7
+      a, b, c := 5, 6, 7
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "no new variables on left side of :=",
+    );
+  });
+
+  test("assignment mismatch - LHS has more variables", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b := 1
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "assignment mismatch: 2 variables but 1 value",
+    );
+  });
+
+  test("assignment mismatch - LHS has more values from function return", async () => {
+    const program = `
+    package main
+
+    func addOne(x int, y int) (int, int) {
+      return x + 1, y + 1
+    }
+
+    func main() {
+      a, b, c := addOne(1,2)
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "assignment mismatch: 3 variables but addOne returns 2 values",
+    );
+  });
+
+  test("assignment mismatch - RHS has more values", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a := 1, 2
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "assignment mismatch: 1 variable but 2 values",
+    );
+  });
+
+  test("assignment mismatch - RHS has more values from function return", async () => {
+    const program = `
+    package main
+
+    func addOne(x int, y int) (int, int) {
+      return x + 1, y + 1
+    }
+
+    func main() {
+      a := addOne(1,2)
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "assignment mismatch: 1 variable but addOne returns 2 values",
+    );
+  });
+
+  test("assigning variable without initialisation using :=", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a = 10;
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "undefined: a",
+    );
+  });
+
+  test("missing value on RHS of :=", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a :=
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "expected operand, found '}'",
+    );
+  });
+
+})
