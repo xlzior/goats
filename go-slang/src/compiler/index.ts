@@ -10,6 +10,8 @@ import {
   compoundAssignmentToBinaryOperator,
 } from "./utils";
 
+import { CompilationError } from "../errors";
+
 export class GolangCompiler {
   private wc: number;
   private instrs: Array<Instruction>;
@@ -34,7 +36,7 @@ export class GolangCompiler {
 
   private compile(astNode: AST.Node) {
     if (this.compile_ast[astNode._type] === undefined)
-      throw new Error(`${astNode._type} not supported`);
+      throw new CompilationError(`${astNode._type} not supported`);
     this.compile_ast[astNode._type](astNode);
   }
 
@@ -46,7 +48,7 @@ export class GolangCompiler {
         return [i, j];
       }
     }
-    throw new Error(`${name} not found in compile-time environment`);
+    throw new CompilationError(`${name} not found in compile-time environment`);
   }
 
   private compile_conditional(
@@ -169,7 +171,7 @@ export class GolangCompiler {
         astNode.Tok === AST.Token.DEFINE &&
         noNewVariables(astNode.Lhs, current_frame)
       ) {
-        throw new Error("no new variables on left side of :=");
+        throw new CompilationError("no new variables on left side of :=");
       }
 
       astNode.Rhs.forEach((expr, i) => {
@@ -183,7 +185,7 @@ export class GolangCompiler {
           // compound assignment: +=, -=, *=, /= etc
           const Op = compoundAssignmentToBinaryOperator.get(astNode.Tok);
           if (Op === undefined) {
-            throw new Error(`operator not implemented: ${astNode.Tok}`);
+            throw new CompilationError(`operator not implemented: ${astNode.Tok}`);
           }
           const desugared: AST.BinaryExpr = {
             _type: AST.NodeType.BINARY_EXPR,
@@ -280,10 +282,10 @@ export class GolangCompiler {
       this.compile(assign_stmt_ast);
     },
     File: () => {
-      throw new Error(`File not implemented`);
+      throw new CompilationError(`File not implemented`);
     },
     BranchStmt: () => {
-      throw new Error(`BranchStmt not implemented`);
+      throw new CompilationError(`BranchStmt not implemented`);
     },
   };
 }

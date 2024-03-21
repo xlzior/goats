@@ -30,4 +30,11 @@ func main() {
   Sleep(7000)
 }
 `;
-runner.execute(program).then((result) => console.log(result));
+runner.execute(program)
+  .then((result) => {
+    console.log(result);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+
