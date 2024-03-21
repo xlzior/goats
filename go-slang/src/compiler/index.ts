@@ -48,7 +48,7 @@ export class GolangCompiler {
         return [i, j];
       }
     }
-    throw new CompilationError(`${name} not found in compile-time environment`);
+    throw new CompilationError(`undefined: ${name}`);
   }
 
   private compile_conditional(
