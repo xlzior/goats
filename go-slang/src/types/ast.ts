@@ -1,4 +1,4 @@
-type ParserResultSuccess = {
+export type ParserResultSuccess = {
   ast: File;
 };
 

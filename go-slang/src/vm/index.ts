@@ -10,6 +10,8 @@ import { Context } from "./thread_context";
 
 const INSTRS_PER_THREAD = 10;
 
+import { RuntimeError } from "../errors";
+
 export class GolangVM {
   private operand_stack: Array<number>;
   private program_counter: number;
@@ -58,7 +60,7 @@ export class GolangVM {
 
       const instr = instrs[this.program_counter++];
       if (this.microcode[instr._type] === undefined)
-        throw new Error(`${instr._type} not supported`);
+        throw new RuntimeError(`${instr._type} not supported`);
       this.microcode[instr._type](instr);
 
       this.update_scheduler();
@@ -121,7 +123,7 @@ export class GolangVM {
     if (address === undefined) {
       return undefined;
       // TODO: throw error? sign that there is an unecessary pop
-      // throw new Error(`Tried to pop from an empty OS`);
+      // throw new RuntimeError(`Tried to pop from an empty OS`);
     }
     return this.memory.address_to_js_value(address);
   }
@@ -177,7 +179,7 @@ export class GolangVM {
     EXIT_SCOPE: (instr: VM.EXIT_SCOPE) => {
       const scope = this.runtime_stack.pop();
       if (scope === undefined)
-        throw new Error(`Tried to exit scope when RTS is empty`);
+        throw new RuntimeError(`Tried to exit scope when RTS is empty`);
       this.environment = this.memory.blockframe.get_environment(scope);
     },
     LD: (instr: VM.LD) => {
@@ -270,7 +272,7 @@ export class GolangVM {
         return;
       }
 
-      throw new Error(`Tried to CALL on a non-function type: tag ${tag}`);
+      throw new RuntimeError(`Tried to CALL on a non-function type: tag ${tag}`);
     },
     RESET: (instr: VM.RESET) => {
       this.program_counter--;
