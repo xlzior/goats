@@ -29,7 +29,8 @@ const unop_microcode: any = {
     return -x;
   },
   "!": (x: boolean) => {
-    if (!is_boolean(x)) throw new RuntimeError(`! expects a boolean, got: ${x}`);
+    if (!is_boolean(x))
+      throw new RuntimeError(`! expects a boolean, got: ${x}`);
     return !x;
   },
 };

@@ -185,7 +185,9 @@ export class GolangCompiler {
           // compound assignment: +=, -=, *=, /= etc
           const Op = compoundAssignmentToBinaryOperator.get(astNode.Tok);
           if (Op === undefined) {
-            throw new CompilationError(`operator not implemented: ${astNode.Tok}`);
+            throw new CompilationError(
+              `operator not implemented: ${astNode.Tok}`,
+            );
           }
           const desugared: AST.BinaryExpr = {
             _type: AST.NodeType.BINARY_EXPR,

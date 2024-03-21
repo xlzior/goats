@@ -208,7 +208,7 @@ export class GolangVM {
       const arity = instr.arity;
       let fun = peek(this.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
-      
+
       if (tag === Tag.Builtin) {
         return this.apply_builtin(this.memory.builtin.get_id(fun));
       }
