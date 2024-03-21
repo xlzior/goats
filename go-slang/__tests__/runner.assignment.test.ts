@@ -363,36 +363,6 @@ describe("Golang runner error handling for assignments", () => {
 
   const ERROR = "error" // error property in result
 
-  test("redefining the same variable", async () => {
-    const program = `
-    package main
-
-    func main() {
-      a := 5
-      a := 5
-    }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "no new variables on left side of :=",
-    );
-  });
-
-  test("redefining the same variable with multiple define", async () => {
-    const program = `
-    package main
-
-    func main() {
-      a, b, c := 5, 6, 7
-      a, b, c := 5, 6, 7
-    }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "no new variables on left side of :=",
-    );
-  });
-
   test("assignment mismatch - LHS has more variables", async () => {
     const program = `
     package main
@@ -482,6 +452,35 @@ describe("Golang runner error handling for assignments", () => {
     expect(result).toHaveProperty(ERROR);
     expect(result.error).toContain(
       "expected operand, found '}'",
+    );
+  });
+
+  test("missing value on RHS of :=", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a :=
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "expected operand, found '}'",
+    );
+  });
+
+  test("Reassignment to a different type from initialised type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := 10; // integer
+      x = "hello" // string
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      'cannot use "hello" (untyped string constant) as int value in assignment',
     );
   });
 

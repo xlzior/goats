@@ -208,7 +208,7 @@ export class GolangVM {
       const arity = instr.arity;
       let fun = peek(this.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
-
+      
       if (tag === Tag.Builtin) {
         return this.apply_builtin(this.memory.builtin.get_id(fun));
       }
@@ -272,7 +272,7 @@ export class GolangVM {
         return;
       }
 
-      throw new RuntimeError(`Tried to CALL on a non-function type: tag ${tag}`);
+      throw new RuntimeError(`invalid operation: cannot call non-function`);
     },
     RESET: (instr: VM.RESET) => {
       this.program_counter--;

@@ -91,3 +91,63 @@ describe("Golang runner for evaluating assignments in blocks", () => {
     expect(println).toHaveBeenNthCalledWith(3, 30);
   });
 });
+
+
+describe("Golang runner error handling for block", () => {
+
+  const ERROR = 'error'
+
+  test("Redefining the same variable in the same scope", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a := 5
+      a := 5
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "no new variables on left side of :=",
+    );
+  });
+
+  test("Redefining the same variables with multiple assignments in the same scope", async () => {
+    const program = `
+    package main
+
+    func main() {
+      a, b, c := 5, 6, 7
+      a, b, c := 5, 6, 7
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "no new variables on left side of :=",
+    );
+  });
+
+  test("Declaring a function with the same name in the same scope", async () => {
+    const program = `
+    package main
+
+    func add(x int, y int) int {
+      return x + y;
+    }
+
+    func add(x int, y int, z int) int {
+      return x + y + z;
+    }
+
+    func main() {
+      x := add(1,2)
+      return x
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain(
+      "add redeclared in this block",
+    );
+  });
+
+})
