@@ -13,16 +13,21 @@ const builtin_mapping: Record<string, BuiltinFunction> = {
 const runner = new GolangRunner(builtin_mapping);
 const program = `
 package main
-
-func add(a, b int) int {
-  return a + b
+  
+func thread(n int) {
+  x := 0
+  for x < 3 {
+    Println(100 * n + x)
+    x++
+    Sleep(2000)
+  }
 }
 
 func main() {
-  num1 := 5
-  num2 := 7
-  result := add(num1, num2)
-  Println(result)
+  go thread(1)
+  Sleep(1000)
+  go thread(2)
+  Sleep(7000)
 }
 `;
 runner.execute(program).then((result) => console.log(result));

@@ -18,7 +18,7 @@ export class GolangCompiler {
   constructor(builtin_mapping: Record<string, BuiltinFunction>) {
     this.wc = 0;
     this.instrs = [];
-    this.compile_env = [Object.keys(builtin_mapping)];
+    this.compile_env = [["Sleep", ...Object.keys(builtin_mapping)]];
   }
 
   compile_program(rootAstNode: AST.File) {
@@ -33,7 +33,7 @@ export class GolangCompiler {
   }
 
   private compile(astNode: AST.Node) {
-    if (this.compile_ast[astNode._type] === undefined) 
+    if (this.compile_ast[astNode._type] === undefined)
       throw new Error(`${astNode._type} not supported`);
     this.compile_ast[astNode._type](astNode);
   }
@@ -128,6 +128,15 @@ export class GolangCompiler {
       this.compile(astNode.Fun);
       astNode.Args.forEach((arg) => this.compile(arg));
       this.instrs[this.wc++] = { _type: "CALL", arity: astNode.Args.length };
+    },
+    GoStmt: (astNode: AST.GoStmt) => {
+      const call_expr = astNode.Call;
+      this.compile(call_expr.Fun);
+      call_expr.Args.forEach((arg) => this.compile(arg));
+      this.instrs[this.wc++] = {
+        _type: "THREAD_CALL",
+        arity: call_expr.Args.length,
+      };
     },
     BlockStmt: (astNode: AST.BlockStmt) => {
       // empty block
