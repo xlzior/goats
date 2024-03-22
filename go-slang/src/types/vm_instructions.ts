@@ -65,6 +65,11 @@ export type LDF = {
   addr: number;
 };
 
+export type THREAD_CALL = {
+  _type: "THREAD_CALL";
+  arity: number;
+};
+
 export type DONE = {
   _type: "DONE";
 };
@@ -80,6 +85,7 @@ export type Instruction =
   | ASSIGN
   | LDF
   | CALL
+  | THREAD_CALL
   | ENTER_SCOPE
   | EXIT_SCOPE
   | POP

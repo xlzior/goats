@@ -6,23 +6,32 @@ import { apply_unop, apply_binop } from "./utils";
 
 import { Memory } from "./memory";
 import { Tag } from "./tag";
+import { Context } from "./thread_context";
+
+const INSTRS_PER_THREAD = 10;
 
 export class GolangVM {
   private OS: Array<number>;
   private PC: number;
   private E: number;
   private RTS: Array<number>;
+  private sleep_until: Date;
+
   private memory: Memory;
   private builtin_array: Array<BuiltinFunction>;
+  private thread_queue: Array<Context>;
+  private thread_instr_count: number = 0;
 
   constructor(builtin_mapping: Record<string, BuiltinFunction>) {
     this.memory = new Memory(10000000);
-    this.builtin_array = Object.values(builtin_mapping);
+    this.builtin_array = [this.Sleep, ...Object.values(builtin_mapping)];
+    this.thread_queue = [];
 
     this.OS = [];
     this.PC = 0;
     this.RTS = [];
     this.E = this.initialise_environment();
+    this.sleep_until = new Date();
   }
 
   private initialise_environment() {
@@ -42,12 +51,63 @@ export class GolangVM {
 
   run(instrs: VM.Instruction[]) {
     while (!(instrs[this.PC]._type === "DONE")) {
+      if (this.is_sleeping()) {
+        this.context_switch();
+        continue;
+      }
+
       const instr = instrs[this.PC++];
-      if (this.microcode[instr._type] === undefined) 
+      if (this.microcode[instr._type] === undefined)
         throw new Error(`${instr._type} not supported`);
       this.microcode[instr._type](instr);
+
+      this.update_scheduler();
     }
     return this.pop_os();
+  }
+
+  private Sleep: BuiltinFunction = {
+    arity: 1,
+    apply: (duration: number) => {
+      this.sleep_until = new Date(Date.now() + duration);
+    },
+  };
+
+  private is_sleeping(): boolean {
+    return new Date() < this.sleep_until;
+  }
+
+  private update_scheduler() {
+    this.thread_instr_count++;
+
+    if (this.thread_instr_count >= INSTRS_PER_THREAD) {
+      this.thread_instr_count = 0;
+      this.context_switch();
+    }
+  }
+
+  private context_switch() {
+    if (this.thread_queue.length > 0) {
+      this.save_context();
+      this.restore_context();
+    }
+  }
+
+  private save_context() {
+    this.thread_queue.push(
+      new Context(this.PC, this.E, this.OS, this.RTS, this.sleep_until),
+    );
+  }
+
+  private restore_context() {
+    const context = this.thread_queue.shift();
+    if (context === undefined) return;
+
+    this.PC = context.PC;
+    this.E = context.E;
+    this.OS = context.OS;
+    this.RTS = context.RTS;
+    this.sleep_until = context.sleep_until;
   }
 
   private pop_os() {
@@ -150,12 +210,42 @@ export class GolangVM {
 
       throw new Error(`Tried to CALL on a non-function type: tag ${tag}`);
     },
+    THREAD_CALL: (instr: VM.THREAD_CALL) => {
+      const arity = instr.arity;
+      let fun = peek(this.OS, arity);
+      const tag = this.memory.heap.get_tag(fun);
+
+      if (tag === Tag.Builtin) {
+        // TODO: implement go for builtin functions
+        // this currently just runs them in the current thread, not in a separate thread
+        return this.apply_builtin(this.memory.builtin.get_id(fun));
+      }
+
+      if (tag === Tag.Closure) {
+        const frame_address = this.memory.frame.allocate(arity);
+        for (let i = arity - 1; i >= 0; i--) {
+          this.memory.heap.set_child(frame_address, i, this.OS.pop());
+        }
+        this.OS.pop(); // pop fun
+
+        const context = new Context(
+          this.memory.closure.get_pc(fun),
+          this.memory.environment.extend(
+            frame_address,
+            this.memory.closure.get_environment(fun),
+          ),
+        );
+        this.thread_queue.push(context);
+        return;
+      }
+
+      throw new Error(`Tried to CALL on a non-function type: tag ${tag}`);
+    },
     RESET: (instr: VM.RESET) => {
       this.PC--;
       const top_frame = this.RTS.pop();
-      if (top_frame === undefined) {
-        throw new Error(`Tried to RESET where RTS is empty`);
-      }
+      if (top_frame === undefined) return this.restore_context();
+
       if (this.memory.heap.get_tag(top_frame) === Tag.Callframe)
         this.PC = this.memory.callframe.get_pc(top_frame);
       this.E = this.memory.callframe.get_environment(top_frame);
