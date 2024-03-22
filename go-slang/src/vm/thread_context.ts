@@ -1,21 +1,21 @@
 export class Context {
-  OS: Array<number>;
-  RTS: Array<number>;
-  PC: number;
-  E: number;
+  operand_stack: Array<number>;
+  runtime_stack: Array<number>;
+  program_counter: number;
+  environment: number;
   sleep_until: Date;
 
   constructor(
-    pc: number,
-    e: number,
-    os: Array<number> = [],
-    rts: Array<number> = [],
+    program_counter: number,
+    environment: number,
+    operand_stack: Array<number> = [],
+    runtime_stack: Array<number> = [],
     sleep_until: Date = new Date(),
   ) {
-    this.OS = os;
-    this.RTS = rts;
-    this.PC = pc;
-    this.E = e;
+    this.operand_stack = operand_stack;
+    this.runtime_stack = runtime_stack;
+    this.program_counter = program_counter;
+    this.environment = environment;
     this.sleep_until = sleep_until;
   }
 }
