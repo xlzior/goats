@@ -11,10 +11,10 @@ import { Context } from "./thread_context";
 const INSTRS_PER_THREAD = 10;
 
 export class GolangVM {
-  private OS: Array<number>;
-  private PC: number;
-  private E: number;
-  private RTS: Array<number>;
+  private operand_stack: Array<number>;
+  private program_counter: number;
+  private environment: number;
+  private runtime_stack: Array<number>;
   private sleep_until: Date;
 
   private memory: Memory;
@@ -27,10 +27,10 @@ export class GolangVM {
     this.builtin_array = [this.Sleep, ...Object.values(builtin_mapping)];
     this.thread_queue = [];
 
-    this.OS = [];
-    this.PC = 0;
-    this.RTS = [];
-    this.E = this.initialise_environment();
+    this.operand_stack = [];
+    this.program_counter = 0;
+    this.runtime_stack = [];
+    this.environment = this.initialise_environment();
     this.sleep_until = new Date();
   }
 
@@ -50,13 +50,13 @@ export class GolangVM {
   }
 
   run(instrs: VM.Instruction[]) {
-    while (!(instrs[this.PC]._type === "DONE")) {
+    while (!(instrs[this.program_counter]._type === "DONE")) {
       if (this.is_sleeping()) {
         this.context_switch();
         continue;
       }
 
-      const instr = instrs[this.PC++];
+      const instr = instrs[this.program_counter++];
       if (this.microcode[instr._type] === undefined)
         throw new Error(`${instr._type} not supported`);
       this.microcode[instr._type](instr);
@@ -95,7 +95,13 @@ export class GolangVM {
 
   private save_context() {
     this.thread_queue.push(
-      new Context(this.PC, this.E, this.OS, this.RTS, this.sleep_until),
+      new Context(
+        this.program_counter,
+        this.environment,
+        this.operand_stack,
+        this.runtime_stack,
+        this.sleep_until,
+      ),
     );
   }
 
@@ -103,15 +109,15 @@ export class GolangVM {
     const context = this.thread_queue.shift();
     if (context === undefined) return;
 
-    this.PC = context.PC;
-    this.E = context.E;
-    this.OS = context.OS;
-    this.RTS = context.RTS;
+    this.program_counter = context.program_counter;
+    this.environment = context.environment;
+    this.operand_stack = context.operand_stack;
+    this.runtime_stack = context.runtime_stack;
     this.sleep_until = context.sleep_until;
   }
 
   private pop_os() {
-    const address = this.OS.pop();
+    const address = this.operand_stack.pop();
     if (address === undefined) {
       return undefined;
       // TODO: throw error? sign that there is an unecessary pop
@@ -121,7 +127,7 @@ export class GolangVM {
   }
 
   private push_os(value: any) {
-    this.OS.push(this.memory.js_value_to_address(value));
+    this.operand_stack.push(this.memory.js_value_to_address(value));
   }
 
   private apply_builtin(id: number) {
@@ -148,15 +154,20 @@ export class GolangVM {
       this.pop_os();
     },
     JOF: (instr: VM.JOF) => {
-      this.PC = this.pop_os() ? this.PC : instr.addr;
+      this.program_counter = this.pop_os() ? this.program_counter : instr.addr;
     },
     GOTO: (instr: VM.GOTO) => {
-      this.PC = instr.addr;
+      this.program_counter = instr.addr;
     },
     ENTER_SCOPE: (instr: VM.ENTER_SCOPE) => {
-      this.RTS.push(this.memory.blockframe.allocate(this.E));
+      this.runtime_stack.push(
+        this.memory.blockframe.allocate(this.environment),
+      );
       const frame_address = this.memory.frame.allocate(instr.num);
-      this.E = this.memory.environment.extend(frame_address, this.E);
+      this.environment = this.memory.environment.extend(
+        frame_address,
+        this.environment,
+      );
       for (let i = 0; i < instr.num; i++) {
         // TODO: how to initialise the variables? unassigned?
         // this currently initialises all variables to the address of 0, which is False
@@ -164,29 +175,36 @@ export class GolangVM {
       }
     },
     EXIT_SCOPE: (instr: VM.EXIT_SCOPE) => {
-      const scope = this.RTS.pop();
+      const scope = this.runtime_stack.pop();
       if (scope === undefined)
         throw new Error(`Tried to exit scope when RTS is empty`);
-      this.E = this.memory.blockframe.get_environment(scope);
+      this.environment = this.memory.blockframe.get_environment(scope);
     },
     LD: (instr: VM.LD) => {
-      const val = this.memory.environment.get_value(this.E, instr.pos);
-      this.OS.push(val);
+      const val = this.memory.environment.get_value(
+        this.environment,
+        instr.pos,
+      );
+      this.operand_stack.push(val);
     },
     ASSIGN: (instr: VM.ASSIGN) => {
-      this.memory.environment.set_value(this.E, instr.pos, peek(this.OS));
+      this.memory.environment.set_value(
+        this.environment,
+        instr.pos,
+        peek(this.operand_stack),
+      );
     },
     LDF: (instr: VM.LDF) => {
       const closure_address = this.memory.closure.allocate(
         instr.params.length,
         instr.addr,
-        this.E,
+        this.environment,
       );
-      this.OS.push(closure_address);
+      this.operand_stack.push(closure_address);
     },
     CALL: (instr: VM.CALL) => {
       const arity = instr.arity;
-      let fun = peek(this.OS, arity);
+      let fun = peek(this.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
 
       if (tag === Tag.Builtin) {
@@ -196,15 +214,24 @@ export class GolangVM {
       if (tag === Tag.Closure) {
         const frame_address = this.memory.frame.allocate(arity);
         for (let i = arity - 1; i >= 0; i--) {
-          this.memory.heap.set_child(frame_address, i, this.OS.pop());
+          this.memory.heap.set_child(
+            frame_address,
+            i,
+            this.operand_stack.pop(),
+          );
         }
-        this.OS.pop(); // pop fun
-        this.RTS.push(this.memory.callframe.allocate(this.E, this.PC));
-        this.E = this.memory.environment.extend(
+        this.operand_stack.pop(); // pop fun
+        this.runtime_stack.push(
+          this.memory.callframe.allocate(
+            this.environment,
+            this.program_counter,
+          ),
+        );
+        this.environment = this.memory.environment.extend(
           frame_address,
           this.memory.closure.get_environment(fun),
         );
-        this.PC = this.memory.closure.get_pc(fun);
+        this.program_counter = this.memory.closure.get_pc(fun);
         return;
       }
 
@@ -212,7 +239,7 @@ export class GolangVM {
     },
     THREAD_CALL: (instr: VM.THREAD_CALL) => {
       const arity = instr.arity;
-      let fun = peek(this.OS, arity);
+      let fun = peek(this.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
 
       if (tag === Tag.Builtin) {
@@ -224,9 +251,13 @@ export class GolangVM {
       if (tag === Tag.Closure) {
         const frame_address = this.memory.frame.allocate(arity);
         for (let i = arity - 1; i >= 0; i--) {
-          this.memory.heap.set_child(frame_address, i, this.OS.pop());
+          this.memory.heap.set_child(
+            frame_address,
+            i,
+            this.operand_stack.pop(),
+          );
         }
-        this.OS.pop(); // pop fun
+        this.operand_stack.pop(); // pop fun
 
         const context = new Context(
           this.memory.closure.get_pc(fun),
@@ -242,13 +273,13 @@ export class GolangVM {
       throw new Error(`Tried to CALL on a non-function type: tag ${tag}`);
     },
     RESET: (instr: VM.RESET) => {
-      this.PC--;
-      const top_frame = this.RTS.pop();
+      this.program_counter--;
+      const top_frame = this.runtime_stack.pop();
       if (top_frame === undefined) return this.restore_context();
 
       if (this.memory.heap.get_tag(top_frame) === Tag.Callframe)
-        this.PC = this.memory.callframe.get_pc(top_frame);
-      this.E = this.memory.callframe.get_environment(top_frame);
+        this.program_counter = this.memory.callframe.get_pc(top_frame);
+      this.environment = this.memory.callframe.get_environment(top_frame);
     },
     DONE: (instr: VM.DONE) => {},
   };
