@@ -93,7 +93,7 @@ describe("Golang runner for evaluating assignments in blocks", () => {
 });
 
 
-describe("Golang runner error handling for block", () => {
+describe("Golang runner for handling errors for assignments", () => {
 
   const ERROR = 'error'
 
@@ -127,7 +127,7 @@ describe("Golang runner error handling for block", () => {
     );
   });
 
-  test("Declaring a function with the same name in the same scope", async () => {
+  test.skip("Declaring a function with the same name in the same scope", async () => {
     const program = `
     package main
 

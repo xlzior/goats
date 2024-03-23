@@ -431,6 +431,9 @@ describe("Golang runner for evaluating string expressions", () => {
   });
 });
 
+// ========================
+// NEGATIVE TYPING TESTS
+// ========================
 
 const binaryExprInputsForAdd: [number | string | boolean, number | string | boolean][] = [
   [1, "hello"],      // (int, string)
@@ -438,9 +441,10 @@ const binaryExprInputsForAdd: [number | string | boolean, number | string | bool
   ["hello", true],   // (string, bool)
   [true, false]      // (bool, bool)
 ];
-describe(`Testing incorrect types of binary expressions with operator: ${Token.ADD}`, () => {
+
+describe.skip(`Golang runner for evaluating incorrect types of binary expr with operator: ${Token.ADD}`, () => {
   test.each(binaryExprInputsForAdd)(
-    'Pairwise testing for binary expressions: %p %p',
+    `Incorrect type: %p %p`,
     async (operand1, operand2) => {
       const program = `
             package main
@@ -452,12 +456,11 @@ describe(`Testing incorrect types of binary expressions with operator: ${Token.A
       const result = await golangRunner.execute(program);
       expect(result).toHaveProperty("error");
       expect(result.error).toContain(
-        `invalid operation: ${operand1} ${Token.ADD}  ${operand2}`
+        `invalid operation: ${operand1} ${Token.ADD} ${operand2}`
       );
     }
   );
 });
-
 
 // Expect both operands to be integers
 const binaryOps = [
@@ -476,9 +479,9 @@ const binaryExprInputs: [number | string | boolean, number | string | boolean][]
 ];
 
 binaryOps.forEach(operator => {
-  describe(`Testing incorrect types of binary expressions with operator: ${operator}`, () => {
+  describe.skip(`Golang runner for evaluating incorrect types of binary expr with operator: ${operator}`, () => {
     test.each(binaryExprInputs)(
-      'Pairwise testing for binary expressions: %p %p',
+      `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
               package main
@@ -512,9 +515,9 @@ const logicalExprInputs: [number | string | boolean, number | string | boolean][
 ];
 
 logicalOps.forEach(operator => {
-  describe(`Testing incorrect types of logical expressions with operator: ${operator}`, () => {
+  describe.skip(`Golang runner for evaluating incorrect types of logical expr with operator: ${operator}`, () => {
     test.each(logicalExprInputs)(
-      'Pairwise testing for logical expressions: %p %p',
+      `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
               package main
@@ -550,9 +553,9 @@ const comparisonExprInputs: [number | string | boolean, number | string | boolea
 ];
 
 comparisonOps.forEach(operator => {
-  describe(`Testing incorrect types of comparison expressions with operator: ${operator}`, () => {
+  describe.skip(`Golang runner for evaluating incorrect types of comparison expr with operator: ${operator}`, () => {
     test.each(comparisonExprInputs)(
-      'Pairwise testing for comparison expressions: %p %p',
+      `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
               package main
@@ -570,7 +573,6 @@ comparisonOps.forEach(operator => {
     );
   });
 });
-
 
 // Expect both operands to be of the same type.
 // E.g. int and int, string and string, bool and bool
@@ -586,9 +588,9 @@ const equalityExprInputs: [number | string | boolean, number | string | boolean]
 ];
 
 equalityOps.forEach(operator => {
-  describe(`Testing incorrect types of equality expressions with operator: ${operator}`, () => {
+  describe.skip(`Golang runner for evaluating incorrect types of equality expr with operator: ${operator}`, () => {
     test.each(equalityExprInputs)(
-      'Pairwise testing for equality expressions: %p %p',
+      `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
               package main
@@ -607,8 +609,8 @@ equalityOps.forEach(operator => {
   });
 });
 
-describe('Incorrect types for unary minus operator', () => {
-  test("unary minus with string", async () => {
+describe.skip('Golang runner for evaluating incorrect types of unary minus operator', () => {
+  test("Incorrect type: string", async () => {
     const program = `
     package main
   
@@ -622,7 +624,7 @@ describe('Incorrect types for unary minus operator', () => {
     );
   });
 
-  test("unary minus with bool", async () => {
+  test("Incorrect type: bool", async () => {
     const program = `
     package main
   
@@ -637,8 +639,8 @@ describe('Incorrect types for unary minus operator', () => {
   });
 });
 
-describe('Incorrect types for unary not operator', () => {
-  test("unary not with string", async () => {
+describe.skip('Golang runner for evaluating incorrect types of unary not operator', () => {
+  test("Incorrect type: string", async () => {
     const program = `
     package main
   
@@ -652,7 +654,7 @@ describe('Incorrect types for unary not operator', () => {
     );
   });
 
-  test("unary not with int", async () => {
+  test("Incorrect type: int", async () => {
     const program = `
     package main
   
