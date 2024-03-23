@@ -118,6 +118,42 @@ export class GolangVM {
     this.sleep_until = context.sleep_until;
   }
 
+  private set_context(context: Context) {
+    this.program_counter = context.program_counter;
+    this.environment = context.environment;
+    this.operand_stack = context.operand_stack;
+    this.runtime_stack = context.runtime_stack;
+    this.sleep_until = context.sleep_until;
+  }
+
+  private create_function_context(
+    fun: number,
+    arity: number,
+    extend_current: boolean,
+  ) {
+    const frame_address = this.memory.frame.allocate(arity);
+    for (let i = arity - 1; i >= 0; i--) {
+      this.memory.heap.set_child(frame_address, i, this.operand_stack.pop());
+    }
+    this.operand_stack.pop(); // pop fun
+
+    const context = new Context(
+      this.memory.closure.get_pc(fun),
+      this.memory.environment.extend(
+        frame_address,
+        this.memory.closure.get_environment(fun),
+      ),
+    );
+
+    if (extend_current) {
+      context.operand_stack = this.operand_stack;
+      context.runtime_stack = this.runtime_stack;
+      context.sleep_until = this.sleep_until;
+    }
+
+    return context;
+  }
+
   private pop_os() {
     const address = this.operand_stack.pop();
     if (address === undefined) {
@@ -206,7 +242,7 @@ export class GolangVM {
     },
     CALL: (instr: VM.CALL) => {
       const arity = instr.arity;
-      let fun = peek(this.operand_stack, arity);
+      const fun = peek(this.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
 
       if (tag === Tag.Builtin) {
@@ -214,26 +250,14 @@ export class GolangVM {
       }
 
       if (tag === Tag.Closure) {
-        const frame_address = this.memory.frame.allocate(arity);
-        for (let i = arity - 1; i >= 0; i--) {
-          this.memory.heap.set_child(
-            frame_address,
-            i,
-            this.operand_stack.pop(),
-          );
-        }
-        this.operand_stack.pop(); // pop fun
         this.runtime_stack.push(
           this.memory.callframe.allocate(
             this.environment,
             this.program_counter,
           ),
         );
-        this.environment = this.memory.environment.extend(
-          frame_address,
-          this.memory.closure.get_environment(fun),
-        );
-        this.program_counter = this.memory.closure.get_pc(fun);
+        const context = this.create_function_context(fun, arity, true);
+        this.set_context(context);
         return;
       }
 
@@ -241,7 +265,7 @@ export class GolangVM {
     },
     THREAD_CALL: (instr: VM.THREAD_CALL) => {
       const arity = instr.arity;
-      let fun = peek(this.operand_stack, arity);
+      const fun = peek(this.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
 
       if (tag === Tag.Builtin) {
@@ -251,23 +275,7 @@ export class GolangVM {
       }
 
       if (tag === Tag.Closure) {
-        const frame_address = this.memory.frame.allocate(arity);
-        for (let i = arity - 1; i >= 0; i--) {
-          this.memory.heap.set_child(
-            frame_address,
-            i,
-            this.operand_stack.pop(),
-          );
-        }
-        this.operand_stack.pop(); // pop fun
-
-        const context = new Context(
-          this.memory.closure.get_pc(fun),
-          this.memory.environment.extend(
-            frame_address,
-            this.memory.closure.get_environment(fun),
-          ),
-        );
+        const context = this.create_function_context(fun, arity, false);
         this.thread_queue.push(context);
         return;
       }
