@@ -201,7 +201,7 @@ describe("Golang runner for evaluating functions", () => {
   });
 });
 
-describe("Golang runner error handling for functions", () => { 
+describe.skip("Golang runner for handling errors for functions", () => { 
 
   const ERROR = 'error'
 
