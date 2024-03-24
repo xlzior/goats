@@ -92,10 +92,8 @@ describe("Golang runner for evaluating assignments in blocks", () => {
   });
 });
 
-
 describe("Golang runner for handling errors for assignments", () => {
-
-  const ERROR = 'error'
+  const ERROR = "error";
 
   test("Redefining the same variable in the same scope", async () => {
     const program = `
@@ -107,9 +105,7 @@ describe("Golang runner for handling errors for assignments", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "no new variables on left side of :=",
-    );
+    expect(result.error).toContain("no new variables on left side of :=");
   });
 
   test("Redefining the same variables with multiple assignments in the same scope", async () => {
@@ -122,9 +118,7 @@ describe("Golang runner for handling errors for assignments", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "no new variables on left side of :=",
-    );
+    expect(result.error).toContain("no new variables on left side of :=");
   });
 
   test.skip("Declaring a function with the same name in the same scope", async () => {
@@ -145,9 +139,6 @@ describe("Golang runner for handling errors for assignments", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "add redeclared in this block",
-    );
+    expect(result.error).toContain("add redeclared in this block");
   });
-
-})
+});

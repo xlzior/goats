@@ -7,7 +7,6 @@ beforeEach(() => {
 });
 
 describe("Golang runner for evaluating conditional statements", () => {
-
   test("evaluate simple conditional statement with only if condition", async () => {
     const program = `
     package main
@@ -57,7 +56,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     const expected = 200;
     expect(value).toEqual(expected);
   });
-  
+
   test("evaluate conditional statement with else if", async () => {
     const program = `
     package main
@@ -76,7 +75,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     const expected = 300;
     expect(value).toEqual(expected);
   });
-  
+
   test("evaluate conditional statement with multiple else if conditions", async () => {
     const program = `
     package main
@@ -122,7 +121,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     const expected = 400;
     expect(value).toEqual(expected);
   });
-  
+
   test("evaluate conditional statement with deeply nested if-else", async () => {
     const program = `
     package main
@@ -147,6 +146,4 @@ describe("Golang runner for evaluating conditional statements", () => {
     const expected = 400;
     expect(value).toEqual(expected);
   });
-  
-  
 });
