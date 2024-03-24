@@ -439,9 +439,9 @@ const binaryExprInputsForAdd: [
   number | string | boolean,
   number | string | boolean,
 ][] = [
-  [1, "hello"], // (int, string)
+  [1, '"hello"'], // (int, string)
   [1, false], // (int, bool)
-  ["hello", true], // (string, bool)
+  ['"hello"', true], // (string, bool)
   [true, false], // (bool, bool)
 ];
 
@@ -472,10 +472,10 @@ const binaryExprInputs: [
   number | string | boolean,
   number | string | boolean,
 ][] = [
-  [1, "hello"], // (int, string)
+  [1, '"hello"'], // (int, string)
   [1, false], // (int, bool)
-  ["hello", "world"], // (string, string)
-  ["hello", true], // (string, bool)
+  ['"hello"', "world"], // (string, string)
+  ['"hello"', true], // (string, bool)
   [true, false], // (bool, bool)
 ];
 
@@ -509,10 +509,10 @@ const logicalExprInputs: [
   number | string | boolean,
 ][] = [
   [1, 2], // (int, int)
-  [1, "hello"], // (int, string)
+  [1, '"hello"'], // (int, string)
   [1, false], // (int, bool)
-  ["hello", "world"], // (string, string)
-  ["hello", true], // (string, bool)
+  ['"hello"', "world"], // (string, string)
+  ['"hello"', true], // (string, bool)
 ];
 
 logicalOps.forEach((operator) => {
@@ -545,9 +545,9 @@ const comparisonExprInputs: [
   number | string | boolean,
   number | string | boolean,
 ][] = [
-  [1, "hello"], // (int, string)
+  [1, '"hello"'], // (int, string)
   [1, false], // (int, bool)
-  ["hello", true], // (string, bool)
+  ['"hello"', true], // (string, bool)
   [true, false], //  (bool, bool)
 ];
 
@@ -581,9 +581,9 @@ const equalityExprInputs: [
   number | string | boolean,
   number | string | boolean,
 ][] = [
-  [1, "hello"], // (int, string)
+  [1, '"hello"'], // (int, string)
   [1, false], // (int, bool)
-  ["hello", true], // (string, bool)
+  ['"hello"', true], // (string, bool)
 ];
 
 equalityOps.forEach((operator) => {
