@@ -450,11 +450,11 @@ describe.skip(`Golang runner for evaluating incorrect types of binary expr with 
     `Incorrect type: %p %p`,
     async (operand1, operand2) => {
       const program = `
-            package main
+      package main
 
-            func main() {
-                x := ${operand1} ${Token.ADD} ${operand2};
-            }`;
+      func main() {
+          x := ${operand1} ${Token.ADD} ${operand2};
+      }`;
 
       const result = await golangRunner.execute(program);
       expect(result).toHaveProperty("error");
@@ -485,11 +485,11 @@ binaryOps.forEach((operator) => {
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
-              package main
+        package main
 
-              func main() {
-                  x := ${operand1} ${operator} ${operand2};
-              }`;
+        func main() {
+            x := ${operand1} ${operator} ${operand2};
+        }`;
 
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
@@ -521,11 +521,11 @@ logicalOps.forEach((operator) => {
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
-              package main
+        package main
 
-              func main() {
-                  x := ${operand1} ${operator} ${operand2};
-              }`;
+        func main() {
+            x := ${operand1} ${operator} ${operand2};
+        }`;
 
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
@@ -557,11 +557,11 @@ comparisonOps.forEach((operator) => {
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
-              package main
+        package main
 
-              func main() {
-                  x := ${operand1} ${operator} ${operand2};
-              }`;
+        func main() {
+            x := ${operand1} ${operator} ${operand2};
+        }`;
 
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
@@ -592,11 +592,11 @@ equalityOps.forEach((operator) => {
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
         const program = `
-              package main
+        package main
 
-              func main() {
-                  x := ${operand1} ${operator} ${operand2};
-              }`;
+        func main() {
+            x := ${operand1} ${operator} ${operand2};
+        }`;
 
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
