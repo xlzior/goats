@@ -360,8 +360,7 @@ describe("Golang runner for evaluating assignment statements", () => {
 });
 
 describe.skip("Golang runner for handling errors for assignments", () => {
-
-  const ERROR = "error" // error property in result
+  const ERROR = "error"; // error property in result
 
   test("assignment mismatch - LHS has more variables", async () => {
     const program = `
@@ -436,9 +435,7 @@ describe.skip("Golang runner for handling errors for assignments", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "undefined: a",
-    );
+    expect(result.error).toContain("undefined: a");
   });
 
   test("missing value on RHS of :=", async () => {
@@ -450,9 +447,7 @@ describe.skip("Golang runner for handling errors for assignments", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "expected operand, found '}'",
-    );
+    expect(result.error).toContain("expected operand, found '}'");
   });
 
   test("missing value on RHS of :=", async () => {
@@ -464,9 +459,7 @@ describe.skip("Golang runner for handling errors for assignments", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "expected operand, found '}'",
-    );
+    expect(result.error).toContain("expected operand, found '}'");
   });
 
   test("Reassignment to a different type from initialised type", async () => {
@@ -483,5 +476,4 @@ describe.skip("Golang runner for handling errors for assignments", () => {
       'cannot use "hello" (untyped string constant) as int value in assignment',
     );
   });
-
-})
+});

@@ -435,11 +435,14 @@ describe("Golang runner for evaluating string expressions", () => {
 // NEGATIVE TYPING TESTS
 // ========================
 
-const binaryExprInputsForAdd: [number | string | boolean, number | string | boolean][] = [
-  [1, "hello"],      // (int, string)
-  [1, false],        // (int, bool)
-  ["hello", true],   // (string, bool)
-  [true, false]      // (bool, bool)
+const binaryExprInputsForAdd: [
+  number | string | boolean,
+  number | string | boolean,
+][] = [
+  [1, "hello"], // (int, string)
+  [1, false], // (int, bool)
+  ["hello", true], // (string, bool)
+  [true, false], // (bool, bool)
 ];
 
 describe.skip(`Golang runner for evaluating incorrect types of binary expr with operator: ${Token.ADD}`, () => {
@@ -456,29 +459,27 @@ describe.skip(`Golang runner for evaluating incorrect types of binary expr with 
       const result = await golangRunner.execute(program);
       expect(result).toHaveProperty("error");
       expect(result.error).toContain(
-        `invalid operation: ${operand1} ${Token.ADD} ${operand2}`
+        `invalid operation: ${operand1} ${Token.ADD} ${operand2}`,
       );
-    }
+    },
   );
 });
 
 // Expect both operands to be integers
-const binaryOps = [
-  Token.SUB,
-  Token.MUL,
-  Token.QUO,
-  Token.REM,
+const binaryOps = [Token.SUB, Token.MUL, Token.QUO, Token.REM];
+
+const binaryExprInputs: [
+  number | string | boolean,
+  number | string | boolean,
+][] = [
+  [1, "hello"], // (int, string)
+  [1, false], // (int, bool)
+  ["hello", "world"], // (string, string)
+  ["hello", true], // (string, bool)
+  [true, false], // (bool, bool)
 ];
 
-const binaryExprInputs: [number | string | boolean, number | string | boolean][] = [
-  [1, "hello"],      // (int, string)
-  [1, false],        // (int, bool)
-  ["hello", "world"],// (string, string)
-  ["hello", true],   // (string, bool)
-  [true, false]      // (bool, bool)
-];
-
-binaryOps.forEach(operator => {
+binaryOps.forEach((operator) => {
   describe.skip(`Golang runner for evaluating incorrect types of binary expr with operator: ${operator}`, () => {
     test.each(binaryExprInputs)(
       `Incorrect type: %p %p`,
@@ -493,28 +494,28 @@ binaryOps.forEach(operator => {
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
         expect(result.error).toContain(
-          `invalid operation: ${operand1} ${operator} ${operand2}`
+          `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
-      }
+      },
     );
   });
 });
 
 // Expect both operands to be booleans
-const logicalOps = [
-  Token.LAND,
-  Token.LOR
+const logicalOps = [Token.LAND, Token.LOR];
+
+const logicalExprInputs: [
+  number | string | boolean,
+  number | string | boolean,
+][] = [
+  [1, 2], // (int, int)
+  [1, "hello"], // (int, string)
+  [1, false], // (int, bool)
+  ["hello", "world"], // (string, string)
+  ["hello", true], // (string, bool)
 ];
 
-const logicalExprInputs: [number | string | boolean, number | string | boolean][] = [
-  [1, 2],            // (int, int)
-  [1, "hello"],      // (int, string)
-  [1, false],        // (int, bool)
-  ["hello", "world"],// (string, string)
-  ["hello", true],   // (string, bool)
-];
-
-logicalOps.forEach(operator => {
+logicalOps.forEach((operator) => {
   describe.skip(`Golang runner for evaluating incorrect types of logical expr with operator: ${operator}`, () => {
     test.each(logicalExprInputs)(
       `Incorrect type: %p %p`,
@@ -529,30 +530,28 @@ logicalOps.forEach(operator => {
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
         expect(result.error).toContain(
-          `invalid operation: ${operand1} ${operator} ${operand2}`
+          `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
-      }
+      },
     );
   });
 });
 
 // Expect both operands to be of the same type, except bool
 // E.g. int and int, string and string
-const comparisonOps = [
-  Token.LSS,
-  Token.LEQ,
-  Token.GTR,
-  Token.GEQ,
+const comparisonOps = [Token.LSS, Token.LEQ, Token.GTR, Token.GEQ];
+
+const comparisonExprInputs: [
+  number | string | boolean,
+  number | string | boolean,
+][] = [
+  [1, "hello"], // (int, string)
+  [1, false], // (int, bool)
+  ["hello", true], // (string, bool)
+  [true, false], //  (bool, bool)
 ];
 
-const comparisonExprInputs: [number | string | boolean, number | string | boolean][] = [
-  [1, "hello"],      // (int, string)
-  [1, false],        // (int, bool)
-  ["hello", true],   // (string, bool)
-  [true, false],    //  (bool, bool)
-];
-
-comparisonOps.forEach(operator => {
+comparisonOps.forEach((operator) => {
   describe.skip(`Golang runner for evaluating incorrect types of comparison expr with operator: ${operator}`, () => {
     test.each(comparisonExprInputs)(
       `Incorrect type: %p %p`,
@@ -567,27 +566,27 @@ comparisonOps.forEach(operator => {
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
         expect(result.error).toContain(
-          `invalid operation: ${operand1} ${operator} ${operand2}`
+          `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
-      }
+      },
     );
   });
 });
 
 // Expect both operands to be of the same type.
 // E.g. int and int, string and string, bool and bool
-const equalityOps = [
-  Token.EQL,
-  Token.NEQ
+const equalityOps = [Token.EQL, Token.NEQ];
+
+const equalityExprInputs: [
+  number | string | boolean,
+  number | string | boolean,
+][] = [
+  [1, "hello"], // (int, string)
+  [1, false], // (int, bool)
+  ["hello", true], // (string, bool)
 ];
 
-const equalityExprInputs: [number | string | boolean, number | string | boolean][] = [
-  [1, "hello"],      // (int, string)
-  [1, false],        // (int, bool)
-  ["hello", true],   // (string, bool)
-];
-
-equalityOps.forEach(operator => {
+equalityOps.forEach((operator) => {
   describe.skip(`Golang runner for evaluating incorrect types of equality expr with operator: ${operator}`, () => {
     test.each(equalityExprInputs)(
       `Incorrect type: %p %p`,
@@ -602,14 +601,14 @@ equalityOps.forEach(operator => {
         const result = await golangRunner.execute(program);
         expect(result).toHaveProperty("error");
         expect(result.error).toContain(
-          `invalid operation: ${operand1} ${operator} ${operand2}`
+          `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
-      }
+      },
     );
   });
 });
 
-describe.skip('Golang runner for evaluating incorrect types of unary minus operator', () => {
+describe.skip("Golang runner for evaluating incorrect types of unary minus operator", () => {
   test("Incorrect type: string", async () => {
     const program = `
     package main
@@ -619,9 +618,7 @@ describe.skip('Golang runner for evaluating incorrect types of unary minus opera
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty("error");
-    expect(result.error).toContain(
-      `invalid operation: -`
-    );
+    expect(result.error).toContain(`invalid operation: -`);
   });
 
   test("Incorrect type: bool", async () => {
@@ -633,13 +630,11 @@ describe.skip('Golang runner for evaluating incorrect types of unary minus opera
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty("error");
-    expect(result.error).toContain(
-      `invalid operation: -`
-    );
+    expect(result.error).toContain(`invalid operation: -`);
   });
 });
 
-describe.skip('Golang runner for evaluating incorrect types of unary not operator', () => {
+describe.skip("Golang runner for evaluating incorrect types of unary not operator", () => {
   test("Incorrect type: string", async () => {
     const program = `
     package main
@@ -649,9 +644,7 @@ describe.skip('Golang runner for evaluating incorrect types of unary not operato
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty("error");
-    expect(result.error).toContain(
-      `invalid operation: !`
-    );
+    expect(result.error).toContain(`invalid operation: !`);
   });
 
   test("Incorrect type: int", async () => {
@@ -663,8 +656,6 @@ describe.skip('Golang runner for evaluating incorrect types of unary not operato
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty("error");
-    expect(result.error).toContain(
-      `invalid operation: !`
-    );
+    expect(result.error).toContain(`invalid operation: !`);
   });
 });

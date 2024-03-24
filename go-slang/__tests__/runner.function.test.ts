@@ -201,9 +201,8 @@ describe("Golang runner for evaluating functions", () => {
   });
 });
 
-describe.skip("Golang runner for handling errors for functions", () => { 
-
-  const ERROR = 'error'
+describe.skip("Golang runner for handling errors for functions", () => {
+  const ERROR = "error";
 
   test("Calling a variable as a function", async () => {
     const program = `
@@ -231,9 +230,7 @@ describe.skip("Golang runner for handling errors for functions", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "undefined: add",
-    );
+    expect(result.error).toContain("undefined: add");
   });
 
   test("Passing too little arguments to a function", async () => {
@@ -250,9 +247,7 @@ describe.skip("Golang runner for handling errors for functions", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "not enough arguments in function call",
-    );
+    expect(result.error).toContain("not enough arguments in function call");
   });
 
   test("Passing too many arguments to a function", async () => {
@@ -269,9 +264,7 @@ describe.skip("Golang runner for handling errors for functions", () => {
     }`;
     const result = await golangRunner.execute(program);
     expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
-      "too many arguments in function call",
-    );
+    expect(result.error).toContain("too many arguments in function call");
   });
 
   test("Passing wrong argument type to a function", async () => {
@@ -311,5 +304,4 @@ describe.skip("Golang runner for handling errors for functions", () => {
       "cannot use x + 10 (value of type int) as string value in return statement",
     );
   });
-
-})
+});

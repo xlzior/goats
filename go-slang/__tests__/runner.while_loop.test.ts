@@ -7,7 +7,6 @@ beforeEach(() => {
 });
 
 describe("Golang runner for evaluating while loop statements", () => {
-
   test("evaluate while loop with loop condition not satisfied", async () => {
     const program = `
     package main
@@ -20,7 +19,7 @@ describe("Golang runner for evaluating while loop statements", () => {
       return x
     }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 1; 
+    const expected = 1;
     expect(value).toEqual(expected);
   });
 
@@ -36,7 +35,7 @@ describe("Golang runner for evaluating while loop statements", () => {
       return x
     }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 10; 
+    const expected = 10;
     expect(value).toEqual(expected);
   });
 
@@ -74,10 +73,10 @@ describe("Golang runner for evaluating while loop statements", () => {
         return sum
       }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 45; 
+    const expected = 45;
     expect(value).toEqual(expected);
   });
-  
+
   test("evaluate while loop with 2 levels of nesting", async () => {
     const program = `
       package main
@@ -100,7 +99,7 @@ describe("Golang runner for evaluating while loop statements", () => {
         return sum
       }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 72
+    const expected = 72;
     expect(value).toEqual(expected);
   });
 
@@ -130,7 +129,7 @@ describe("Golang runner for evaluating while loop statements", () => {
         return sum
       }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 32
+    const expected = 32;
     expect(value).toEqual(expected);
   });
 
@@ -153,7 +152,7 @@ describe("Golang runner for evaluating while loop statements", () => {
         return sum
       }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 20
+    const expected = 20;
     expect(value).toEqual(expected);
   });
 
@@ -176,7 +175,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     const expected = 6;
     expect(value).toEqual(expected);
   });
-  
+
   test("evaluate while loop with nested if statements", async () => {
     const program = `
       package main
@@ -200,5 +199,4 @@ describe("Golang runner for evaluating while loop statements", () => {
     const expected = 6;
     expect(value).toEqual(expected);
   });
-  
-})
+});
