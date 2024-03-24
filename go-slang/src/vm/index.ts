@@ -8,32 +8,20 @@ import { Memory } from "./memory";
 import { Tag } from "./tag";
 import { Context } from "./thread_context";
 
-const INSTRS_PER_THREAD = 10;
-
 import { RuntimeError } from "../errors";
+import { ThreadManager } from "./thread_manager";
 
 export class GolangVM {
-  private operand_stack: Array<number>;
-  private program_counter: number;
-  private environment: number;
-  private runtime_stack: Array<number>;
-  private sleep_until: Date;
-
+  private context: Context;
   private memory: Memory;
   private builtin_array: Array<BuiltinFunction>;
-  private thread_queue: Array<Context>;
-  private thread_instr_count: number = 0;
+  private thread_manager: ThreadManager;
 
   constructor(builtin_mapping: Record<string, BuiltinFunction>) {
     this.memory = new Memory(10000000);
     this.builtin_array = [this.Sleep, ...Object.values(builtin_mapping)];
-    this.thread_queue = [];
-
-    this.operand_stack = [];
-    this.program_counter = 0;
-    this.runtime_stack = [];
-    this.environment = this.initialise_environment();
-    this.sleep_until = new Date();
+    this.context = new Context(0, this.initialise_environment());
+    this.thread_manager = new ThreadManager();
   }
 
   private initialise_environment() {
@@ -52,18 +40,18 @@ export class GolangVM {
   }
 
   run(instrs: VM.Instruction[]) {
-    while (!(instrs[this.program_counter]._type === "DONE")) {
+    while (!(instrs[this.context.program_counter]._type === "DONE")) {
       if (this.is_sleeping()) {
-        this.context_switch();
+        this.thread_manager.context_switch(this.context);
         continue;
       }
 
-      const instr = instrs[this.program_counter++];
+      const instr = instrs[this.context.program_counter++];
       if (this.microcode[instr._type] === undefined)
         throw new RuntimeError(`${instr._type} not supported`);
       this.microcode[instr._type](instr);
 
-      this.update_scheduler();
+      this.thread_manager.update_scheduler(this.context);
     }
     return this.pop_os();
   }
@@ -71,59 +59,12 @@ export class GolangVM {
   private Sleep: BuiltinFunction = {
     arity: 1,
     apply: (duration: number) => {
-      this.sleep_until = new Date(Date.now() + duration);
+      this.context.sleep_until = new Date(Date.now() + duration);
     },
   };
 
   private is_sleeping(): boolean {
-    return new Date() < this.sleep_until;
-  }
-
-  private update_scheduler() {
-    this.thread_instr_count++;
-
-    if (this.thread_instr_count >= INSTRS_PER_THREAD) {
-      this.thread_instr_count = 0;
-      this.context_switch();
-    }
-  }
-
-  private context_switch() {
-    if (this.thread_queue.length > 0) {
-      this.save_context();
-      this.restore_context();
-    }
-  }
-
-  private save_context() {
-    this.thread_queue.push(
-      new Context(
-        this.program_counter,
-        this.environment,
-        this.operand_stack,
-        this.runtime_stack,
-        this.sleep_until,
-      ),
-    );
-  }
-
-  private restore_context() {
-    const context = this.thread_queue.shift();
-    if (context === undefined) return;
-
-    this.program_counter = context.program_counter;
-    this.environment = context.environment;
-    this.operand_stack = context.operand_stack;
-    this.runtime_stack = context.runtime_stack;
-    this.sleep_until = context.sleep_until;
-  }
-
-  private set_context(context: Context) {
-    this.program_counter = context.program_counter;
-    this.environment = context.environment;
-    this.operand_stack = context.operand_stack;
-    this.runtime_stack = context.runtime_stack;
-    this.sleep_until = context.sleep_until;
+    return new Date() < this.context.sleep_until;
   }
 
   private create_function_context(
@@ -133,9 +74,9 @@ export class GolangVM {
   ) {
     const frame_address = this.memory.frame.allocate(arity);
     for (let i = arity - 1; i >= 0; i--) {
-      this.memory.heap.set_child(frame_address, i, this.operand_stack.pop());
+      this.memory.heap.set_child(frame_address, i, this.context.operand_stack.pop());
     }
-    this.operand_stack.pop(); // pop fun
+    this.context.operand_stack.pop(); // pop fun
 
     const context = new Context(
       this.memory.closure.get_pc(fun),
@@ -146,16 +87,16 @@ export class GolangVM {
     );
 
     if (extend_current) {
-      context.operand_stack = this.operand_stack;
-      context.runtime_stack = this.runtime_stack;
-      context.sleep_until = this.sleep_until;
+      context.operand_stack = this.context.operand_stack;
+      context.runtime_stack = this.context.runtime_stack;
+      context.sleep_until = this.context.sleep_until;
     }
 
     return context;
   }
 
   private pop_os() {
-    const address = this.operand_stack.pop();
+    const address = this.context.operand_stack.pop();
     if (address === undefined) {
       return undefined;
       // TODO: throw error? sign that there is an unecessary pop
@@ -165,7 +106,7 @@ export class GolangVM {
   }
 
   private push_os(value: any) {
-    this.operand_stack.push(this.memory.js_value_to_address(value));
+    this.context.operand_stack.push(this.memory.js_value_to_address(value));
   }
 
   private apply_builtin(id: number) {
@@ -192,19 +133,21 @@ export class GolangVM {
       this.pop_os();
     },
     JOF: (instr: VM.JOF) => {
-      this.program_counter = this.pop_os() ? this.program_counter : instr.addr;
+      this.context.program_counter = this.pop_os()
+        ? this.context.program_counter
+        : instr.addr;
     },
     GOTO: (instr: VM.GOTO) => {
-      this.program_counter = instr.addr;
+      this.context.program_counter = instr.addr;
     },
     ENTER_SCOPE: (instr: VM.ENTER_SCOPE) => {
-      this.runtime_stack.push(
-        this.memory.blockframe.allocate(this.environment),
+      this.context.runtime_stack.push(
+        this.memory.blockframe.allocate(this.context.environment),
       );
       const frame_address = this.memory.frame.allocate(instr.num);
-      this.environment = this.memory.environment.extend(
+      this.context.environment = this.memory.environment.extend(
         frame_address,
-        this.environment,
+        this.context.environment,
       );
       for (let i = 0; i < instr.num; i++) {
         // TODO: how to initialise the variables? unassigned?
@@ -213,36 +156,36 @@ export class GolangVM {
       }
     },
     EXIT_SCOPE: (instr: VM.EXIT_SCOPE) => {
-      const scope = this.runtime_stack.pop();
+      const scope = this.context.runtime_stack.pop();
       if (scope === undefined)
         throw new RuntimeError(`Tried to exit scope when RTS is empty`);
-      this.environment = this.memory.blockframe.get_environment(scope);
+      this.context.environment = this.memory.blockframe.get_environment(scope);
     },
     LD: (instr: VM.LD) => {
       const val = this.memory.environment.get_value(
-        this.environment,
+        this.context.environment,
         instr.pos,
       );
-      this.operand_stack.push(val);
+      this.context.operand_stack.push(val);
     },
     ASSIGN: (instr: VM.ASSIGN) => {
       this.memory.environment.set_value(
-        this.environment,
+        this.context.environment,
         instr.pos,
-        peek(this.operand_stack),
+        peek(this.context.operand_stack),
       );
     },
     LDF: (instr: VM.LDF) => {
       const closure_address = this.memory.closure.allocate(
         instr.params.length,
         instr.addr,
-        this.environment,
+        this.context.environment,
       );
-      this.operand_stack.push(closure_address);
+      this.context.operand_stack.push(closure_address);
     },
     CALL: (instr: VM.CALL) => {
       const arity = instr.arity;
-      const fun = peek(this.operand_stack, arity);
+      const fun = peek(this.context.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
 
       if (tag === Tag.Builtin) {
@@ -250,14 +193,13 @@ export class GolangVM {
       }
 
       if (tag === Tag.Closure) {
-        this.runtime_stack.push(
+        this.context.runtime_stack.push(
           this.memory.callframe.allocate(
-            this.environment,
-            this.program_counter,
+            this.context.environment,
+            this.context.program_counter,
           ),
         );
-        const context = this.create_function_context(fun, arity, true);
-        this.set_context(context);
+        this.context = this.create_function_context(fun, arity, true);
         return;
       }
 
@@ -265,7 +207,7 @@ export class GolangVM {
     },
     THREAD_CALL: (instr: VM.THREAD_CALL) => {
       const arity = instr.arity;
-      const fun = peek(this.operand_stack, arity);
+      const fun = peek(this.context.operand_stack, arity);
       const tag = this.memory.heap.get_tag(fun);
 
       if (tag === Tag.Builtin) {
@@ -276,20 +218,22 @@ export class GolangVM {
 
       if (tag === Tag.Closure) {
         const context = this.create_function_context(fun, arity, false);
-        this.thread_queue.push(context);
+        this.thread_manager.add_context_to_queue(context)
         return;
       }
 
       throw new RuntimeError(`invalid operation: cannot call non-function`);
     },
     RESET: (instr: VM.RESET) => {
-      this.program_counter--;
-      const top_frame = this.runtime_stack.pop();
-      if (top_frame === undefined) return this.restore_context();
+      this.context.program_counter--;
+      const top_frame = this.context.runtime_stack.pop();
+      if (top_frame === undefined)
+        return this.thread_manager.context_switch(this.context);
 
       if (this.memory.heap.get_tag(top_frame) === Tag.Callframe)
-        this.program_counter = this.memory.callframe.get_pc(top_frame);
-      this.environment = this.memory.callframe.get_environment(top_frame);
+        this.context.program_counter = this.memory.callframe.get_pc(top_frame);
+      this.context.environment =
+        this.memory.callframe.get_environment(top_frame);
     },
     DONE: (instr: VM.DONE) => {},
   };
