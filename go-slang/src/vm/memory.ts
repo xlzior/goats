@@ -1,5 +1,6 @@
 import { Heap } from "./heap";
 import { Tag } from "./tag";
+import { RuntimeError } from "../errors";
 import { is_string, is_number } from "../utils";
 
 export class Memory {
@@ -51,7 +52,7 @@ export class Memory {
     } else if (is_string(value)) {
       return this.string.allocate(value);
     }
-    throw new Error(`Could not convert JS value ${value} to address`);
+    throw new RuntimeError(`Could not convert JS value ${value} to address`);
   }
 
   number = {
@@ -73,7 +74,8 @@ export class Memory {
     },
     get_string: (address: number): string => {
       const string_val = this.string_pool.get(address);
-      if (string_val === undefined) throw new Error("String value not found");
+      if (string_val === undefined)
+        throw new RuntimeError("String value not found");
       return string_val;
     },
   };

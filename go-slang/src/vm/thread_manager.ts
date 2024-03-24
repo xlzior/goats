@@ -29,8 +29,10 @@ export class ThreadManager {
    * Switches context from the current to the next context.
    */
   public context_switch(curr_context: Context): void {
-    this.add_context_to_queue(curr_context);
-    this.restore_vm_context(curr_context);
+    if (this.thread_queue.length > 0) {
+      this.add_context_to_queue(curr_context);
+      this.restore_vm_context(curr_context);
+    }
   }
 
   /**
@@ -49,8 +51,8 @@ export class ThreadManager {
   }
 
   /**
-   * Restores the virtual machine context with the next context from the thread queue.
-   * This is done by mutating vm's context object.
+   * Restores the virtual machine context with the next context
+   * from the thread queue by mutating vm's context object.
    */
   private restore_vm_context(curr_context: Context): void {
     const next_context = this.thread_queue.shift();
