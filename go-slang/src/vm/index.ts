@@ -237,7 +237,7 @@ export class GolangVM {
         return;
       }
 
-      throw new Error(`Tried to CALL on a non-function type: tag ${tag}`);
+      throw new RuntimeError(`invalid operation: cannot call non-function`);
     },
     THREAD_CALL: (instr: VM.THREAD_CALL) => {
       const arity = instr.arity;
