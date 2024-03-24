@@ -42,7 +42,7 @@ export class GolangVM {
   run(instrs: VM.Instruction[]) {
     while (!(instrs[this.context.program_counter]._type === "DONE")) {
       if (this.is_sleeping()) {
-        this.thread_manager.context_switch(this.context);
+        this.context = this.thread_manager.context_switch(this.context);
         continue;
       }
 
@@ -51,7 +51,7 @@ export class GolangVM {
         throw new RuntimeError(`${instr._type} not supported`);
       this.microcode[instr._type](instr);
 
-      this.thread_manager.update_scheduler(this.context);
+      this.context = this.thread_manager.update_scheduler(this.context);
     }
     return this.pop_os();
   }
@@ -227,8 +227,10 @@ export class GolangVM {
     RESET: (instr: VM.RESET) => {
       this.context.program_counter--;
       const top_frame = this.context.runtime_stack.pop();
-      if (top_frame === undefined)
-        return this.thread_manager.context_switch(this.context);
+      if (top_frame === undefined) {
+        this.context = this.thread_manager.context_switch(this.context);
+        return;
+      }
 
       if (this.memory.heap.get_tag(top_frame) === Tag.Callframe)
         this.context.program_counter = this.memory.callframe.get_pc(top_frame);
