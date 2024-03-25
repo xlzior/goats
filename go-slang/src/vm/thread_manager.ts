@@ -17,38 +17,39 @@ export class ThreadManager {
   /**
    * Updates the scheduler based on the current context.
    */
-  public update_scheduler(curr_context: Context): Context {
+  public update_scheduler(curr_ctx: Context): Context {
     this.thread_instr_count++;
     if (this.thread_instr_count >= INSTRS_PER_THREAD) {
       this.thread_instr_count = 0;
-      return this.context_switch(curr_context);
+      return this.context_switch(curr_ctx);
     }
-    return curr_context;
+    return curr_ctx;
   }
 
   /**
-   * Switches context from the current to the next context.
+   * Switches context from the current to
+   * the next context from the thread queue.
    */
-  public context_switch(curr_context: Context): Context {
+  public context_switch(curr_ctx: Context): Context {
     if (this.thread_queue.length > 0) {
-      this.add_context_to_queue(curr_context);
-      const next_context = this.thread_queue.shift();
-      if (next_context) return next_context;
+      this.add_context_to_queue(curr_ctx);
+      const next_ctx = this.thread_queue.shift();
+      if (next_ctx) return next_ctx;
     }
-    return curr_context
+    return curr_ctx;
   }
 
   /**
    * Saves and adds the current context to the thread queue.
    */
-  public add_context_to_queue(curr_context: Context): void {
+  public add_context_to_queue(curr_ctx: Context): void {
     this.thread_queue.push(
       new Context(
-        curr_context.program_counter,
-        curr_context.environment,
-        curr_context.operand_stack,
-        curr_context.runtime_stack,
-        curr_context.sleep_until,
+        curr_ctx.program_counter,
+        curr_ctx.environment,
+        curr_ctx.operand_stack,
+        curr_ctx.runtime_stack,
+        curr_ctx.sleep_until,
       ),
     );
   }
