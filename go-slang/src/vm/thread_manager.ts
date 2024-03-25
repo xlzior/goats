@@ -40,6 +40,13 @@ export class ThreadManager {
   }
 
   /**
+   * Gets context of the next thread from the queue.
+   */
+  public restore_context(): Context | undefined {
+    return this.thread_queue.shift()
+  }
+
+  /**
    * Saves and adds the current context to the thread queue.
    */
   public add_context_to_queue(curr_ctx: Context): void {
