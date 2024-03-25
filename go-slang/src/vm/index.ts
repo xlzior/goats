@@ -228,7 +228,7 @@ export class GolangVM {
       this.ctx.program_counter--;
       const top_frame = this.ctx.runtime_stack.pop();
       if (top_frame === undefined) {
-        this.ctx = this.thread_manager.context_switch(this.ctx);
+        this.ctx = this.thread_manager.restore_context() ?? this.ctx;
         return;
       }
 
