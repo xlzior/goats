@@ -156,7 +156,7 @@ describe("Golang runner for evaluating variable declarations in blocks", () => {
     expect(value).toEqual(expected);
   });
 
-  test("Variable reassignment in nestd block should update var from outer block to the latest value", async () => {
+  test("Variable reassignment in nested block should update var from outer block to the latest value", async () => {
     const program = `
     package main
   
@@ -202,7 +202,7 @@ describe("Golang runner for handling errors for assignments", () => {
     expect(result.error).toContain("no new variables on left side of :=");
   });
 
-  test("Redeclaring a name using both var and := in the same scope", async () => {
+  test("Redeclaration using both 'var' and ':=' in the same scope", async () => {
     const program = `
     package main
 

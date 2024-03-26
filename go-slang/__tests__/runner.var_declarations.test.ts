@@ -70,10 +70,10 @@ describe("Golang runner for evaluating global variable declarations with differe
     var x, y = 1,2
   
     func main() {
-      return x + y
+      return x * 100 + y
     }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 3;
+    const expected = 102;
     expect(value).toEqual(expected);
   });
 
@@ -87,10 +87,10 @@ describe("Golang runner for evaluating global variable declarations with differe
     )
   
     func main() {
-      return x + y
+      return x * 100 + y
     }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 3;
+    const expected = 102;
     expect(value).toEqual(expected);
   });
 
