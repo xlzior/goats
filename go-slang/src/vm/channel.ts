@@ -53,12 +53,13 @@ export class BufferedChannel {
     return this.memory.buffered_channel.get_size(this.addr);
   }
 
-  get isFull() {
-    return this.head === this.tail;
+  get isEmpty() {
+    const first = this.memory.buffered_channel.get_slot(this.addr, this.head);
+    return first === this.memory.Undefined;
   }
 
-  get isEmpty() {
-    return this.head === this.memory.Undefined;
+  get isFull() {
+    return !this.isEmpty && this.head === this.tail;
   }
 
   enqueue(val: number) {
@@ -72,12 +73,13 @@ export class BufferedChannel {
       this.memory.buffered_channel.set_head(this.addr, 0);
       this.memory.buffered_channel.set_tail(this.addr, 1);
       this.memory.buffered_channel.set_slot(this.addr, 0, val);
-      return;
+      return true;
     }
 
     this.memory.buffered_channel.set_slot(this.addr, this.tail, val);
     const next_tail = (this.tail + 1) % this.size;
     this.memory.buffered_channel.set_tail(this.addr, next_tail);
+    return true;
   }
 
   dequeue() {

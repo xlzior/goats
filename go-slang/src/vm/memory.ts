@@ -209,7 +209,7 @@ export class Memory {
       return address;
     },
     get_size: (addr: number) => {
-      return this.heap.get_size(addr) - 3;
+      return this.heap.get_size(addr) - 1;
     },
     get_head: (addr: number) => {
       return this.heap.get_byte_at_offset(addr, 1);
