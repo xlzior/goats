@@ -43,7 +43,7 @@ export class ThreadManager {
    * Gets context of the next thread from the queue.
    */
   public restore_context(): Context | undefined {
-    return this.thread_queue.shift()
+    return this.thread_queue.shift();
   }
 
   /**

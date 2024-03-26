@@ -1,4 +1,4 @@
-import { Token, Ident, CallExpr, NodeType } from "../types/ast";
+import { Expr, Token, Ident, CallExpr, NodeType, BasicLit } from "../types/ast";
 
 export function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
@@ -17,6 +17,27 @@ export const compoundAssignmentToBinaryOperator = new Map([
   [Token.SHR_ASSIGN, Token.SHR],
   [Token.AND_NOT_ASSIGN, Token.AND_NOT],
 ]);
+
+export const typeToDefaultValues = new Map<string, Expr>([
+  ["int", make_basic_lit("INT", "0")],
+  ["string", make_basic_lit("STRING", "")],
+  ["bool", make_ident("false")],
+]);
+
+export function make_basic_lit(type: string, value: string): BasicLit {
+  return {
+    _type: NodeType.BASIC_LIT,
+    Kind: type,
+    Value: value,
+  };
+}
+
+export function make_ident(value: string): Ident {
+  return {
+    _type: NodeType.IDENT,
+    Name: value,
+  };
+}
 
 export function noNewVariables(
   identifiers: Ident[],
