@@ -1,4 +1,13 @@
-import { Expr, Token, Ident, CallExpr, NodeType, BasicLit } from "../types/ast";
+import {
+  Expr,
+  Token,
+  Ident,
+  CallExpr,
+  NodeType,
+  BasicLit,
+  AssignStmt,
+  BinaryExpr,
+} from "../types/ast";
 
 export function stripQuotes(str: string) {
   return str.replace(/^"|"$/g, "");
@@ -24,21 +33,6 @@ export const typeToDefaultValues = new Map<string, Expr>([
   ["bool", make_ident("false")],
 ]);
 
-export function make_basic_lit(type: string, value: string): BasicLit {
-  return {
-    _type: NodeType.BASIC_LIT,
-    Kind: type,
-    Value: value,
-  };
-}
-
-export function make_ident(value: string): Ident {
-  return {
-    _type: NodeType.IDENT,
-    Name: value,
-  };
-}
-
 export function noNewVariables(
   identifiers: Ident[],
   curr_env_frame: Array<string>,
@@ -54,3 +48,44 @@ export const MAIN_CALL: CallExpr = {
     Name: "main",
   },
 };
+
+// ===========================================
+// HELPER METHODS TO RECONSTRUCT AST NODE
+// ===========================================
+
+export function make_basic_lit(type: string, value: string): BasicLit {
+  return {
+    _type: NodeType.BASIC_LIT,
+    Kind: type,
+    Value: value,
+  };
+}
+
+export function make_ident(value: string): Ident {
+  return {
+    _type: NodeType.IDENT,
+    Name: value,
+  };
+}
+
+export function make_binary_expr(Op: Token, X: Expr, Y: Expr): BinaryExpr {
+  return {
+    _type: NodeType.BINARY_EXPR,
+    Op,
+    X,
+    Y,
+  };
+}
+
+export function make_assign_stmt(
+  lhs: Ident[],
+  rhs: Expr[],
+  tok: Token,
+): AssignStmt {
+  return {
+    _type: NodeType.ASSIGN_STMT,
+    Lhs: lhs,
+    Rhs: rhs,
+    Tok: tok,
+  };
+}

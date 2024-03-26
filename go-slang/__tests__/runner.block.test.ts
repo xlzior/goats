@@ -122,7 +122,6 @@ describe("Golang runner for evaluating variable declarations in blocks", () => {
     const expected = 300;
     expect(value).toEqual(expected);
   });
-
 });
 
 describe("Golang runner for handling errors for assignments", () => {
@@ -154,6 +153,20 @@ describe("Golang runner for handling errors for assignments", () => {
     expect(result.error).toContain("no new variables on left side of :=");
   });
 
+  test("Redeclaring a name using both var and := in the same scope", async () => {
+    const program = `
+    package main
+
+    func main() {
+      var x = 32;
+      x := 56
+      return x
+    }`;
+    const result = await golangRunner.execute(program);
+    expect(result).toHaveProperty(ERROR);
+    expect(result.error).toContain("no new variables on left side of :=");
+  });
+
   test.skip("Declaring a function with the same name in the same scope", async () => {
     const program = `
     package main
@@ -174,4 +187,5 @@ describe("Golang runner for handling errors for assignments", () => {
     expect(result).toHaveProperty(ERROR);
     expect(result.error).toContain("add redeclared in this block");
   });
+
 });

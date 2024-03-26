@@ -126,8 +126,8 @@ describe("Golang runner for evaluating global variable declarations at the top l
   });
 });
 
-
-describe("Golang runner for evaluating global variable declarations at the function level", () => { // slightly different AST
+describe("Golang runner for evaluating global variable declarations at the function level", () => {
+  // slightly different AST
   test("evaluate int declaration, should return default value of 0", async () => {
     const program = `
     package main

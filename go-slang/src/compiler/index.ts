@@ -10,6 +10,8 @@ import {
   compoundAssignmentToBinaryOperator,
   typeToDefaultValues,
   make_basic_lit,
+  make_assign_stmt,
+  make_binary_expr,
 } from "./utils";
 
 import { CompilationError } from "../errors";
@@ -138,18 +140,19 @@ export class GolangCompiler {
       } else {
         // if Values.length == 0, there WILL be a type. otherwise parser will throw err
         const type = astNode.Type.Name;
-        Rhs = astNode.Names.map(
-          (x) => typeToDefaultValues.get(type) ?? ({} as AST.Expr),
-        );
+        Rhs = astNode.Names.map((_) => {
+          const defaultVal = typeToDefaultValues.get(type);
+          if (!defaultVal)
+            throw new CompilationError(`type: ${type} not supported`);
+          return defaultVal;
+        });
       }
-
       // desugar to an AssignStmt
-      const assignAst: AST.AssignStmt = {
-        _type: AST.NodeType.ASSIGN_STMT,
-        Lhs: astNode.Names,
-        Rhs: Rhs,
-        Tok: AST.Token.DEFINE,
-      };
+      const assignAst: AST.AssignStmt = make_assign_stmt(
+        astNode.Names,
+        Rhs,
+        AST.Token.DEFINE,
+      );
       this.compile(assignAst);
     },
     CallExpr: (astNode: AST.CallExpr) => {
@@ -215,12 +218,11 @@ export class GolangCompiler {
               `operator not implemented: ${astNode.Tok}`,
             );
           }
-          const desugared: AST.BinaryExpr = {
-            _type: AST.NodeType.BINARY_EXPR,
+          const desugared: AST.BinaryExpr = make_binary_expr(
             Op,
-            X: astNode.Lhs[i],
-            Y: expr,
-          };
+            astNode.Lhs[i],
+            expr,
+          );
           this.compile(desugared);
         }
       });
@@ -291,18 +293,16 @@ export class GolangCompiler {
     IncDecStmt: (astNode: AST.IncDecStmt) => {
       // x++ desugar to x = x + 1
       const one_literal_ast: AST.BasicLit = make_basic_lit("INT", "1");
-      const binary_expr_ast: AST.BinaryExpr = {
-        _type: AST.NodeType.BINARY_EXPR,
-        Op: astNode.Tok === AST.Token.INC ? AST.Token.ADD : AST.Token.SUB,
-        X: astNode.X,
-        Y: one_literal_ast,
-      };
-      const assign_stmt_ast: AST.AssignStmt = {
-        _type: AST.NodeType.ASSIGN_STMT,
-        Lhs: [astNode.X],
-        Rhs: [binary_expr_ast],
-        Tok: AST.Token.ASSIGN,
-      };
+      const binary_expr_ast: AST.BinaryExpr = make_binary_expr(
+        astNode.Tok === AST.Token.INC ? AST.Token.ADD : AST.Token.SUB,
+        astNode.X,
+        one_literal_ast,
+      );
+      const assign_stmt_ast: AST.AssignStmt = make_assign_stmt(
+        [astNode.X],
+        [binary_expr_ast],
+        AST.Token.ASSIGN,
+      );
       this.compile(assign_stmt_ast);
     },
     DeclStmt: (astNode: AST.DeclStmt) => {
