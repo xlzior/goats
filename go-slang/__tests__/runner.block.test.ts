@@ -92,6 +92,39 @@ describe("Golang runner for evaluating assignments in blocks", () => {
   });
 });
 
+describe("Golang runner for evaluating variable declarations in blocks", () => {
+  test("same name redeclared using var in function level scope should return function level declaration value", async () => {
+    const program = `
+    package main
+
+    var balance = 100
+  
+    func main() {
+      var balance = 300
+      return balance
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 300;
+    expect(value).toEqual(expected);
+  });
+
+  test("same name redeclared using := in function level scope should return function level declaration value", async () => {
+    const program = `
+    package main
+
+    var balance = 100
+  
+    func main() {
+      balance := 300
+      return balance
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 300;
+    expect(value).toEqual(expected);
+  });
+
+});
+
 describe("Golang runner for handling errors for assignments", () => {
   const ERROR = "error";
 
