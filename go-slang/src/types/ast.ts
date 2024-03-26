@@ -32,6 +32,8 @@ export enum NodeType {
   GO_STMT = "GoStmt",
   DECL_STMT = "DeclStmt",
   VALUE_SPEC = "ValueSpec",
+  CHAN_TYPE = "ChanType",
+  SEND_STMT = "SendStmt",
 }
 
 export enum Token {
@@ -221,7 +223,7 @@ export interface BinaryExpr extends Expr {
 
 export interface UnaryExpr extends Expr {
   _type: NodeType.UNARY_EXPR;
-  Op: Token.SUB | Token.NOT;
+  Op: Token.SUB | Token.NOT | Token.ARROW;
   X: Expr;
 }
 
@@ -301,4 +303,15 @@ export interface GoStmt extends Stmt {
 export interface DeclStmt extends Stmt {
   _type: NodeType.DECL_STMT;
   Decl: Decl;
+}
+
+export interface SendStmt extends Stmt {
+  _type: NodeType.SEND_STMT;
+  Chan: Expr;
+  Value: Expr;
+}
+
+export interface ChanType extends Node {
+  _type: NodeType.CHAN_TYPE;
+  Value: Ident;
 }

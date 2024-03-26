@@ -71,6 +71,21 @@ export class GolangCompiler {
     goto_instruction.addr = this.wc;
   }
 
+  private compile_make(astNode: AST.CallExpr) {
+    if (astNode.Args.length === 2) {
+      // second argument of make provided
+      this.compile(astNode.Args[1]);
+    } else {
+      // second argument of make defaults to 0
+      this.instrs[this.wc++] = { _type: "LDC", val: 0 };
+    }
+    const chan_type = astNode.Args[0] as AST.ChanType;
+    this.instrs[this.wc++] = {
+      _type: "MAKE_CHAN",
+      data_type: chan_type.Value.Name,
+    };
+  }
+
   private compile_ast: Record<AST.NodeType, any> = {
     BasicLit: (astNode: AST.BasicLit) => {
       this.instrs[this.wc++] = {
@@ -101,7 +116,11 @@ export class GolangCompiler {
     },
     UnaryExpr: (astNode: AST.UnaryExpr) => {
       this.compile(astNode.X);
-      this.instrs[this.wc++] = { _type: "UNOP", sym: astNode.Op };
+      if (astNode.Op === AST.Token.ARROW) {
+        this.instrs[this.wc++] = { _type: "RECV" };
+      } else {
+        this.instrs[this.wc++] = { _type: "UNOP", sym: astNode.Op };
+      }
     },
     ParenExpr: (astNode: AST.ParenExpr) => {
       this.compile(astNode.X);
@@ -155,7 +174,13 @@ export class GolangCompiler {
       );
       this.compile(assignAst);
     },
+    ChanType: (astNode: AST.ChanType) => {
+      throw new CompilationError("ChanType not handled");
+    },
     CallExpr: (astNode: AST.CallExpr) => {
+      if (astNode.Fun.Name === "make") {
+        return this.compile_make(astNode);
+      }
       this.compile(astNode.Fun);
       astNode.Args.forEach((arg) => this.compile(arg));
       this.instrs[this.wc++] = { _type: "CALL", arity: astNode.Args.length };
@@ -168,6 +193,11 @@ export class GolangCompiler {
         _type: "THREAD_CALL",
         arity: call_expr.Args.length,
       };
+    },
+    SendStmt: (astNode: AST.SendStmt) => {
+      this.compile(astNode.Chan);
+      this.compile(astNode.Value);
+      this.instrs[this.wc++] = { _type: "SEND" };
     },
     BlockStmt: (astNode: AST.BlockStmt) => {
       // empty block
@@ -248,8 +278,6 @@ export class GolangCompiler {
       const name = astNode.Name;
       let instr: Instruction;
       // Go treats boolean as Ident. Adds a LDC instruction
-      // TODO: feel like the proper way to handle this would be to add it to the environment
-      // and continue treating it like an Ident / LD instruction
       if (name === "true" || name === "false") {
         instr = {
           _type: "LDC",

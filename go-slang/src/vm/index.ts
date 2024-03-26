@@ -10,6 +10,7 @@ import { Context } from "./thread_context";
 
 import { RuntimeError } from "../errors";
 import { ThreadManager } from "./thread_manager";
+import { BufferedChannel, Channel } from "./channel";
 
 export class GolangVM {
   private ctx: Context;
@@ -99,6 +100,14 @@ export class GolangVM {
     return context;
   }
 
+  create_channel(capacity: number) {
+    if (capacity === 0) {
+      return this.memory.channel.allocate();
+    } else {
+      return this.memory.buffered_channel.allocate(capacity);
+    }
+  }
+
   private pop_os() {
     const address = this.ctx.operand_stack.pop();
     if (address === undefined) {
@@ -126,6 +135,11 @@ export class GolangVM {
   private microcode: Record<VM.Instruction["_type"], any> = {
     LDC: (instr: VM.LDC) => {
       this.push_os(instr.val);
+    },
+    MAKE_CHAN: (instr: VM.LDC) => {
+      const capacity = this.pop_os() as number;
+      const addr = this.create_channel(capacity);
+      this.ctx.operand_stack.push(addr);
     },
     UNOP: (instr: VM.UNOP) => {
       this.push_os(apply_unop(instr.sym, this.pop_os()));
@@ -239,6 +253,35 @@ export class GolangVM {
       if (this.memory.heap.get_tag(top_frame) === Tag.Callframe)
         this.ctx.program_counter = this.memory.callframe.get_pc(top_frame);
       this.ctx.environment = this.memory.callframe.get_environment(top_frame);
+    },
+    SEND: (instr: VM.SEND) => {
+      const value = peek(this.ctx.operand_stack);
+      const channel_addr = peek(this.ctx.operand_stack, 1);
+      const channel = this.memory.address_to_channel(channel_addr);
+
+      const success = channel.enqueue(value);
+      if (!success) {
+        this.ctx.program_counter--;
+        this.ctx = this.thread_manager.context_switch(this.ctx);
+        return;
+      }
+
+      this.pop_os(); // pop channel
+      this.pop_os(); // pop value
+    },
+    RECV: (instr: VM.RECV) => {
+      const channel_addr = peek(this.ctx.operand_stack);
+      const channel = this.memory.address_to_channel(channel_addr);
+
+      const value = channel.dequeue();
+      if (value === this.memory.Undefined) {
+        this.ctx.program_counter--;
+        this.ctx = this.thread_manager.context_switch(this.ctx);
+        return;
+      }
+
+      this.pop_os(); // pop channel
+      this.ctx.operand_stack.push(value);
     },
     DONE: (instr: VM.DONE) => {},
   };

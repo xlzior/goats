@@ -2,12 +2,12 @@ import { Heap } from "./heap";
 import { Tag } from "./tag";
 import { RuntimeError } from "../errors";
 import { is_string, is_number } from "../utils";
+import { Channel, BufferedChannel } from "./channel";
 
 export class Memory {
   heap: Heap;
   False: number;
   True: number;
-  // TODO: go does not have undefined
   Undefined: number;
   string_pool: Map<number, string>; // <string address, actual string value>
 
@@ -35,6 +35,10 @@ export class Memory {
         return "<builtin>";
       case Tag.String:
         return this.string.get_string(address);
+      case Tag.Channel:
+        return "<channel>";
+      case Tag.BufferedChannel:
+        return "<buffered_channel>";
       default:
         return "<internals>";
     }
@@ -159,6 +163,71 @@ export class Memory {
       }
       this.heap.set_child(new_env_address, i, frame_address);
       return new_env_address;
+    },
+  };
+
+  address_to_channel(addr: number) {
+    switch (this.heap.get_tag(addr)) {
+      case Tag.Channel:
+        return new Channel(this, addr);
+      case Tag.BufferedChannel:
+        return new BufferedChannel(this, addr);
+      default:
+        throw new RuntimeError("Invalid channel type");
+    }
+  }
+
+  channel = {
+    allocate: () => {
+      const address = this.heap.allocate(Tag.Channel, 2);
+      this.heap.set(address + 1, this.Undefined);
+      return address;
+    },
+    set_value: (addr: number, val: number) => {
+      this.heap.set_child(addr, 0, val);
+    },
+    get_value: (addr: number) => {
+      return this.heap.get_child(addr, 0);
+    },
+    set_is_receiver_waiting: (addr: number, val: number) => {
+      this.heap.set_byte_at_offset(addr, 1, val);
+    },
+    get_is_receiver_waiting: (addr: number) => {
+      return this.heap.get_byte_at_offset(addr, 1);
+    },
+  };
+
+  buffered_channel = {
+    allocate: (size: number) => {
+      const address = this.heap.allocate(Tag.BufferedChannel, size + 1);
+      this.heap.set_byte_at_offset(address, 1, 0); // initialise head
+      this.heap.set_byte_at_offset(address, 2, 0); // initialise tail
+      for (let i = 0; i < size; i++) {
+        // initialise all elements in the queue to be undefined
+        this.heap.set_child(address, i, this.Undefined);
+      }
+      return address;
+    },
+    get_size: (addr: number) => {
+      return this.heap.get_size(addr) - 3;
+    },
+    get_head: (addr: number) => {
+      return this.heap.get_byte_at_offset(addr, 1);
+    },
+    set_head: (addr: number, val: number) => {
+      this.heap.set_byte_at_offset(addr, 1, val);
+    },
+    get_tail: (addr: number) => {
+      return this.heap.get_byte_at_offset(addr, 2);
+    },
+    set_tail: (addr: number, val: number) => {
+      this.heap.set_byte_at_offset(addr, 2, val);
+    },
+    get_slot: (addr: number, i: number) => {
+      return this.heap.get_child(addr, i);
+    },
+    set_slot: (addr: number, i: number, val: number) => {
+      this.heap.set_child(addr, i, val);
     },
   };
 }

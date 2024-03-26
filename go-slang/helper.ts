@@ -13,28 +13,26 @@ const builtin_mapping: Record<string, BuiltinFunction> = {
 const runner = new GolangRunner(builtin_mapping);
 const program = `
 package main
-  
-func thread(n int) {
-  x := 0
-  for x < 3 {
-    Println(100 * n + x)
-    x++
-    Sleep(2000)
-  }
+
+func send(messages chan int) {
+  Sleep(1000)
+  messages <- 1
 }
 
 func main() {
-  go thread(1)
-  Sleep(1000)
-  go thread(2)
-  Sleep(7000)
+  messages := make(chan int)
+  go send(messages)
+  msg := <-messages
+  Println(msg)
 }
 `;
-runner.execute(program)
+
+console.log("Running Go program:");
+runner
+  .execute(program)
   .then((result) => {
     console.log(result);
   })
   .catch((error) => {
     console.error(error);
   });
-

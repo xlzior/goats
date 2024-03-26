@@ -70,6 +70,19 @@ export type THREAD_CALL = {
   arity: number;
 };
 
+export type MAKE_CHAN = {
+  _type: "MAKE_CHAN";
+  data_type: string;
+};
+
+export type SEND = {
+  _type: "SEND";
+};
+
+export type RECV = {
+  _type: "RECV";
+};
+
 export type DONE = {
   _type: "DONE";
 };
@@ -89,4 +102,7 @@ export type Instruction =
   | ENTER_SCOPE
   | EXIT_SCOPE
   | POP
+  | MAKE_CHAN
+  | SEND
+  | RECV
   | DONE;
