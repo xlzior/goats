@@ -1,4 +1,6 @@
 import { GolangRunner } from "../src";
+import { stripQuotes } from "../src/compiler/utils";
+import { is_string } from "../src/utils";
 
 let golangRunner: GolangRunner;
 
@@ -6,106 +8,89 @@ beforeEach(() => {
   golangRunner = new GolangRunner();
 });
 
+const typeToDefaultValues: [string, number | string | boolean][] = [
+  ["int", 0],
+  ["bool", false],
+  ["string", ""],
+];
+
 describe("Golang runner for evaluating global variable declarations at the top level", () => {
-  test("evaluate int declaration, should return default value of 0", async () => {
+  test.each(typeToDefaultValues)(
+    `Type %s with default value %s`,
+    async (type, defaultValue) => {
+      const program = `
+      package main
+
+      var x ${type}
+
+      func main() {
+          return x
+      }`;
+
+      const { value } = await golangRunner.execute(program);
+      expect(value).toEqual(defaultValue);
+    },
+  );
+});
+
+const typeToInitialisedValues: [string, number | string | boolean][] = [
+  ["int", 100],
+  ["bool", true],
+  ["string", '"hello"'],
+];
+
+describe("Golang runner for evaluating global variable initialisations at the top level", () => {
+  test.each(typeToInitialisedValues)(
+    `Type %s with initialised value %s`,
+    async (type, initialisedValue) => {
+      const program = `
+      package main
+
+      var x ${type} = ${initialisedValue}
+
+      func main() {
+          return x
+      }`;
+
+      const { value } = await golangRunner.execute(program);
+      expect(value).toEqual(
+        is_string(initialisedValue)
+          ? stripQuotes(initialisedValue as string)
+          : initialisedValue,
+      );
+    },
+  );
+});
+
+describe("Golang runner for evaluating global variable declarations with different combinations", () => {
+  test("evaluate multiple initialisations in a single line", async () => {
     const program = `
     package main
 
-    var balance int;
+    var x, y = 1,2
   
     func main() {
-      return balance
+      return x + y
     }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 0;
+    const expected = 3;
     expect(value).toEqual(expected);
   });
 
-  test("evaluate string declaration, should return default value of empty string", async () => {
-    const program = `
-    package main
-
-    var accountName string;
-  
-    func main() {
-      return accountName
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = "";
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate bool declaration, should return default value of false", async () => {
-    const program = `
-    package main
-
-    var is_created bool;
-  
-    func main() {
-      return is_created
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = false;
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate multiple int declarations, should return default value of 0", async () => {
+  test("evaluate multiple initialisations in multiple lines", async () => {
     const program = `
     package main
 
     var (
-      x int
-      y int
-      z int
+      x = 1
+      y = 2
     )
   
     func main() {
-      return x + y + z
+      return x + y
     }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 0;
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate int initialisation, should return initialised value", async () => {
-    const program = `
-    package main
-
-    var balance int = 100;
-  
-    func main() {
-      return balance
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = 100;
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate string initialisation, should return initialised value", async () => {
-    const program = `
-    package main
-
-    var accountName string = "Personal";
-  
-    func main() {
-      return accountName
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = "Personal";
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate bool initialisation, should return initialised value", async () => {
-    const program = `
-    package main
-
-    var is_created bool = true;
-  
-    func main() {
-      return is_created
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = true;
+    const expected = 3;
     expect(value).toEqual(expected);
   });
 
@@ -124,9 +109,33 @@ describe("Golang runner for evaluating global variable declarations at the top l
     const expected = 600;
     expect(value).toEqual(expected);
   });
+
+  test("evaluate variable mutated by various functions", async () => {
+    const program = `
+    package main
+
+    var balance = 100;
+
+    func f1() {
+      balance -= 10;
+    }
+
+    func f2() {
+      balance += 50
+    }
+  
+    func main() {
+      f1()
+      f2()
+      return balance
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 140;
+    expect(value).toEqual(expected);
+  });
 });
 
-describe("Golang runner for evaluating global variable declarations at the function level", () => {
+describe("Golang runner for evaluating variable declarations at a function level", () => {
   // slightly different AST
   test("evaluate int declaration, should return default value of 0", async () => {
     const program = `
@@ -141,100 +150,16 @@ describe("Golang runner for evaluating global variable declarations at the funct
     expect(value).toEqual(expected);
   });
 
-  test("evaluate string declaration, should return default value of empty string", async () => {
-    const program = `
-    package main
-  
-    func main() {
-      var accountName string;
-      return accountName
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = "";
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate bool declaration, should return default value of false", async () => {
-    const program = `
-    package main
-  
-    func main() {
-      var is_created bool;
-      return is_created
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = false;
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate multiple int declarations, should return default value of 0", async () => {
-    const program = `
-    package main
-  
-    func main() {
-      var (
-        x int
-        y int
-        z int
-      )
-      return x + y + z
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = 0;
-    expect(value).toEqual(expected);
-  });
-
   test("evaluate int initialisation, should return initialised value", async () => {
     const program = `
     package main
   
     func main() {
-      var balance int = 100;
+      var balance = 333;
       return balance
     }`;
     const { value } = await golangRunner.execute(program);
-    const expected = 100;
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate string initialisation, should return initialised value", async () => {
-    const program = `
-    package main
-  
-    func main() {
-      var accountName string = "Personal";
-      return accountName
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = "Personal";
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate bool initialisation, should return initialised value", async () => {
-    const program = `
-    package main
-  
-    func main() {
-      var is_created bool = true;
-      return is_created
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = true;
-    expect(value).toEqual(expected);
-  });
-
-  test("evaluate int initialisation and updated afterwards, should return updated value", async () => {
-    const program = `
-    package main
-  
-    func main() {
-      var balance int = 100;
-      balance += 200
-      balance += 300
-      return balance
-    }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = 600;
+    const expected = 333;
     expect(value).toEqual(expected);
   });
 });

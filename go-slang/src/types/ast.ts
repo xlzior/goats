@@ -43,11 +43,9 @@ export enum Token {
   // Identifiers and basic type literals
   // (these tokens stand for classes of literals)
   IDENT, // main
-  INT, // 12345
   FLOAT, // 123.45
   IMAG, // 123.45i
   CHAR, // 'a'
-  STRING, // "abc"
 
   // Keywords
   BREAK,
@@ -81,6 +79,9 @@ export enum Token {
 
   // additional tokens, handled in an ad-hoc manner
   TILDE,
+
+  INT = "INT", // 12345
+  STRING = "STRING", // "abc"
 
   VAR = "var",
 
@@ -207,7 +208,7 @@ export interface Expr extends Node {}
 
 export interface BasicLit extends Expr {
   _type: NodeType.BASIC_LIT;
-  Kind: string;
+  Kind: Token;
   Value: number | string;
 }
 

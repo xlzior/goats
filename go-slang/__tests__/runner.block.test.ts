@@ -93,7 +93,7 @@ describe("Golang runner for evaluating assignments in blocks", () => {
 });
 
 describe("Golang runner for evaluating variable declarations in blocks", () => {
-  test("same name redeclared using var in function level scope should return function level declaration value", async () => {
+  test("Redeclaration using 'var' in function scope returns function level value", async () => {
     const program = `
     package main
 
@@ -108,7 +108,7 @@ describe("Golang runner for evaluating variable declarations in blocks", () => {
     expect(value).toEqual(expected);
   });
 
-  test("same name redeclared using := in function level scope should return function level declaration value", async () => {
+  test("Redeclaration using ':=' in function scope returns function level value", async () => {
     const program = `
     package main
 
@@ -120,6 +120,55 @@ describe("Golang runner for evaluating variable declarations in blocks", () => {
     }`;
     const { value } = await golangRunner.execute(program);
     const expected = 300;
+    expect(value).toEqual(expected);
+  });
+
+  test("Nested block should return the latest value of var", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x int = 10;
+      {
+        var x int = 30;
+        return x;
+      }
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 30;
+    expect(value).toEqual(expected);
+  });
+
+  test("Outer block should retain the outer value of var", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x int = 10;
+      {
+        var x int = 30;
+      }
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 10;
+    expect(value).toEqual(expected);
+  });
+
+  test("Variable reassignment in nestd block should update var from outer block to the latest value", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x int = 10;
+      {
+        x = 70;
+      }
+      return x
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 70;
     expect(value).toEqual(expected);
   });
 });
@@ -187,5 +236,4 @@ describe("Golang runner for handling errors for assignments", () => {
     expect(result).toHaveProperty(ERROR);
     expect(result.error).toContain("add redeclared in this block");
   });
-
 });
