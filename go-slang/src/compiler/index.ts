@@ -8,7 +8,7 @@ import {
   stripQuotes,
   noNewVariables,
   compoundAssignmentToBinaryOperator,
-  typeToDefaultValues,
+  typeToDefaultValue,
   make_basic_lit,
   make_assign_stmt,
   make_binary_expr,
@@ -76,7 +76,7 @@ export class GolangCompiler {
       this.instrs[this.wc++] = {
         _type: "LDC",
         val:
-          astNode.Kind === "STRING"
+          astNode.Kind === AST.Token.STRING
             ? stripQuotes(astNode.Value as string)
             : Number(astNode.Value), // can handle integers and floating point values
       };
@@ -141,7 +141,7 @@ export class GolangCompiler {
         // if Values.length == 0, there WILL be a type. otherwise parser will throw err
         const type = astNode.Type.Name;
         Rhs = astNode.Names.map((_) => {
-          const defaultVal = typeToDefaultValues.get(type);
+          const defaultVal = typeToDefaultValue.get(type);
           if (!defaultVal)
             throw new CompilationError(`type: ${type} not supported`);
           return defaultVal;
@@ -292,7 +292,7 @@ export class GolangCompiler {
     },
     IncDecStmt: (astNode: AST.IncDecStmt) => {
       // x++ desugar to x = x + 1
-      const one_literal_ast: AST.BasicLit = make_basic_lit("INT", "1");
+      const one_literal_ast: AST.BasicLit = make_basic_lit(AST.Token.INT, "1");
       const binary_expr_ast: AST.BinaryExpr = make_binary_expr(
         astNode.Tok === AST.Token.INC ? AST.Token.ADD : AST.Token.SUB,
         astNode.X,
