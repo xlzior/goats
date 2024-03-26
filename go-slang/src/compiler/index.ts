@@ -8,6 +8,8 @@ import {
   stripQuotes,
   noNewVariables,
   compoundAssignmentToBinaryOperator,
+  typeToDefaultValues,
+  make_basic_lit,
 } from "./utils";
 
 import { CompilationError } from "../errors";
@@ -125,6 +127,30 @@ export class GolangCompiler {
         sym: astNode.Name.Name,
         pos: this.cte_position(astNode.Name.Name),
       };
+    },
+    GenDecl: (astNode: AST.GenDecl) => {
+      astNode.Specs.forEach((spec) => this.compile(spec));
+    },
+    ValueSpec: (astNode: AST.ValueSpec) => {
+      let Rhs = [];
+      if (astNode.Values.length > 0) {
+        Rhs = astNode.Values;
+      } else {
+        // if Values.length == 0, there WILL be a type. otherwise parser will throw err
+        const type = astNode.Type.Name;
+        Rhs = astNode.Names.map(
+          (x) => typeToDefaultValues.get(type) ?? ({} as AST.Expr),
+        );
+      }
+
+      // desugar to an AssignStmt
+      const assignAst: AST.AssignStmt = {
+        _type: AST.NodeType.ASSIGN_STMT,
+        Lhs: astNode.Names,
+        Rhs: Rhs,
+        Tok: AST.Token.DEFINE,
+      };
+      this.compile(assignAst);
     },
     CallExpr: (astNode: AST.CallExpr) => {
       this.compile(astNode.Fun);
@@ -264,11 +290,7 @@ export class GolangCompiler {
     },
     IncDecStmt: (astNode: AST.IncDecStmt) => {
       // x++ desugar to x = x + 1
-      const one_literal_ast: AST.BasicLit = {
-        _type: AST.NodeType.BASIC_LIT,
-        Kind: "INT",
-        Value: "1",
-      };
+      const one_literal_ast: AST.BasicLit = make_basic_lit("INT", "1");
       const binary_expr_ast: AST.BinaryExpr = {
         _type: AST.NodeType.BINARY_EXPR,
         Op: astNode.Tok === AST.Token.INC ? AST.Token.ADD : AST.Token.SUB,
@@ -282,6 +304,9 @@ export class GolangCompiler {
         Tok: AST.Token.ASSIGN,
       };
       this.compile(assign_stmt_ast);
+    },
+    DeclStmt: (astNode: AST.DeclStmt) => {
+      this.compile(astNode.Decl);
     },
     File: () => {
       throw new CompilationError(`File not implemented`);

@@ -74,7 +74,11 @@ export class GolangVM {
   ) {
     const frame_address = this.memory.frame.allocate(arity);
     for (let i = arity - 1; i >= 0; i--) {
-      this.memory.heap.set_child(frame_address, i, this.ctx.operand_stack.pop());
+      this.memory.heap.set_child(
+        frame_address,
+        i,
+        this.ctx.operand_stack.pop(),
+      );
     }
     this.ctx.operand_stack.pop(); // pop fun
 
@@ -218,7 +222,7 @@ export class GolangVM {
 
       if (tag === Tag.Closure) {
         const context = this.create_function_context(fun, arity, false);
-        this.thread_manager.add_context_to_queue(context)
+        this.thread_manager.add_context_to_queue(context);
         return;
       }
 

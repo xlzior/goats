@@ -14,6 +14,7 @@ export type ParserResult = ParserResultSuccess | ParserResultError;
 export enum NodeType {
   FILE = "File",
   FUNC_DECL = "FuncDecl",
+  GEN_DECL = "GenDecl",
   IDENT = "Ident",
   BASIC_LIT = "BasicLit",
   BINARY_EXPR = "BinaryExpr",
@@ -29,6 +30,8 @@ export enum NodeType {
   BRANCH_STMT = "BranchStmt",
   INC_DEC_STMT = "IncDecStmt",
   GO_STMT = "GoStmt",
+  DECL_STMT = "DeclStmt",
+  VALUE_SPEC = "ValueSpec",
 }
 
 export enum Token {
@@ -75,10 +78,11 @@ export enum Token {
   STRUCT,
   SWITCH,
   TYPE,
-  VAR,
 
   // additional tokens, handled in an ad-hoc manner
   TILDE,
+
+  VAR = "var",
 
   // Operators and delimiters
   ADD = "+",
@@ -159,6 +163,8 @@ export interface Decl extends Node {
   Name: Ident;
 }
 
+export interface Spec extends Node {}
+
 interface Field {
   Names: Ident[]; // field/method parameter names
   _type: Expr; // parameter types
@@ -173,11 +179,24 @@ interface FuncType {
   Results: FieldList; // return _type
 }
 
+export interface ValueSpec extends Spec {
+  _type: NodeType.VALUE_SPEC;
+  Names: Ident[];
+  Values: Expr[];
+  Type: Ident;
+}
+
 export interface FuncDecl extends Decl {
   _type: NodeType.FUNC_DECL;
   Name: Ident;
   Body: BlockStmt;
   Type: FuncType;
+}
+
+export interface GenDecl extends Decl {
+  _type: NodeType.GEN_DECL;
+  Specs: Spec[];
+  Tok: Token;
 }
 
 // ========================
@@ -276,4 +295,9 @@ export interface IncDecStmt extends Stmt {
 export interface GoStmt extends Stmt {
   _type: NodeType.GO_STMT;
   Call: CallExpr;
+}
+
+export interface DeclStmt extends Stmt {
+  _type: NodeType.DECL_STMT;
+  Decl: Decl;
 }
