@@ -143,6 +143,10 @@ export class GolangVM {
     LDC: (instr: VM.LDC) => {
       this.push_os(instr.val);
     },
+    MAKE_MUTEX: (instr: VM.MAKE_MUTEX) => {
+      const mutex_addr = this.memory.mutex.allocate();
+      this.ctx.operand_stack.push(mutex_addr); // mutex var is assigned with its address as value
+    },
     UNOP: (instr: VM.UNOP) => {
       this.push_os(apply_unop(instr.sym, this.pop_os()));
     },
@@ -283,6 +287,22 @@ export class GolangVM {
 
       this.pop_os(); // pop channel
       this.ctx.operand_stack.push(value);
+    },
+    LOCK: (instr: VM.LOCK) => {
+      const mutex_addr = peek(this.ctx.operand_stack);
+      const is_mutex_avail = this.memory.mutex.get(mutex_addr) === 1;
+      if (!is_mutex_avail) {
+        this.ctx.program_counter--;
+        this.ctx = this.thread_manager.context_switch(this.ctx);
+        return;
+      }
+      this.pop_os();
+      this.memory.mutex.set(mutex_addr, 0);
+    },
+    UNLOCK: (instr: VM.LOCK) => {
+      const mutex_addr = peek(this.ctx.operand_stack);
+      this.pop_os();
+      this.memory.mutex.set(mutex_addr, 1);
     },
     DONE: (instr: VM.DONE) => {},
   };

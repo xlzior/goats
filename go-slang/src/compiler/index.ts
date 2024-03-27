@@ -73,6 +73,14 @@ export class GolangCompiler {
     goto_instruction.addr = this.wc;
   }
 
+  private compile_lock_or_unlock(astNode: AST.CallExpr, funcName: string) {
+    this.compile(astNode.Args[0]); // mutex addr
+    this.instrs[this.wc++] = {
+      _type: funcName === "Lock" ? "LOCK" : "UNLOCK"
+    };
+    return;
+  }
+
   private compile_ast: Record<AST.NodeType, any> = {
     BasicLit: (astNode: AST.BasicLit) => {
       this.instrs[this.wc++] = {
@@ -174,6 +182,11 @@ export class GolangCompiler {
           astNode.Args.push(make_basic_lit(AST.Token.INT, "0"));
         }
       }
+
+      if (astNode.Fun.Name === "Lock" || astNode.Fun.Name === "Unlock") {
+        return this.compile_lock_or_unlock(astNode, astNode.Fun.Name);
+      }
+
       this.compile(astNode.Fun);
       astNode.Args.forEach((arg) => this.compile(arg));
       this.instrs[this.wc++] = { _type: "CALL", arity };
@@ -270,6 +283,14 @@ export class GolangCompiler {
     Ident: (astNode: AST.Ident) => {
       const name = astNode.Name;
       let instr: Instruction;
+
+      if (name === "Mutex") {
+        this.instrs[this.wc++] = {
+          _type: "MAKE_MUTEX",
+        };
+        return
+      }
+
       // Go treats boolean as Ident. Adds a LDC instruction
       if (name === "true" || name === "false") {
         instr = {

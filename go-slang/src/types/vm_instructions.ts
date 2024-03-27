@@ -70,12 +70,24 @@ export type THREAD_CALL = {
   arity: number;
 };
 
+export type MAKE_MUTEX = {
+  _type: "MAKE_MUTEX";
+};
+
 export type SEND = {
   _type: "SEND";
 };
 
 export type RECV = {
   _type: "RECV";
+};
+
+export type LOCK = {
+  _type: "LOCK";
+};
+
+export type UNLOCK = {
+  _type: "UNLOCK";
 };
 
 export type DONE = {
@@ -97,6 +109,9 @@ export type Instruction =
   | ENTER_SCOPE
   | EXIT_SCOPE
   | POP
+  | MAKE_MUTEX
   | SEND
   | RECV
+  | LOCK
+  | UNLOCK
   | DONE;
