@@ -51,7 +51,7 @@ export class GolangVM {
         throw new RuntimeError(`${instr._type} not supported`);
       this.microcode[instr._type](instr);
 
-      this.ctx = this.thread_manager.update_scheduler(this.ctx);
+      this.ctx = this.thread_manager.get_context(this.ctx);
     }
     return this.pop_os();
   }
