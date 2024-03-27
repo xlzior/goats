@@ -6,7 +6,7 @@ beforeEach(() => {
   golangRunner = new GolangRunner();
 });
 
-describe("Golang runner for evaluating functions", () => {
+describe("functions", () => {
   test("main function is implicitly called and return value is returned", async () => {
     const program = `
     package main
@@ -201,7 +201,7 @@ describe("Golang runner for evaluating functions", () => {
   });
 });
 
-describe.skip("Golang runner for handling errors for functions", () => {
+describe.skip("handling errors for functions", () => {
   const ERROR = "error";
 
   test("Calling a variable as a function", async () => {

@@ -8,7 +8,7 @@ beforeEach(() => {
   golangRunner = new GolangRunner({ Println: { arity: 1, apply: println } });
 });
 
-describe("Golang runner for evaluating assignments in blocks", () => {
+describe("assignments in blocks", () => {
   test(":= in block should create a new variable, should not change existing one", async () => {
     const program = `
     package main
@@ -92,7 +92,7 @@ describe("Golang runner for evaluating assignments in blocks", () => {
   });
 });
 
-describe("Golang runner for evaluating variable declarations in blocks", () => {
+describe("variable declarations in blocks", () => {
   test("Redeclaration using 'var' in function scope returns function level value", async () => {
     const program = `
     package main
@@ -173,7 +173,7 @@ describe("Golang runner for evaluating variable declarations in blocks", () => {
   });
 });
 
-describe("Golang runner for handling errors for assignments", () => {
+describe("handling errors for assignments", () => {
   const ERROR = "error";
 
   test("Redefining the same variable in the same scope", async () => {

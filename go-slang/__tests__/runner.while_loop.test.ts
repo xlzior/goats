@@ -6,8 +6,8 @@ beforeEach(() => {
   golangRunner = new GolangRunner();
 });
 
-describe("Golang runner for evaluating while loop statements", () => {
-  test("evaluate while loop with loop condition not satisfied", async () => {
+describe("while loop statements", () => {
+  test("while loop with loop condition not satisfied", async () => {
     const program = `
     package main
   
@@ -23,7 +23,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop with loop condition satisfied", async () => {
+  test("while loop with loop condition satisfied", async () => {
     const program = `
     package main
   
@@ -39,7 +39,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop with more iterations", async () => {
+  test("while loop with more iterations", async () => {
     const program = `
     package main
   
@@ -55,7 +55,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop with 1 level of nesting", async () => {
+  test("while loop with 1 level of nesting", async () => {
     const program = `
       package main
       
@@ -77,7 +77,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop with 2 levels of nesting", async () => {
+  test("while loop with 2 levels of nesting", async () => {
     const program = `
       package main
       
@@ -103,7 +103,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop with 3 levels of nesting", async () => {
+  test("while loop with 3 levels of nesting", async () => {
     const program = `
       package main
       
@@ -133,7 +133,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop one after another", async () => {
+  test("while loop one after another", async () => {
     const program = `
       package main
       
@@ -156,7 +156,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop with if statement affecting sum", async () => {
+  test("while loop with if statement affecting sum", async () => {
     const program = `
       package main
       
@@ -176,7 +176,7 @@ describe("Golang runner for evaluating while loop statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate while loop with nested if statements", async () => {
+  test("while loop with nested if statements", async () => {
     const program = `
       package main
       

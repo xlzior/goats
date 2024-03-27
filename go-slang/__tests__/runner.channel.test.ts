@@ -11,7 +11,7 @@ beforeEach(() => {
 
 type Value = string | boolean | number;
 
-describe("Golang runner for evaluating unbuffered channels", () => {
+describe("unbuffered channels", () => {
   const messages = [
     ["string", '"Hello, World!"'],
     ["boolean", true],
@@ -241,7 +241,7 @@ describe("Golang runner for evaluating unbuffered channels", () => {
   });
 });
 
-describe("Golang runner for evaluating buffered channels", () => {
+describe("buffered channels", () => {
   const messages = [
     ["string", '"a"', '"b"', '"c"'],
     ["boolean", true, false, true],
@@ -480,7 +480,7 @@ describe("Golang runner for evaluating buffered channels", () => {
   });
 });
 
-describe("Golang runner for evaluating channels", () => {
+describe("channels", () => {
   test("empty channel", async () => {
     const program = `
     package main

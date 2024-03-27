@@ -7,7 +7,7 @@ beforeEach(() => {
   golangRunner = new GolangRunner();
 });
 
-describe("Golang runner for evaluating binary expressions", () => {
+describe("binary expressions", () => {
   const singleLinebinaryExprTestCases = [
     {
       program: `
@@ -31,14 +31,14 @@ describe("Golang runner for evaluating binary expressions", () => {
   ];
 
   test.each(singleLinebinaryExprTestCases)(
-    "evaluate program with a single line of binary expr: %s",
+    "a single line of binary expr: %s",
     async ({ program, expected }) => {
       const actual = await golangRunner.execute(program);
       expect(actual.value).toEqual(expected);
     },
   );
 
-  test("evaluate program with multiple lines of binary expr should return the result of the last evaluated expr", async () => {
+  test("multiple lines of binary expr should return the result of the last evaluated expr", async () => {
     const program = `
     package main
     
@@ -53,8 +53,8 @@ describe("Golang runner for evaluating binary expressions", () => {
   });
 });
 
-describe("Golang runner for evaluating logical expressions", () => {
-  test("evaluate program with logical OR expression that evaluates to true", async () => {
+describe("logical expressions", () => {
+  test("logical OR expression that evaluates to true", async () => {
     const program = `
     package main
   
@@ -67,7 +67,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with logical OR expression that evaluates to false", async () => {
+  test("logical OR expression that evaluates to false", async () => {
     const program = `
     package main
   
@@ -80,7 +80,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with logical AND expression that evaluates to true", async () => {
+  test("logical AND expression that evaluates to true", async () => {
     const program = `
     package main
   
@@ -93,7 +93,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with logical AND expression that evaluates to false", async () => {
+  test("logical AND expression that evaluates to false", async () => {
     const program = `
     package main
   
@@ -106,7 +106,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with logical expression involving both AND and OR", async () => {
+  test("logical expression involving both AND and OR", async () => {
     const program = `
     package main
   
@@ -119,7 +119,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with complex nested expression", async () => {
+  test("complex nested expression", async () => {
     const program = `
     package main
   
@@ -132,7 +132,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with multiple levels of nesting", async () => {
+  test("multiple levels of nesting", async () => {
     const program = `
     package main
   
@@ -145,7 +145,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with complex arithmetic conditions", async () => {
+  test("complex arithmetic conditions", async () => {
     const program = `
     package main
   
@@ -160,7 +160,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with mixed type conditions", async () => {
+  test("mixed type conditions", async () => {
     const program = `
     package main
   
@@ -173,7 +173,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with complex boolean expressions", async () => {
+  test("complex boolean expressions", async () => {
     const program = `
     package main
   
@@ -186,7 +186,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with short circuit for OR", async () => {
+  test("short circuit for OR", async () => {
     const program = `
     package main
   
@@ -199,7 +199,7 @@ describe("Golang runner for evaluating logical expressions", () => {
     expect(actual.value).toEqual(expected);
   });
 
-  test("evaluate program with short circuit for AND", async () => {
+  test("short circuit for AND", async () => {
     const program = `
     package main
   
@@ -213,8 +213,8 @@ describe("Golang runner for evaluating logical expressions", () => {
   });
 });
 
-describe("Golang runner for evaluating string expressions", () => {
-  test("evaluate program with empty string should return empty string", async () => {
+describe("string expressions", () => {
+  test("empty string should return empty string", async () => {
     const program = `
     package main
   
@@ -227,7 +227,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with concatenating 2 empty string should return empty string", async () => {
+  test("concatenating 2 empty string should return empty string", async () => {
     const program = `
     package main
   
@@ -240,7 +240,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string should return string value", async () => {
+  test("string should return string value", async () => {
     const program = `
     package main
   
@@ -253,7 +253,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string of numbers", async () => {
+  test("string of numbers", async () => {
     const program = `
     package main
   
@@ -266,7 +266,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string of numbers with concatenation should return concatenated string value", async () => {
+  test("string of numbers with concatenation should return concatenated string value", async () => {
     const program = `
     package main
   
@@ -281,7 +281,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string of true is treated as a literal string, not boolean", async () => {
+  test("string of true is treated as a literal string, not boolean", async () => {
     const program = `
     package main
   
@@ -294,7 +294,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string of false is treated as a literal string, not boolean", async () => {
+  test("string of false is treated as a literal string, not boolean", async () => {
     const program = `
     package main
   
@@ -307,7 +307,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string concatenation using + operator once", async () => {
+  test("string concatenation using + operator once", async () => {
     const program = `
     package main
   
@@ -320,7 +320,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string concatenation using + operator multiple times", async () => {
+  test("string concatenation using + operator multiple times", async () => {
     const program = `
     package main
   
@@ -333,7 +333,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string concatenation using += operator once", async () => {
+  test("string concatenation using += operator once", async () => {
     const program = `
     package main
   
@@ -347,7 +347,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string concatenation using += operator multiple times", async () => {
+  test("string concatenation using += operator multiple times", async () => {
     const program = `
     package main
   
@@ -363,7 +363,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string equality, true case", async () => {
+  test("string equality, true case", async () => {
     const program = `
     package main
   
@@ -376,7 +376,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string equality, true case with constructed string", async () => {
+  test("string equality, true case with constructed string", async () => {
     const program = `
     package main
   
@@ -389,7 +389,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string equality, false case", async () => {
+  test("string equality, false case", async () => {
     const program = `
     package main
   
@@ -402,7 +402,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string assignment passed as reference", async () => {
+  test("string assignment passed as reference", async () => {
     const program = `
     package main
   
@@ -416,7 +416,7 @@ describe("Golang runner for evaluating string expressions", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate program with string assignment passed as reference with concatenation", async () => {
+  test("string assignment passed as reference with concatenation", async () => {
     const program = `
     package main
   
@@ -445,7 +445,7 @@ const binaryExprInputsForAdd: [
   [true, false], // (bool, bool)
 ];
 
-describe.skip(`Golang runner for evaluating incorrect types of binary expr with operator: ${Token.ADD}`, () => {
+describe.skip(`incorrect types of binary expr with operator: ${Token.ADD}`, () => {
   test.each(binaryExprInputsForAdd)(
     `Incorrect type: %p %p`,
     async (operand1, operand2) => {
@@ -480,7 +480,7 @@ const binaryExprInputs: [
 ];
 
 binaryOps.forEach((operator) => {
-  describe.skip(`Golang runner for evaluating incorrect types of binary expr with operator: ${operator}`, () => {
+  describe.skip(`incorrect types of binary expr with operator: ${operator}`, () => {
     test.each(binaryExprInputs)(
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
@@ -516,7 +516,7 @@ const logicalExprInputs: [
 ];
 
 logicalOps.forEach((operator) => {
-  describe.skip(`Golang runner for evaluating incorrect types of logical expr with operator: ${operator}`, () => {
+  describe.skip(`incorrect types of logical expr with operator: ${operator}`, () => {
     test.each(logicalExprInputs)(
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
@@ -552,7 +552,7 @@ const comparisonExprInputs: [
 ];
 
 comparisonOps.forEach((operator) => {
-  describe.skip(`Golang runner for evaluating incorrect types of comparison expr with operator: ${operator}`, () => {
+  describe.skip(`incorrect types of comparison expr with operator: ${operator}`, () => {
     test.each(comparisonExprInputs)(
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
@@ -587,7 +587,7 @@ const equalityExprInputs: [
 ];
 
 equalityOps.forEach((operator) => {
-  describe.skip(`Golang runner for evaluating incorrect types of equality expr with operator: ${operator}`, () => {
+  describe.skip(`incorrect types of equality expr with operator: ${operator}`, () => {
     test.each(equalityExprInputs)(
       `Incorrect type: %p %p`,
       async (operand1, operand2) => {
@@ -608,7 +608,7 @@ equalityOps.forEach((operator) => {
   });
 });
 
-describe.skip("Golang runner for evaluating incorrect types of unary minus operator", () => {
+describe.skip("incorrect types of unary minus operator", () => {
   test("Incorrect type: string", async () => {
     const program = `
     package main
@@ -634,7 +634,7 @@ describe.skip("Golang runner for evaluating incorrect types of unary minus opera
   });
 });
 
-describe.skip("Golang runner for evaluating incorrect types of unary not operator", () => {
+describe.skip("incorrect types of unary not operator", () => {
   test("Incorrect type: string", async () => {
     const program = `
     package main
