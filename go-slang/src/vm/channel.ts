@@ -19,16 +19,21 @@ export class Channel {
     }
 
     this.memory.channel.set_value(this.addr, val);
+    this.memory.channel.set_is_receiver_waiting(this.addr, this.memory.False);
     return true;
   }
 
   dequeue() {
     const value = this.memory.channel.get_value(this.addr);
     if (value === this.memory.Undefined) {
+      // signal receiver is waiting
       this.memory.channel.set_is_receiver_waiting(this.addr, this.memory.True);
+    } else {
+      // remove the value from the channel and remove signal
+      this.memory.channel.set_value(this.addr, this.memory.Undefined);
+      this.memory.channel.set_is_receiver_waiting(this.addr, this.memory.False);
     }
-    // Undefined if no value is available
-    return value;
+    return value; // Undefined if no value is available
   }
 }
 
@@ -68,17 +73,19 @@ export class BufferedChannel {
       return false;
     }
 
+    const size = this.size;
+
     if (this.isEmpty) {
       // reset the head and tail pointers to start at 0
       this.memory.buffered_channel.set_head(this.addr, 0);
-      this.memory.buffered_channel.set_tail(this.addr, 1);
+      this.memory.buffered_channel.set_tail(this.addr, 1 % size);
       this.memory.buffered_channel.set_slot(this.addr, 0, val);
       return true;
     }
 
-    this.memory.buffered_channel.set_slot(this.addr, this.tail, val);
-    const next_tail = (this.tail + 1) % this.size;
-    this.memory.buffered_channel.set_tail(this.addr, next_tail);
+    const tail = this.tail;
+    this.memory.buffered_channel.set_slot(this.addr, tail, val);
+    this.memory.buffered_channel.set_tail(this.addr, (tail + 1) % size);
     return true;
   }
 

@@ -1,9 +1,5 @@
 import * as AST from "../types/ast";
 
-export function stripQuotes(str: string) {
-  return str.replace(/^"|"$/g, "");
-}
-
 export const compoundAssignmentToBinaryOperator = new Map([
   [AST.Token.ADD_ASSIGN, AST.Token.ADD],
   [AST.Token.SUB_ASSIGN, AST.Token.SUB],
