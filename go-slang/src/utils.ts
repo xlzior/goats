@@ -8,3 +8,7 @@ export function peek<T>(stack: Array<T>, index: number = 0) {
   if (stack.length === 0) throw new Error("Stack is empty!");
   return stack[stack.length - 1 - index];
 }
+
+export function strip_quotes(val: any) {
+  return is_string(val) ? val.replace(/^"|"$/g, "") : val;
+}

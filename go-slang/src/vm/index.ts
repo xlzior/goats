@@ -168,9 +168,8 @@ export class GolangVM {
         this.ctx.environment,
       );
       for (let i = 0; i < instr.num; i++) {
-        // TODO: how to initialise the variables? unassigned?
-        // this currently initialises all variables to the address of 0, which is False
-        this.memory.heap.set_child(frame_address, i, 0);
+        this.memory.heap.set_child(frame_address, i, this.memory.Undefined);
+        // value is not set here, it is set by the ASSIGN instruction
       }
     },
     EXIT_SCOPE: (instr: VM.EXIT_SCOPE) => {

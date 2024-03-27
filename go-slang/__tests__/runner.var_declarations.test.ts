@@ -1,6 +1,5 @@
 import { GolangRunner } from "../src";
-import { stripQuotes } from "../src/compiler/utils";
-import { is_string } from "../src/utils";
+import { strip_quotes } from "../src/utils";
 
 let golangRunner: GolangRunner;
 
@@ -53,11 +52,7 @@ describe("Golang runner for evaluating global variable initialisations at the to
       }`;
 
       const { value } = await golangRunner.execute(program);
-      expect(value).toEqual(
-        is_string(initialisedValue)
-          ? stripQuotes(initialisedValue as string)
-          : initialisedValue,
-      );
+      expect(value).toEqual(strip_quotes(initialisedValue));
     },
   );
 });

@@ -2,10 +2,9 @@ import { BuiltinFunction } from "../types";
 import * as AST from "../types/ast";
 import { GOTO, JOF, Instruction, ENTER_SCOPE } from "../types/vm_instructions";
 
-import { peek } from "../utils";
+import { peek, strip_quotes } from "../utils";
 import {
   MAIN_CALL,
-  stripQuotes,
   noNewVariables,
   compoundAssignmentToBinaryOperator,
   typeToDefaultValue,
@@ -92,7 +91,7 @@ export class GolangCompiler {
         _type: "LDC",
         val:
           astNode.Kind === AST.Token.STRING
-            ? stripQuotes(astNode.Value as string)
+            ? strip_quotes(astNode.Value as string)
             : Number(astNode.Value), // can handle integers and floating point values
       };
     },
