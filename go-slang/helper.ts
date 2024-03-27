@@ -4,13 +4,13 @@
 import { GolangRunner } from "./src";
 import { BuiltinFunction } from "./src/types";
 
-const builtin_mapping: Record<string, BuiltinFunction> = {
+const external_builtins: Record<string, BuiltinFunction> = {
   Println: {
     arity: 1,
     apply: (v: any) => console.log("Go program printed:", v),
   },
 };
-const runner = new GolangRunner(builtin_mapping);
+const runner = new GolangRunner(external_builtins);
 const program = `
 package main
 

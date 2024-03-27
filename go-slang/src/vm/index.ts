@@ -10,26 +10,29 @@ import { Context } from "./thread_context";
 
 import { RuntimeError } from "../errors";
 import { ThreadManager } from "./thread_manager";
-import { BufferedChannel, Channel } from "./channel";
+import { InternalBuiltinNames } from "../internal_builtins";
 
 export class GolangVM {
   private ctx: Context;
   private memory: Memory;
-  private builtin_array: Array<BuiltinFunction>;
+  private builtins: Array<BuiltinFunction>;
   private thread_manager: ThreadManager;
 
-  constructor(builtin_mapping: Record<string, BuiltinFunction>) {
+  constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
     this.memory = new Memory(10000000);
-    this.builtin_array = [this.Sleep, ...Object.values(builtin_mapping)];
+    this.builtins = [
+      ...Object.values(this.internal_builtins),
+      ...Object.values(external_builtins),
+    ];
     this.ctx = new Context(0, this.initialise_environment());
     this.thread_manager = new ThreadManager();
   }
 
   private initialise_environment() {
     const empty_environment = this.memory.environment.allocate(0);
-    const global_frame = this.memory.frame.allocate(this.builtin_array.length);
+    const global_frame = this.memory.frame.allocate(this.builtins.length);
 
-    this.builtin_array.forEach((fn, i) => {
+    this.builtins.forEach((fn, i) => {
       this.memory.heap.set_child(
         global_frame,
         i,
@@ -42,7 +45,7 @@ export class GolangVM {
 
   run(instrs: VM.Instruction[]) {
     while (!(instrs[this.ctx.program_counter]._type === "DONE")) {
-      if (this.is_sleeping()) {
+      if (this.is_sleeping) {
         this.ctx = this.thread_manager.context_switch(this.ctx);
         continue;
       }
@@ -57,14 +60,26 @@ export class GolangVM {
     return this.pop_os();
   }
 
-  private Sleep: BuiltinFunction = {
-    arity: 1,
-    apply: (duration: number) => {
-      this.ctx.sleep_until = new Date(Date.now() + duration);
+  internal_builtins: Record<InternalBuiltinNames, BuiltinFunction> = {
+    Sleep: {
+      arity: 1,
+      apply: (duration: number) => {
+        this.ctx.sleep_until = new Date(Date.now() + duration);
+      },
+    },
+    make: {
+      arity: 1,
+      apply: (capacity: number) => {
+        if (capacity === 0) {
+          return this.memory.channel.allocate();
+        } else {
+          return this.memory.buffered_channel.allocate(capacity);
+        }
+      },
     },
   };
 
-  private is_sleeping(): boolean {
+  private get is_sleeping() {
     return new Date() < this.ctx.sleep_until;
   }
 
@@ -100,14 +115,6 @@ export class GolangVM {
     return context;
   }
 
-  create_channel(capacity: number) {
-    if (capacity === 0) {
-      return this.memory.channel.allocate();
-    } else {
-      return this.memory.buffered_channel.allocate(capacity);
-    }
-  }
-
   private pop_os() {
     const address = this.ctx.operand_stack.pop();
     if (address === undefined) {
@@ -123,23 +130,18 @@ export class GolangVM {
   }
 
   private apply_builtin(id: number) {
-    const { arity, apply } = this.builtin_array[id];
+    const { arity, apply } = this.builtins[id];
     const args = [];
     for (let i = 0; i < arity; i++) {
       args.push(this.pop_os());
     }
-    const result = apply.apply(null, args);
-    this.push_os(result);
+    const result = apply.apply(null, args) ?? this.memory.Undefined;
+    this.ctx.operand_stack.push(result);
   }
 
   private microcode: Record<VM.Instruction["_type"], any> = {
     LDC: (instr: VM.LDC) => {
       this.push_os(instr.val);
-    },
-    MAKE_CHAN: (instr: VM.MAKE_CHAN) => {
-      const capacity = this.pop_os() as number;
-      const addr = this.create_channel(capacity);
-      this.ctx.operand_stack.push(addr);
     },
     UNOP: (instr: VM.UNOP) => {
       this.push_os(apply_unop(instr.sym, this.pop_os()));

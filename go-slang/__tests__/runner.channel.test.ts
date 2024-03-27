@@ -202,7 +202,7 @@ describe("unbuffered channels", () => {
       msg1 := <-messages
       msg2 := <-messages
       msg3 := <-messages
-      Sleep(1)
+      Sleep(2)
       Println(msg1)
       Println(msg2)
       Println(msg3)
@@ -231,7 +231,7 @@ describe("unbuffered channels", () => {
       messages <- 1
       messages <- 2
       messages <- 3
-      Sleep(1)
+      Sleep(2)
     }`;
     await golangRunner.execute(program);
     expect(println).toHaveBeenCalledTimes(3);
@@ -441,7 +441,7 @@ describe("buffered channels", () => {
       msg1 := <-messages
       msg2 := <-messages
       msg3 := <-messages
-      Sleep(1)
+      Sleep(2)
       Println(msg1)
       Println(msg2)
       Println(msg3)
@@ -470,7 +470,7 @@ describe("buffered channels", () => {
       messages <- 1
       messages <- 2
       messages <- 3
-      Sleep(1)
+      Sleep(2)
     }`;
     await golangRunner.execute(program);
     expect(println).toHaveBeenCalledTimes(3);

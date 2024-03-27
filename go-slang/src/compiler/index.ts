@@ -14,16 +14,19 @@ import {
 } from "./utils";
 
 import { CompilationError } from "../errors";
+import { InternalBuiltinNames } from "../internal_builtins";
 
 export class GolangCompiler {
   private wc: number;
   private instrs: Array<Instruction>;
   private compile_env: Array<Array<string>>; // stack of arrays
 
-  constructor(builtin_mapping: Record<string, BuiltinFunction>) {
+  constructor(external_builtins: Record<string, BuiltinFunction>) {
     this.wc = 0;
     this.instrs = [];
-    this.compile_env = [["Sleep", ...Object.keys(builtin_mapping)]];
+    this.compile_env = [
+      [...Object.keys(InternalBuiltinNames), ...Object.keys(external_builtins)],
+    ];
   }
 
   compile_program(rootAstNode: AST.File) {
@@ -68,21 +71,6 @@ export class GolangCompiler {
     jump_on_false_instruction.addr = this.wc;
     this.compile(alt);
     goto_instruction.addr = this.wc;
-  }
-
-  private compile_make(astNode: AST.CallExpr) {
-    if (astNode.Args.length === 2) {
-      // second argument of make provided
-      this.compile(astNode.Args[1]);
-    } else {
-      // second argument of make defaults to 0
-      this.instrs[this.wc++] = { _type: "LDC", val: 0 };
-    }
-    const chan_type = astNode.Args[0] as AST.ChanType;
-    this.instrs[this.wc++] = {
-      _type: "MAKE_CHAN",
-      data_type: chan_type.Value.Name,
-    };
   }
 
   private compile_ast: Record<AST.NodeType, any> = {
@@ -174,15 +162,21 @@ export class GolangCompiler {
       this.compile(assignAst);
     },
     ChanType: (astNode: AST.ChanType) => {
-      throw new CompilationError("ChanType not handled");
+      // ignore; type information is not needed for the VM at runtime
+      return;
     },
     CallExpr: (astNode: AST.CallExpr) => {
+      let arity = astNode.Args.length;
       if (astNode.Fun.Name === "make") {
-        return this.compile_make(astNode);
+        arity = 1; // first argument is the type, ignored at runtime
+        if (astNode.Args.length === 1) {
+          // desugar make(T) to make(T, 0)
+          astNode.Args.push(make_basic_lit(AST.Token.INT, "0"));
+        }
       }
       this.compile(astNode.Fun);
       astNode.Args.forEach((arg) => this.compile(arg));
-      this.instrs[this.wc++] = { _type: "CALL", arity: astNode.Args.length };
+      this.instrs[this.wc++] = { _type: "CALL", arity };
     },
     GoStmt: (astNode: AST.GoStmt) => {
       const call_expr = astNode.Call;
