@@ -1,29 +1,32 @@
 import { Context } from "./thread_context";
 
-const INSTRS_PER_THREAD = 10;
+const TIME_QUANTUM = 1; // ms
 
 /**
  * Represents a manager for handling threads and context switching.
  */
 export class ThreadManager {
   private thread_queue: Array<Context>;
-  private thread_instr_count: number;
+  private last_context_switch: Date;
 
   constructor() {
     this.thread_queue = [];
-    this.thread_instr_count = 0;
+    this.last_context_switch = new Date();
+  }
+
+  get time_since_last_context_switch(): number {
+    return new Date().getTime() - this.last_context_switch.getTime();
   }
 
   /**
    * Updates the scheduler based on the current context.
    */
-  public update_scheduler(curr_ctx: Context): Context {
-    this.thread_instr_count++;
-    if (this.thread_instr_count >= INSTRS_PER_THREAD) {
-      this.thread_instr_count = 0;
-      return this.context_switch(curr_ctx);
+  public get_context(curr_ctx: Context): Context {
+    if (this.time_since_last_context_switch < TIME_QUANTUM) {
+      return curr_ctx;
     }
-    return curr_ctx;
+
+    return this.context_switch(curr_ctx);
   }
 
   /**
@@ -31,12 +34,13 @@ export class ThreadManager {
    * the next context from the thread queue.
    */
   public context_switch(curr_ctx: Context): Context {
-    if (this.thread_queue.length > 0) {
-      this.add_context_to_queue(curr_ctx);
-      const next_ctx = this.thread_queue.shift();
-      if (next_ctx) return next_ctx;
-    }
-    return curr_ctx;
+    const next_ctx = this.thread_queue.shift();
+
+    if (next_ctx === undefined) return curr_ctx;
+
+    this.last_context_switch = new Date();
+    this.add_context_to_queue(curr_ctx);
+    return next_ctx;
   }
 
   /**
