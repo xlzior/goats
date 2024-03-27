@@ -12,4 +12,5 @@ export enum Tag {
   Builtin,
   Channel,
   BufferedChannel,
+  Mutex,
 }
