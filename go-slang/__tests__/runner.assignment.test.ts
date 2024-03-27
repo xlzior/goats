@@ -6,8 +6,8 @@ beforeEach(() => {
   golangRunner = new GolangRunner();
 });
 
-describe("Golang runner for evaluating definition statements", () => {
-  test("evaluate simple definition statement", async () => {
+describe("definition statements", () => {
+  test("simple definition statement", async () => {
     const program = `
     package main
   
@@ -20,7 +20,7 @@ describe("Golang runner for evaluating definition statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple definition statement", async () => {
+  test("multiple definition statement", async () => {
     const program = `
     package main
   
@@ -33,7 +33,7 @@ describe("Golang runner for evaluating definition statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple definition from function", async () => {
+  test("multiple definition from function", async () => {
     const program = `
     package main
 
@@ -50,7 +50,7 @@ describe("Golang runner for evaluating definition statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple definition from other variables", async () => {
+  test("multiple definition from other variables", async () => {
     const program = `
     package main
 
@@ -159,8 +159,8 @@ describe("Golang runner for evaluating definition statements", () => {
   });
 });
 
-describe("Golang runner for evaluating assignment statements", () => {
-  test("evaluate simple assignment statement", async () => {
+describe("assignment statements", () => {
+  test("simple assignment statement", async () => {
     const program = `
     package main
   
@@ -174,7 +174,7 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple assignment statement", async () => {
+  test("multiple assignment statement", async () => {
     const program = `
     package main
   
@@ -189,7 +189,7 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple assignment from function", async () => {
+  test("multiple assignment from function", async () => {
     const program = `
     package main
 
@@ -207,7 +207,7 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple assignment from other variables", async () => {
+  test("multiple assignment from other variables", async () => {
     const program = `
     package main
 
@@ -222,7 +222,7 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple assignment from same variables", async () => {
+  test("multiple assignment from same variables", async () => {
     const program = `
     package main
 
@@ -237,7 +237,7 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple assignment from same variables with binary expression", async () => {
+  test("multiple assignment from same variables with binary expression", async () => {
     const program = `
     package main
 
@@ -323,14 +323,14 @@ describe("Golang runner for evaluating assignment statements", () => {
   ];
 
   test.each(compoundAssignTestCases)(
-    "evaluate program with a compound assignment: %s",
+    "a compound assignment: %s",
     async ({ program, expected }) => {
       const actual = await golangRunner.execute(program);
       expect(actual.value).toEqual(expected);
     },
   );
 
-  test("evaluate increment by one operator", async () => {
+  test("increment by one operator", async () => {
     const program = `
     package main
 
@@ -344,7 +344,7 @@ describe("Golang runner for evaluating assignment statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate decrement by one operator", async () => {
+  test("decrement by one operator", async () => {
     const program = `
     package main
 
@@ -359,7 +359,7 @@ describe("Golang runner for evaluating assignment statements", () => {
   });
 });
 
-describe.skip("Golang runner for handling errors for assignments", () => {
+describe.skip("handling errors for assignments", () => {
   const ERROR = "error"; // error property in result
 
   test("assignment mismatch - LHS has more variables", async () => {

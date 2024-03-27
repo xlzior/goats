@@ -6,8 +6,8 @@ beforeEach(() => {
   golangRunner = new GolangRunner();
 });
 
-describe("Golang runner for evaluating conditional statements", () => {
-  test("evaluate simple conditional statement with only if condition", async () => {
+describe("conditional statements", () => {
+  test("simple conditional statement with only if condition", async () => {
     const program = `
     package main
   
@@ -23,7 +23,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate simple conditional statement for if case", async () => {
+  test("simple conditional statement for if case", async () => {
     const program = `
     package main
   
@@ -40,7 +40,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate simple conditional statement for else case", async () => {
+  test("simple conditional statement for else case", async () => {
     const program = `
     package main
   
@@ -57,7 +57,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate conditional statement with else if", async () => {
+  test("conditional statement with else if", async () => {
     const program = `
     package main
   
@@ -76,7 +76,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate conditional statement with multiple else if conditions", async () => {
+  test("conditional statement with multiple else if conditions", async () => {
     const program = `
     package main
   
@@ -99,7 +99,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate conditional statement with nested if-else", async () => {
+  test("conditional statement with nested if-else", async () => {
     const program = `
     package main
   
@@ -122,7 +122,7 @@ describe("Golang runner for evaluating conditional statements", () => {
     expect(value).toEqual(expected);
   });
 
-  test("evaluate conditional statement with deeply nested if-else", async () => {
+  test("conditional statement with deeply nested if-else", async () => {
     const program = `
     package main
   

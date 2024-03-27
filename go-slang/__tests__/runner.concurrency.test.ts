@@ -8,8 +8,8 @@ beforeEach(() => {
   golangRunner = new GolangRunner({ Println: { arity: 1, apply: println } });
 });
 
-describe("Golang runner for evaluating concurrent programs", () => {
-  test("evaluate program with sleep", async () => {
+describe("concurrent programs", () => {
+  test("sleep", async () => {
     const program = `
     package main
   
@@ -35,7 +35,7 @@ describe("Golang runner for evaluating concurrent programs", () => {
     expect(println).toHaveBeenNthCalledWith(5, 5);
   });
 
-  test("evaluate program with goroutines and interleaved execution", async () => {
+  test("goroutines and interleaved execution", async () => {
     const program = `
     package main
   

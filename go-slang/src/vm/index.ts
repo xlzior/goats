@@ -136,7 +136,7 @@ export class GolangVM {
     LDC: (instr: VM.LDC) => {
       this.push_os(instr.val);
     },
-    MAKE_CHAN: (instr: VM.LDC) => {
+    MAKE_CHAN: (instr: VM.MAKE_CHAN) => {
       const capacity = this.pop_os() as number;
       const addr = this.create_channel(capacity);
       this.ctx.operand_stack.push(addr);

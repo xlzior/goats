@@ -13,7 +13,7 @@ const typeToDefaultValues: [string, number | string | boolean][] = [
   ["string", ""],
 ];
 
-describe("Golang runner for evaluating global variable declarations at the top level", () => {
+describe("global variable declarations at the top level", () => {
   test.each(typeToDefaultValues)(
     `Type %s with default value %s`,
     async (type, defaultValue) => {
@@ -38,7 +38,7 @@ const typeToInitialisedValues: [string, number | string | boolean][] = [
   ["string", '"hello"'],
 ];
 
-describe("Golang runner for evaluating global variable initialisations at the top level", () => {
+describe("global variable initialisations at the top level", () => {
   test.each(typeToInitialisedValues)(
     `Type %s with initialised value %s`,
     async (type, initialisedValue) => {
@@ -57,8 +57,8 @@ describe("Golang runner for evaluating global variable initialisations at the to
   );
 });
 
-describe("Golang runner for evaluating global variable declarations with different combinations", () => {
-  test("evaluate multiple initialisations in a single line", async () => {
+describe("global variable declarations with different combinations", () => {
+  test("multiple initialisations in a single line", async () => {
     const program = `
     package main
 
@@ -72,7 +72,7 @@ describe("Golang runner for evaluating global variable declarations with differe
     expect(value).toEqual(expected);
   });
 
-  test("evaluate multiple initialisations in multiple lines", async () => {
+  test("multiple initialisations in multiple lines", async () => {
     const program = `
     package main
 
@@ -89,7 +89,7 @@ describe("Golang runner for evaluating global variable declarations with differe
     expect(value).toEqual(expected);
   });
 
-  test("evaluate int initialisation and updated afterwards, should return updated value", async () => {
+  test("int initialisation and updated afterwards, should return updated value", async () => {
     const program = `
     package main
 
@@ -105,7 +105,7 @@ describe("Golang runner for evaluating global variable declarations with differe
     expect(value).toEqual(expected);
   });
 
-  test("evaluate variable mutated by various functions", async () => {
+  test("variable mutated by various functions", async () => {
     const program = `
     package main
 
@@ -130,9 +130,9 @@ describe("Golang runner for evaluating global variable declarations with differe
   });
 });
 
-describe("Golang runner for evaluating variable declarations at a function level", () => {
+describe("variable declarations at a function level", () => {
   // slightly different AST
-  test("evaluate int declaration, should return default value of 0", async () => {
+  test("int declaration, should return default value of 0", async () => {
     const program = `
     package main
   
@@ -145,7 +145,7 @@ describe("Golang runner for evaluating variable declarations at a function level
     expect(value).toEqual(expected);
   });
 
-  test("evaluate int initialisation, should return initialised value", async () => {
+  test("int initialisation, should return initialised value", async () => {
     const program = `
     package main
   
