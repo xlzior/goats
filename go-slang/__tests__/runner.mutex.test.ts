@@ -43,11 +43,9 @@ describe("Golang runner for evaluating programs without mutex", () => {
     const expected = 0;
     expect(value).not.toEqual(expected);
   });
-})
-
+});
 
 describe("Golang runner for evaluating programs with mutex", () => {
-
   test("With mutex control, balance should be deterministic with value of 0", async () => {
     const program = `
     package main
@@ -87,5 +85,4 @@ describe("Golang runner for evaluating programs with mutex", () => {
     const expected = 0;
     expect(value).toEqual(expected);
   });
-
 });

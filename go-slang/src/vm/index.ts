@@ -290,19 +290,18 @@ export class GolangVM {
     },
     LOCK: (instr: VM.LOCK) => {
       const mutex_addr = peek(this.ctx.operand_stack);
-      const is_mutex_avail = this.memory.mutex.get(mutex_addr) === 1;
-      if (!is_mutex_avail) {
+      if (!this.memory.mutex.is_available(mutex_addr)) {
         this.ctx.program_counter--;
         this.ctx = this.thread_manager.context_switch(this.ctx);
         return;
       }
+      this.memory.mutex.acquire(mutex_addr);
       this.pop_os();
-      this.memory.mutex.set(mutex_addr, 0);
     },
     UNLOCK: (instr: VM.LOCK) => {
       const mutex_addr = peek(this.ctx.operand_stack);
+      this.memory.mutex.release(mutex_addr);
       this.pop_os();
-      this.memory.mutex.set(mutex_addr, 1);
     },
     DONE: (instr: VM.DONE) => {},
   };

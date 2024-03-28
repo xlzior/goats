@@ -76,7 +76,7 @@ export class GolangCompiler {
   private compile_lock_or_unlock(astNode: AST.CallExpr, funcName: string) {
     this.compile(astNode.Args[0]); // mutex addr
     this.instrs[this.wc++] = {
-      _type: funcName === "Lock" ? "LOCK" : "UNLOCK"
+      _type: funcName === "Lock" ? "LOCK" : "UNLOCK",
     };
     return;
   }
@@ -288,7 +288,7 @@ export class GolangCompiler {
         this.instrs[this.wc++] = {
           _type: "MAKE_MUTEX",
         };
-        return
+        return;
       }
 
       // Go treats boolean as Ident. Adds a LDC instruction
