@@ -1,6 +1,5 @@
 export type RunnerResult = {
-  value?: any;
-  error?: string;
+  value: any;
 };
 
 export type BuiltinFunction = {

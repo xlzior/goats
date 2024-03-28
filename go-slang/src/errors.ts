@@ -5,6 +5,13 @@ export class SyntaxError extends Error {
   }
 }
 
+export class TypeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TypeError";
+  }
+}
+
 export class CompilationError extends Error {
   constructor(message: string) {
     super(message);

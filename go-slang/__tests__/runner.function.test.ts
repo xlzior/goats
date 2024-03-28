@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { CompilationError, TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -202,8 +203,6 @@ describe("functions", () => {
 });
 
 describe.skip("handling errors for functions", () => {
-  const ERROR = "error";
-
   test("Calling a variable as a function", async () => {
     const program = `
     package main
@@ -213,9 +212,10 @@ describe.skip("handling errors for functions", () => {
       y := add(1,2)
       return y
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       "invalid operation: cannot call non-function",
     );
   });
@@ -228,9 +228,12 @@ describe.skip("handling errors for functions", () => {
       x := add(1,2)
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("undefined: add");
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "undefined: add",
+    );
   });
 
   test("Passing too little arguments to a function", async () => {
@@ -245,9 +248,10 @@ describe.skip("handling errors for functions", () => {
       x := add(1)
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("not enough arguments in function call");
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "not enough arguments in function call",
+    );
   });
 
   test("Passing too many arguments to a function", async () => {
@@ -262,9 +266,10 @@ describe.skip("handling errors for functions", () => {
       x := add(1,2,3)
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("too many arguments in function call");
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many arguments in function call",
+    );
   });
 
   test("Passing wrong argument type to a function", async () => {
@@ -279,9 +284,8 @@ describe.skip("handling errors for functions", () => {
       x := add(1, "hello")
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       'cannot use "hello" as int value in argument to add',
     );
   });
@@ -298,9 +302,8 @@ describe.skip("handling errors for functions", () => {
       x := add(1)
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       "cannot use x + 10 (value of type int) as string value in return statement",
     );
   });

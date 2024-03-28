@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { CompilationError, SyntaxError, TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -260,8 +261,10 @@ describe("assignment statements", () => {
       x = 5
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect("error" in result).toBeTruthy();
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow("undefined: x");
   });
 
   const compoundAssignTestCases = [
@@ -360,8 +363,6 @@ describe("assignment statements", () => {
 });
 
 describe.skip("handling errors for assignments", () => {
-  const ERROR = "error"; // error property in result
-
   test("assignment mismatch - LHS has more variables", async () => {
     const program = `
     package main
@@ -369,9 +370,10 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a, b := 1
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 2 variables but 1 value",
     );
   });
@@ -387,9 +389,10 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a, b, c := addOne(1,2)
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 3 variables but addOne returns 2 values",
     );
   });
@@ -401,9 +404,10 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a := 1, 2
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 1 variable but 2 values",
     );
   });
@@ -419,9 +423,10 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a := addOne(1,2)
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 1 variable but addOne returns 2 values",
     );
   });
@@ -433,9 +438,10 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a = 10;
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("undefined: a");
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow("undefined: a");
   });
 
   test("missing value on RHS of :=", async () => {
@@ -445,21 +451,10 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a :=
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("expected operand, found '}'");
-  });
-
-  test("missing value on RHS of :=", async () => {
-    const program = `
-    package main
-
-    func main() {
-      a :=
-    }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("expected operand, found '}'");
+    await expect(golangRunner.execute(program)).rejects.toThrow(SyntaxError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "expected operand, found '}'",
+    );
   });
 
   test("Reassignment to a different type from initialised type", async () => {
@@ -470,9 +465,8 @@ describe.skip("handling errors for assignments", () => {
       x := 10; // integer
       x = "hello" // string
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain(
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
       'cannot use "hello" (untyped string constant) as int value in assignment',
     );
   });
