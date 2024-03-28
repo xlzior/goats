@@ -1,5 +1,6 @@
 import { GolangRunner } from "../src";
 import { Token } from "../src/types/ast";
+import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -455,10 +456,8 @@ describe.skip(`incorrect types of binary expr with operator: ${Token.ADD}`, () =
       func main() {
           x := ${operand1} ${Token.ADD} ${operand2};
       }`;
-
-      const result = await golangRunner.execute(program);
-      expect(result).toHaveProperty("error");
-      expect(result.error).toContain(
+      await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+      await expect(golangRunner.execute(program)).rejects.toThrow(
         `invalid operation: ${operand1} ${Token.ADD} ${operand2}`,
       );
     },
@@ -491,9 +490,8 @@ binaryOps.forEach((operator) => {
             x := ${operand1} ${operator} ${operand2};
         }`;
 
-        const result = await golangRunner.execute(program);
-        expect(result).toHaveProperty("error");
-        expect(result.error).toContain(
+        await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+        await expect(golangRunner.execute(program)).rejects.toThrow(
           `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
       },
@@ -526,10 +524,8 @@ logicalOps.forEach((operator) => {
         func main() {
             x := ${operand1} ${operator} ${operand2};
         }`;
-
-        const result = await golangRunner.execute(program);
-        expect(result).toHaveProperty("error");
-        expect(result.error).toContain(
+        await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+        await expect(golangRunner.execute(program)).rejects.toThrow(
           `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
       },
@@ -563,9 +559,8 @@ comparisonOps.forEach((operator) => {
             x := ${operand1} ${operator} ${operand2};
         }`;
 
-        const result = await golangRunner.execute(program);
-        expect(result).toHaveProperty("error");
-        expect(result.error).toContain(
+        await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+        await expect(golangRunner.execute(program)).rejects.toThrow(
           `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
       },
@@ -597,10 +592,8 @@ equalityOps.forEach((operator) => {
         func main() {
             x := ${operand1} ${operator} ${operand2};
         }`;
-
-        const result = await golangRunner.execute(program);
-        expect(result).toHaveProperty("error");
-        expect(result.error).toContain(
+        await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+        await expect(golangRunner.execute(program)).rejects.toThrow(
           `invalid operation: ${operand1} ${operator} ${operand2}`,
         );
       },
@@ -616,9 +609,10 @@ describe.skip("incorrect types of unary minus operator", () => {
     func main() {
       x := -"hello"
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty("error");
-    expect(result.error).toContain(`invalid operation: -`);
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: -",
+    );
   });
 
   test("Incorrect type: bool", async () => {
@@ -628,9 +622,10 @@ describe.skip("incorrect types of unary minus operator", () => {
     func main() {
       x := -true
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty("error");
-    expect(result.error).toContain(`invalid operation: -`);
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: -",
+    );
   });
 });
 
@@ -642,9 +637,10 @@ describe.skip("incorrect types of unary not operator", () => {
     func main() {
       x := !"hello"
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty("error");
-    expect(result.error).toContain(`invalid operation: !`);
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: !",
+    );
   });
 
   test("Incorrect type: int", async () => {
@@ -654,8 +650,9 @@ describe.skip("incorrect types of unary not operator", () => {
     func main() {
       x := !5
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty("error");
-    expect(result.error).toContain(`invalid operation: !`);
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: !",
+    );
   });
 });

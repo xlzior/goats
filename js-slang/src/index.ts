@@ -24,7 +24,6 @@ import { assemble } from './vm/svml-assembler'
 import { compileToIns } from './vm/svml-compiler'
 export { SourceDocumentation } from './editors/ace/docTooltip'
 import * as es from 'estree'
-import GolangRunner from 'go-slang'
 
 import { CSEResultPromise, resumeEvaluate } from './cse-machine/interpreter'
 import { CannotFindModuleError } from './errors/localImportErrors'
@@ -40,10 +39,9 @@ import {
   hasVerboseErrors,
   htmlRunner,
   resolvedErrorPromise,
-  sourceFilesRunner
+  sourceFilesRunner,
+  golangRunner
 } from './runner'
-import { GoError } from './errors/goErrors'
-import { BuiltinFunction } from 'go-slang/src/types'
 
 export interface IOptions {
   scheduler: 'preemptive' | 'async'
@@ -232,26 +230,7 @@ export async function runFilesInContext(
   }
 
   if (context.chapter === Chapter.GOLANG) {
-
-    const builtin_mapping: Record<string, BuiltinFunction> = {
-      Println: {
-        arity: 1,
-        apply: context.nativeStorage.builtins.get('Println')
-      },
-    };
-
-    const runner = new GolangRunner(builtin_mapping)
-    const result = await runner.execute(code)
-    if ('error' in result) {
-      const fallbackErrorMsg = "Some error occurred. Please try again later."
-      context.errors.push(new GoError(result.error ?? fallbackErrorMsg))
-      return resolvedErrorPromise
-    }
-    return {
-      status: 'finished',
-      context: context,
-      value: result.value
-    }
+    return golangRunner(code, context);
   }
 
   if (
