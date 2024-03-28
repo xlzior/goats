@@ -18,6 +18,7 @@ export const typeToDefaultValue = new Map<string, AST.Expr>([
   ["int", make_basic_lit(AST.Token.INT, "0")],
   ["string", make_basic_lit(AST.Token.STRING, "")],
   ["bool", make_ident("false")],
+  ["Mutex", make_ident("Mutex")],
 ]);
 
 export function noNewVariables(

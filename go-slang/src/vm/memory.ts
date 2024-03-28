@@ -39,6 +39,8 @@ export class Memory {
         return "<channel>";
       case Tag.BufferedChannel:
         return "<buffered_channel>";
+      case Tag.Mutex:
+        return "<Mutex>";
       default:
         return "<internals>";
     }
@@ -228,6 +230,23 @@ export class Memory {
     },
     set_slot: (addr: number, i: number, val: number) => {
       this.heap.set_child(addr, i, val);
+    },
+  };
+
+  mutex = {
+    allocate: () => {
+      const addr = this.heap.allocate(Tag.Mutex, 2);
+      this.heap.set(addr + 1, 1); // default value is 1
+      return addr;
+    },
+    is_available: (addr: number) => {
+      return this.heap.get(addr + 1) === 1;
+    },
+    acquire: (addr: number) => {
+      this.heap.set(addr + 1, 0);
+    },
+    release: (addr: number) => {
+      this.heap.set(addr + 1, 1);
     },
   };
 }
