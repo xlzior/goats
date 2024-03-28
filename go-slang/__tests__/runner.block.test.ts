@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { CompilationError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -174,8 +175,6 @@ describe("variable declarations in blocks", () => {
 });
 
 describe("handling errors for assignments", () => {
-  const ERROR = "error";
-
   test("Redefining the same variable in the same scope", async () => {
     const program = `
     package main
@@ -184,9 +183,13 @@ describe("handling errors for assignments", () => {
       a := 5
       a := 5
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("no new variables on left side of :=");
+
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "no new variables on left side of :=",
+    );
   });
 
   test("Redefining the same variables with multiple assignments in the same scope", async () => {
@@ -197,9 +200,12 @@ describe("handling errors for assignments", () => {
       a, b, c := 5, 6, 7
       a, b, c := 5, 6, 7
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("no new variables on left side of :=");
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "no new variables on left side of :=",
+    );
   });
 
   test("Redeclaration using both 'var' and ':=' in the same scope", async () => {
@@ -211,9 +217,12 @@ describe("handling errors for assignments", () => {
       x := 56
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("no new variables on left side of :=");
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "no new variables on left side of :=",
+    );
   });
 
   test.skip("Declaring a function with the same name in the same scope", async () => {
@@ -232,8 +241,11 @@ describe("handling errors for assignments", () => {
       x := add(1,2)
       return x
     }`;
-    const result = await golangRunner.execute(program);
-    expect(result).toHaveProperty(ERROR);
-    expect(result.error).toContain("add redeclared in this block");
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      CompilationError,
+    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "add redeclared in this block",
+    );
   });
 });

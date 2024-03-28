@@ -16,14 +16,9 @@ export class GolangRunner {
   }
 
   async execute(program: string): Promise<RunnerResult> {
-    try {
-      const { ast } = await this.parser.parse(program);
-      const instr_set = this.compiler.compile_program(ast);
-      const result = this.vm.run(instr_set);
-
-      return { value: result };
-    } catch (error: any) {
-      return { error: error.toString() };
-    }
+    const { ast } = await this.parser.parse(program);
+    const instr_set = this.compiler.compile_program(ast);
+    const result = this.vm.run(instr_set);
+    return { value: result };
   }
 }
