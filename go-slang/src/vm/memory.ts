@@ -235,15 +235,18 @@ export class Memory {
 
   mutex = {
     allocate: () => {
-      const mutex_addr = this.heap.allocate(Tag.Mutex, 2);
-      this.heap.set(mutex_addr + 1, 1); // default value is 1
-      return mutex_addr;
+      const addr = this.heap.allocate(Tag.Mutex, 2);
+      this.heap.set(addr + 1, 1); // default value is 1
+      return addr;
     },
-    get: (mutex_addr: number): number => {
-      return this.heap.get(mutex_addr + 1);
+    is_available: (addr: number) => {
+      return this.heap.get(addr + 1) === 1;
     },
-    set: (mutex_addr: number, val: number) => {
-      this.heap.set(mutex_addr + 1, val);
-    }
+    acquire: (addr: number) => {
+      this.heap.set(addr + 1, 0);
+    },
+    release: (addr: number) => {
+      this.heap.set(addr + 1, 1);
+    },
   };
 }
