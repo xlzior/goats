@@ -298,7 +298,7 @@ export class GolangVM {
       this.memory.mutex.acquire(mutex_addr);
       this.pop_os();
     },
-    UNLOCK: (instr: VM.LOCK) => {
+    UNLOCK: (instr: VM.UNLOCK) => {
       const mutex_addr = peek(this.ctx.operand_stack);
       this.memory.mutex.release(mutex_addr);
       this.pop_os();
