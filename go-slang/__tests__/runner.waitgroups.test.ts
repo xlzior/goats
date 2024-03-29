@@ -8,87 +8,169 @@ beforeEach(() => {
   golangRunner = new GolangRunner({ Println: { arity: 1, apply: println } });
 });
 
-describe("programs with waitgroups", () => {
-  test("1 waitgroup", async () => {
-    // Before - no waitgroup
-    const programWithNoWaitgroup = `
+describe("waitgroups", () => {
+  test("single global waitgroup used to ensure all goroutines are executed", async () => {
+    const program = `
     package main
 
-    var (
-      balance int = 0
-    )
+    var wg WaitGroup
 
-    func withdraw(amt int) {
-      balance -= amt
-      i := 5
-      for i > 0 {
-        i -= 1
-      }
-    }
-
-    func deposit(amt int) {
-      balance += amt
-    }
-
-    func main() {
-      i := 30000
-      for i > 0 {
-        go deposit(1)
-        go withdraw(1)
-        i--
-      }
-      Sleep(2000)
-      return balance
-    }`;
-    const { value: noWaitGroupValue } = await golangRunner.execute(
-      programWithNoWaitgroup,
-    );
-    const expectedNoWaitGroup = 0;
-    expect(noWaitGroupValue).not.toEqual(expectedNoWaitGroup);
-
-    // After - with waitgroup
-    const programWithWaitGroup = `
-    package main
-
-    var (
-      balance int = 0
-      mutex Mutex
-      wg WaitGroup
-    )
-
-    func withdraw(amt int) {
-      Lock(mutex)
-      balance -= amt
-      i := 5
-      for i > 0 {
-        i -= 1
-      }
-      Unlock(mutex)
+    func f1() {
+      Println("goroutine 1")
       Done(wg)
     }
 
-    func deposit(amt int) {
-      Lock(mutex)
-      balance += amt
-      Unlock(mutex)
+    func f2() {
+      Println("goroutine 2")
+      Done(wg)
+    }
+
+    func f3() {
+      Println("goroutine 3")
       Done(wg)
     }
 
     func main() {
-      i := 30000
-      for i > 0 {
-        go deposit(1)
-        go withdraw(1)
-        Add(wg, 2)
-        i--
-      }
+
+      Add(wg, 3)
+      go f1()
+      go f2()
+      go f3()
+
       Wait(wg)
-      return balance
     }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = undefined;
+    expect(value).toEqual(expected);
 
-    const { value: waitGroupValue } =
-      await golangRunner.execute(programWithWaitGroup);
-    const expectedWaitGroup = 0;
-    expect(waitGroupValue).toEqual(expectedWaitGroup);
+    expect(println).toHaveBeenCalledWith("goroutine 1");
+    expect(println).toHaveBeenCalledWith("goroutine 2");
+    expect(println).toHaveBeenCalledWith("goroutine 3");
+  });
+
+  test("single waitgroup via parameter passing used to ensure all goroutines are executed", async () => {
+    const program = `
+    package main
+
+    func f1(wg WaitGroup) {
+      Println("goroutine 1")
+      Done(wg)
+    }
+
+    func f2(wg WaitGroup) {
+      Println("goroutine 2")
+      Done(wg)
+    }
+
+    func f3(wg WaitGroup) {
+      Println("goroutine 3")
+      Done(wg)
+    }
+
+    func main() {
+
+      var wg WaitGroup
+
+      Add(wg, 3)
+      go f1(wg)
+      go f2(wg)
+      go f3(wg)
+
+      Wait(wg)
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = undefined;
+    expect(value).toEqual(expected);
+
+    expect(println).toHaveBeenCalledWith("goroutine 1");
+    expect(println).toHaveBeenCalledWith("goroutine 2");
+    expect(println).toHaveBeenCalledWith("goroutine 3");
+  });
+
+  test("multiple global waitgroups used to ensure all goroutines are executed", async () => {
+    const program = `
+    package main
+
+    var (
+      wg1 WaitGroup
+      wg2 WaitGroup
+    )
+
+    func f1() {
+      Println("goroutine 1")
+      Done(wg1)
+    }
+
+    func f2() {
+      Println("goroutine 2")
+      Done(wg1)
+    }
+
+    func f3() {
+      Println("goroutine 3")
+      Done(wg2)
+    }
+
+    func main() {
+
+      Add(wg1, 2)
+      Add(wg2, 1)
+      go f1()
+      go f2()
+      go f3()
+
+      Wait(wg1)
+      Wait(wg2)
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = undefined;
+    expect(value).toEqual(expected);
+
+    expect(println).toHaveBeenCalledWith("goroutine 1");
+    expect(println).toHaveBeenCalledWith("goroutine 2");
+    expect(println).toHaveBeenCalledWith("goroutine 3");
+  });
+
+  test("multiple waitgroups via parameter passing used to ensure all goroutines are executed", async () => {
+    const program = `
+    package main
+
+    func f1(wg WaitGroup) {
+      Println("goroutine 1")
+      Done(wg)
+    }
+
+    func f2(wg WaitGroup) {
+      Println("goroutine 2")
+      Done(wg)
+    }
+
+    func f3(wg WaitGroup) {
+      Println("goroutine 3")
+      Done(wg)
+    }
+
+    func main() {
+
+      var wg1 WaitGroup
+      var wg2 WaitGroup
+
+      Add(wg1, 2)
+      go f1(wg1)
+      go f2(wg1)
+
+      Add(wg2, 1)
+      go f3(wg2)
+
+      Wait(wg1)
+      Wait(wg2)
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = undefined;
+    expect(value).toEqual(expected);
+
+    expect(println).toHaveBeenCalledWith("goroutine 1");
+    expect(println).toHaveBeenCalledWith("goroutine 2");
+    expect(println).toHaveBeenCalledWith("goroutine 3");
   });
 });
