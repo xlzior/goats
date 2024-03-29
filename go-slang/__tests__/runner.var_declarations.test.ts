@@ -1,5 +1,6 @@
 import { GolangRunner } from "../src";
 import { strip_quotes } from "../src/utils";
+import { DataType } from "../src/types/index";
 
 let golangRunner: GolangRunner;
 
@@ -8,9 +9,9 @@ beforeEach(() => {
 });
 
 const typeToDefaultValues: [string, number | string | boolean][] = [
-  ["int", 0],
-  ["bool", false],
-  ["string", ""],
+  [DataType.INT, 0],
+  [DataType.BOOL, false],
+  [DataType.STRING, ""],
 ];
 
 describe("global variable declarations at the top level", () => {
@@ -33,9 +34,9 @@ describe("global variable declarations at the top level", () => {
 });
 
 const typeToInitialisedValues: [string, number | string | boolean][] = [
-  ["int", 100],
-  ["bool", true],
-  ["string", '"hello"'],
+  [DataType.INT, 100],
+  [DataType.BOOL, true],
+  [DataType.STRING, '"hello"'],
 ];
 
 describe("global variable initialisations at the top level", () => {

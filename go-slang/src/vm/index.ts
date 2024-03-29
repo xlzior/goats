@@ -12,8 +12,6 @@ import { RuntimeError } from "../errors";
 import { ThreadManager } from "./thread_manager";
 import { InternalBuiltinNames } from "../internal_builtins";
 
-const MEMORY_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
-
 export class GolangVM {
   private ctx: Context;
   private memory: Memory;
@@ -21,7 +19,7 @@ export class GolangVM {
   private thread_manager: ThreadManager;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(MEMORY_SIZE);
+    this.memory = new Memory(10000000);
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),

@@ -1,4 +1,5 @@
 import * as AST from "../types/ast";
+import { DataType } from "../types/index";
 
 export const compoundAssignmentToBinaryOperator = new Map([
   [AST.Token.ADD_ASSIGN, AST.Token.ADD],
@@ -15,11 +16,11 @@ export const compoundAssignmentToBinaryOperator = new Map([
 ]);
 
 export const typeToDefaultValue = new Map<string, AST.Expr>([
-  ["int", make_basic_lit(AST.Token.INT, "0")],
-  ["string", make_basic_lit(AST.Token.STRING, "")],
-  ["bool", make_ident("false")],
-  ["Mutex", make_ident("Mutex")],
-  ["WaitGroup", make_ident("WaitGroup")],
+  [DataType.INT, make_basic_lit(AST.Token.INT, "0")],
+  [DataType.STRING, make_basic_lit(AST.Token.STRING, "")],
+  [DataType.BOOL, make_ident("false")],
+  [DataType.MUTEX, make_ident(DataType.MUTEX)],
+  [DataType.WAITGROUP, make_ident(DataType.WAITGROUP)],
 ]);
 
 export function noNewVariables(

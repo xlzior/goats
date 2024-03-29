@@ -1,4 +1,4 @@
-import { BuiltinFunction } from "../types";
+import { BuiltinFunction, DataType } from "../types/index";
 import * as AST from "../types/ast";
 import { GOTO, JOF, Instruction, ENTER_SCOPE } from "../types/vm_instructions";
 
@@ -82,7 +82,7 @@ export class GolangCompiler {
   }
 
   private compile_waitgroup(astNode: AST.CallExpr, funcName: string) {
-    // Add(wg, n)
+    // Add(wg, delta)
     if (funcName === "Add") {
       astNode.Args.forEach((arg) => this.compile(arg));
       this.instrs[this.wc++] = {
@@ -92,7 +92,7 @@ export class GolangCompiler {
     }
     if (funcName === "Done") {
       // Done(wg)
-      this.compile(astNode.Args[0]); // wg addr
+      this.compile(astNode.Args[0]);
       this.instrs[this.wc++] = {
         _type: "WG_DONE",
       };
@@ -100,7 +100,7 @@ export class GolangCompiler {
     }
     if (funcName === "Wait") {
       // Wait(wg)
-      this.compile(astNode.Args[0]); // wg addr
+      this.compile(astNode.Args[0]);
       this.instrs[this.wc++] = {
         _type: "WG_WAIT",
       };
@@ -319,14 +319,14 @@ export class GolangCompiler {
       const name = astNode.Name;
       let instr: Instruction;
 
-      if (name === "Mutex") {
+      if (name === DataType.MUTEX) {
         this.instrs[this.wc++] = {
           _type: "MAKE_MUTEX",
         };
         return;
       }
 
-      if (name === "WaitGroup") {
+      if (name === DataType.WAITGROUP) {
         this.instrs[this.wc++] = {
           _type: "MAKE_WAITGROUP",
         };
