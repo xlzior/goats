@@ -12,6 +12,8 @@ import { RuntimeError } from "../errors";
 import { ThreadManager } from "./thread_manager";
 import { InternalBuiltinNames } from "../internal_builtins";
 
+const MEMORY_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
+
 export class GolangVM {
   private ctx: Context;
   private memory: Memory;
@@ -19,7 +21,7 @@ export class GolangVM {
   private thread_manager: ThreadManager;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(10000000);
+    this.memory = new Memory(MEMORY_SIZE);
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
@@ -146,6 +148,10 @@ export class GolangVM {
     MAKE_MUTEX: (instr: VM.MAKE_MUTEX) => {
       const mutex_addr = this.memory.mutex.allocate();
       this.ctx.operand_stack.push(mutex_addr); // mutex var is assigned with its address as value
+    },
+    MAKE_WAITGROUP: (instr: VM.MAKE_WAITGROUP) => {
+      const wg_addr = this.memory.wait_group.allocate();
+      this.ctx.operand_stack.push(wg_addr); // wg var is assigned with its address as value
     },
     UNOP: (instr: VM.UNOP) => {
       this.push_os(apply_unop(instr.sym, this.pop_os()));
@@ -301,6 +307,26 @@ export class GolangVM {
     UNLOCK: (instr: VM.UNLOCK) => {
       const mutex_addr = peek(this.ctx.operand_stack);
       this.memory.mutex.release(mutex_addr);
+      this.pop_os();
+    },
+    WG_ADD: (instr: VM.WG_ADD) => {
+      const count = this.pop_os() as number;
+      const wg_addr = peek(this.ctx.operand_stack);
+      this.memory.wait_group.update_counter(wg_addr, count);
+      this.pop_os();
+    },
+    WG_DONE: (instr: VM.WG_DONE) => {
+      const wg_addr = peek(this.ctx.operand_stack);
+      this.memory.wait_group.update_counter(wg_addr, -1);
+      this.pop_os();
+    },
+    WG_WAIT: (instr: VM.WG_WAIT) => {
+      const wg_addr = peek(this.ctx.operand_stack);
+      if (!this.memory.wait_group.is_done(wg_addr)) {
+        this.ctx.program_counter--;
+        this.ctx = this.thread_manager.context_switch(this.ctx);
+        return;
+      }
       this.pop_os();
     },
     DONE: (instr: VM.DONE) => {},

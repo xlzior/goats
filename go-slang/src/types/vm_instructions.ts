@@ -74,6 +74,10 @@ export type MAKE_MUTEX = {
   _type: "MAKE_MUTEX";
 };
 
+export type MAKE_WAITGROUP = {
+  _type: "MAKE_WAITGROUP";
+};
+
 export type SEND = {
   _type: "SEND";
 };
@@ -88,6 +92,18 @@ export type LOCK = {
 
 export type UNLOCK = {
   _type: "UNLOCK";
+};
+
+export type WG_ADD = {
+  _type: "WG_ADD";
+};
+
+export type WG_DONE = {
+  _type: "WG_DONE";
+};
+
+export type WG_WAIT = {
+  _type: "WG_WAIT";
 };
 
 export type DONE = {
@@ -110,8 +126,12 @@ export type Instruction =
   | EXIT_SCOPE
   | POP
   | MAKE_MUTEX
+  | MAKE_WAITGROUP
   | SEND
   | RECV
   | LOCK
   | UNLOCK
+  | WG_ADD
+  | WG_DONE
+  | WG_WAIT
   | DONE;
