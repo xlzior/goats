@@ -8,9 +8,10 @@ beforeEach(() => {
   golangRunner = new GolangRunner({ Println: { arity: 1, apply: println } });
 });
 
-describe("Golang runner for evaluating programs without mutex", () => {
-  test("Due to interleaving of threads in random order, balance should be mutated to be a random value", async () => {
-    const program = `
+describe("mutex", () => {
+  test("1 mutex", async () => {
+    // Before - no mutex
+    const programWithNoMutex = `
     package main
 
     var (
@@ -36,18 +37,16 @@ describe("Golang runner for evaluating programs without mutex", () => {
         go withdraw(1)
         i--
       }
-      Sleep(100)
+      Sleep(2000)
       return balance
     }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = 0;
-    expect(value).not.toEqual(expected);
-  });
-});
+    const { value: valWithNoMutex } =
+      await golangRunner.execute(programWithNoMutex);
+    const expectedValWithNoMutex = 0;
+    expect(valWithNoMutex).not.toEqual(expectedValWithNoMutex);
 
-describe("Golang runner for evaluating programs with mutex", () => {
-  test("With mutex control, balance should be deterministic with value of 0", async () => {
-    const program = `
+    // After - with mutex
+    const programWithMutex = `
     package main
 
     var (
@@ -78,11 +77,13 @@ describe("Golang runner for evaluating programs with mutex", () => {
         go withdraw(1)
         i--
       }
-      Sleep(100)
+      Sleep(7000)
       return balance
     }`;
-    const { value } = await golangRunner.execute(program);
-    const expected = 0;
-    expect(value).toEqual(expected);
+
+    const { value: valWithMutex } =
+      await golangRunner.execute(programWithMutex);
+    const expectedValWithMutex = 0;
+    expect(valWithMutex).toEqual(expectedValWithMutex);
   });
 });
