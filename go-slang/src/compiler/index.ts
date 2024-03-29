@@ -81,6 +81,33 @@ export class GolangCompiler {
     return;
   }
 
+  private compile_waitgroup(astNode: AST.CallExpr, funcName: string) {
+    // Add(wg, n)
+    if (funcName === "Add") {
+      astNode.Args.forEach((arg) => this.compile(arg));
+      this.instrs[this.wc++] = {
+        _type: "WG_ADD",
+      };
+      return;
+    }
+    if (funcName === "Done") {
+      // Done(wg)
+      this.compile(astNode.Args[0]); // wg addr
+      this.instrs[this.wc++] = {
+        _type: "WG_DONE",
+      };
+      return;
+    }
+    if (funcName === "Wait") {
+      // Wait(wg)
+      this.compile(astNode.Args[0]); // wg addr
+      this.instrs[this.wc++] = {
+        _type: "WG_WAIT",
+      };
+      return;
+    }
+  }
+
   private compile_ast: Record<AST.NodeType, any> = {
     BasicLit: (astNode: AST.BasicLit) => {
       this.instrs[this.wc++] = {
@@ -187,6 +214,14 @@ export class GolangCompiler {
         return this.compile_lock_or_unlock(astNode, astNode.Fun.Name);
       }
 
+      if (
+        astNode.Fun.Name === "Add" ||
+        astNode.Fun.Name === "Done" ||
+        astNode.Fun.Name === "Wait"
+      ) {
+        return this.compile_waitgroup(astNode, astNode.Fun.Name);
+      }
+
       this.compile(astNode.Fun);
       astNode.Args.forEach((arg) => this.compile(arg));
       this.instrs[this.wc++] = { _type: "CALL", arity };
@@ -287,6 +322,13 @@ export class GolangCompiler {
       if (name === "Mutex") {
         this.instrs[this.wc++] = {
           _type: "MAKE_MUTEX",
+        };
+        return;
+      }
+
+      if (name === "WaitGroup") {
+        this.instrs[this.wc++] = {
+          _type: "MAKE_WAITGROUP",
         };
         return;
       }

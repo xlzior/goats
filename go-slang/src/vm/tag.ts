@@ -13,4 +13,5 @@ export enum Tag {
   Channel,
   BufferedChannel,
   Mutex,
+  WaitGroup,
 }

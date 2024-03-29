@@ -41,6 +41,8 @@ export class Memory {
         return "<buffered_channel>";
       case Tag.Mutex:
         return "<Mutex>";
+      case Tag.WaitGroup:
+        return "<WaitGroup>";
       default:
         return "<internals>";
     }
@@ -247,6 +249,21 @@ export class Memory {
     },
     release: (addr: number) => {
       this.heap.set(addr + 1, 1);
+    },
+  };
+
+  wait_group = {
+    allocate: () => {
+      const addr = this.heap.allocate(Tag.WaitGroup, 2);
+      this.heap.set(addr + 1, 0);
+      return addr;
+    },
+    update_counter: (addr: number, delta: number) => {
+      const curr_count = this.heap.get(addr + 1);
+      this.heap.set(addr + 1, curr_count + delta);
+    },
+    is_done: (addr: number) => {
+      return this.heap.get(addr + 1) === 0;
     },
   };
 }
