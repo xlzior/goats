@@ -54,8 +54,8 @@ const builtin_func_types: Record<string, Type | Type[]> = {
   ),
 };
 
-// Type frames are JavaScript objects that map
-// symbols (strings) to types.
+// For functions with multiple function types, ensure that each type has the same args length
+// Otherwise, error will be thrown at is_equal_types
 export const global_type_frame: Record<string, Type | Type[]> = {
   "+": [binary_arith_type, binary_string_type],
   "-": [binary_arith_type],
@@ -79,6 +79,7 @@ export const global_type_frame: Record<string, Type | Type[]> = {
 
 /**
  * Converts a Type object to a String representation
+ * Example: { _type: "Literal", val: "int"} -> "int"
  */
 export function stringify_type(type: any): string {
   if (type._type === Types.LITERAL) {
@@ -89,6 +90,8 @@ export function stringify_type(type: any): string {
 
 /**
  * Converts an array of Type object to a String representation
+ * Example: [{ _type: "Literal", val: "int"}, { _type: "Literal", val: "string"}] -> ["int", "string"]
+ *
  * @returns String enclosed by square brackets
  */
 export function stringify_types(type_arr: any[]): string {
@@ -96,22 +99,31 @@ export function stringify_types(type_arr: any[]): string {
   return `[${type_arr_in_str.join(", ")}]`;
 }
 
-// Used by function with multiple function types
+// Used by function with multiple function types for now
+// Example: [{ _type: "Function", args: [...], res: "..."}, { _type: "Function", args: [...], res: "..."}] -> ["int", "int"] or ["string"]
 export function stringify_multiple_types(type_arr: any[]): string {
   const err_msg = type_arr.map((arr) => stringify_types(arr.args));
   return `${err_msg.join(" or ")}`;
 }
 
-export function is_equal_type(type1: any, type2: any): boolean {
-  return stringify_type(type1) === stringify_type(type2);
+export function is_equal_type(expected_type: any, actual_type: any): boolean {
+  return stringify_type(actual_type) === stringify_type(expected_type);
 }
 
 // used by function type for now
-export function is_equal_types(type_arr1: Type[], type_arr2: Type[]): boolean {
-  for (let i = 0; i < type_arr1.length; i++) {
-    if (!is_equal_type(type_arr1[i], type_arr2[i])) return false;
-  }
-  return true;
+export function is_equal_types(
+  expected_types: Type[],
+  actual_types: Type[],
+): boolean {
+  if (expected_types.length != actual_types.length)
+    throw new TypeError(
+      `Expected ${expected_types.length} type${
+        expected_types.length > 1 ? "s" : ""
+      }, but got ${actual_types.length} `,
+    );
+  return expected_types.every((expected_type, i) =>
+    is_equal_type(expected_type, actual_types[i]),
+  );
 }
 
 // ===========================================
