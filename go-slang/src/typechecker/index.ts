@@ -1,6 +1,6 @@
 import * as AST from "../types/ast";
 
-import { Type, LiteralType, FunctionType } from "../types/typing";
+import { Type, LiteralType, FunctionType, Types } from "../types/typing";
 
 import { TypeError } from "../errors";
 import { make_call_expr, make_ident } from "../compiler/utils";
@@ -9,7 +9,7 @@ import {
   make_literal_type,
   is_equal_types,
   stringify_types,
-  stringify_multiple_types,
+  check_special_binary_expr_type,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 
@@ -56,7 +56,25 @@ export class GolangTypechecker {
       }
     },
     BinaryExpr: (astNode: AST.BinaryExpr) => {
-      // binary expr is treated as a function call with 2 params
+      // handle +, >, >=, <, <=, ==, != separately because they are "overloaded" methods
+      const op = astNode.Op;
+      if (
+        op === AST.Token.ADD ||
+        op === AST.Token.EQL ||
+        op === AST.Token.LSS ||
+        op === AST.Token.GTR ||
+        op === AST.Token.NEQ ||
+        op === AST.Token.LEQ ||
+        op === AST.Token.GEQ
+      ) {
+        return check_special_binary_expr_type(
+          op,
+          this.type(astNode.X),
+          this.type(astNode.Y),
+        );
+      }
+
+      // the rest are treated as function call with 2 params
       const call_expr_ast: AST.CallExpr = make_call_expr(
         [astNode.X, astNode.Y],
         make_ident(astNode.Op as string),
@@ -98,26 +116,11 @@ export class GolangTypechecker {
       return;
     },
     CallExpr: (astNode: AST.CallExpr) => {
-      const fun_type = this.type(astNode.Fun) as FunctionType | FunctionType[];
-
-      const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
-
-      // Multiple types
-      if (Array.isArray(fun_type)) {
-        for (let i = 0; i < fun_type.length; i++) {
-          const expected_arg_types: Type[] = fun_type[i].args;
-          if (is_equal_types(expected_arg_types, actual_arg_types))
-            return fun_type[i].res;
-        }
-        throw new TypeError(
-          `${astNode.Fun.Name} expects ${stringify_multiple_types(
-            fun_type,
-          )}, but got ${stringify_types(actual_arg_types)}`,
-        );
-      }
-
-      // Single type
+      const fun_type = this.type(astNode.Fun) as FunctionType;
+      if (fun_type._type !== Types.FUNCTION)
+        throw new TypeError(`${astNode.Fun.Name} expects a function type`);
       const expected_arg_types: Type[] = fun_type.args;
+      const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
       if (is_equal_types(expected_arg_types, actual_arg_types))
         return fun_type.res;
       throw new TypeError(
