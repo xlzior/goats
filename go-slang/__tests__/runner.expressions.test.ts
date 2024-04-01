@@ -572,7 +572,7 @@ comparisonOps.forEach((operator) => {
   });
 });
 
-// Expect both operands to be of the same type。
+// Expect both operands to be of the same type
 // E.g. int and int, string and string, bool and bool
 const equalityOps = [Token.EQL, Token.NEQ];
 
