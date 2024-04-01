@@ -30,14 +30,7 @@ export function noNewVariables(
   return identifiers.every((ident) => curr_env_frame.includes(ident.Name));
 }
 
-export const MAIN_CALL: AST.CallExpr = {
-  _type: AST.NodeType.CALL_EXPR,
-  Args: [],
-  Fun: {
-    _type: AST.NodeType.IDENT,
-    Name: "main",
-  },
-};
+export const MAIN_CALL: AST.CallExpr = make_call_expr([], make_ident("main"));
 
 // ===========================================
 // HELPER METHODS TO RECONSTRUCT AST NODE
@@ -81,5 +74,13 @@ export function make_assign_stmt(
     Lhs: lhs,
     Rhs: rhs,
     Tok: tok,
+  };
+}
+
+export function make_call_expr(Args: AST.Expr[], Fun: AST.Ident): AST.CallExpr {
+  return {
+    _type: AST.NodeType.CALL_EXPR,
+    Args,
+    Fun,
   };
 }
