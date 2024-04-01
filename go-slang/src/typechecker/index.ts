@@ -10,11 +10,16 @@ import {
   is_equal_types,
   stringify_types,
   check_special_binary_expr_type,
+  is_equal_type,
+  stringify_type,
+  make_function_type,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
+import { pluralize } from "../utils";
+import { peek } from "../utils";
 
 export class GolangTypechecker {
-  private type_env: Array<Record<string, any>>;
+  private type_env: Array<Record<string, Type>>;
 
   constructor(external_builtins: Record<string, BuiltinFunction>) {
     this.type_env = [global_type_frame];
@@ -102,9 +107,21 @@ export class GolangTypechecker {
       return this.type(astNode.X);
     },
     FuncDecl: (astNode: AST.FuncDecl) => {
-      this.type_env.push([]); // params
-      this.type(astNode.Body);
-      this.type_env.pop();
+      // const params = astNode.Type.Params.List.flatMap((e) =>
+        // e.Names.map((name) => name.Name),
+      // );
+      // const paramTypes = params.map(name => make_literal_type(name))
+
+      // // this.type_env.push({}); // params
+      // // this.type_env.pop();
+      // const declaredReturns = astNode.Type.Results?.List.flatMap((e) =>
+        // e.Names.map((name) => name.Name),
+      // );
+      // const declaredReturnTypes = declaredReturns.map(name => make_literal_type(name));
+
+      const actual_result_type = this.type(astNode.Body);
+      // const func_type: FunctionType = make_function_type(paramTypes, result_type);
+      // return func_type
     },
     GenDecl: (astNode: AST.GenDecl) => {
       return;
@@ -136,12 +153,61 @@ export class GolangTypechecker {
       return;
     },
     BlockStmt: (astNode: AST.BlockStmt) => {
-      this.type_env.push([]);
+      // filter by func decl stmts
+      const func_decls = astNode.List.filter(
+        (val) => val._type === AST.NodeType.FUNC_DECL,
+      );
+
+      // evaluate the types of the functions
+      const func_types = func_decls.map((func) => this.type(func));
+
+      // // map to its function name
+      const func_names = func_decls.map(
+        (func) => (func as AST.FuncDecl).Name.Name,
+      );
+
+      const env_frame: Record<string, Type> = {};
+
+      func_names.forEach((name, i) => {
+        env_frame[name] = func_types[i];
+      });
+      this.type_env.push(env_frame);
+
       astNode.List.forEach((stmt) => this.type(stmt));
+
       this.type_env.pop();
     },
     AssignStmt: (astNode: AST.AssignStmt) => {
-      return;
+      const curr_env_frame = peek(this.type_env);
+
+      const rhs_types = astNode.Rhs.map((expr) => this.type(expr));
+      if (astNode.Lhs.length != rhs_types.length) {
+        throw new TypeError(
+          `assignment mismatch: ${astNode.Lhs.length} ${pluralize(
+            "variable",
+            astNode.Lhs.length,
+          )} but ${rhs_types.length} ${pluralize("value", rhs_types.length)}`,
+        );
+      }
+
+      // TODO: handle function returns
+
+      if (astNode.Tok === AST.Token.DEFINE) {
+        astNode.Lhs.forEach((ident, i) => {
+          curr_env_frame[ident.Name] = rhs_types[i];
+        });
+      } else {
+        const curr_lhs_types = astNode.Lhs.map((ident) => this.type(ident));
+        for (let i = 0; i < curr_lhs_types.length; i++) {
+          if (!is_equal_type(curr_lhs_types[i], rhs_types[i])) {
+            throw new TypeError(
+              `cannot use ${stringify_type(rhs_types[i])} as ${stringify_type(
+                curr_lhs_types[i],
+              )} value in assignment`,
+            );
+          }
+        }
+      }
     },
     Ident: (astNode: AST.Ident): Type | Type[] => {
       const name = astNode.Name;
