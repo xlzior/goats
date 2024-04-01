@@ -35,7 +35,7 @@ const builtin_func_types: Record<string, Type | Type[]> = {
   ),
 };
 
-export const global_type_frame: Record<string, Type | Type[]> = {
+export const global_type_frame: Record<string, Type> = {
   "-": binary_arith_type,
   "*": binary_arith_type,
   "/": binary_arith_type,

@@ -362,7 +362,7 @@ describe("assignment statements", () => {
   });
 });
 
-describe.skip("handling errors for assignments", () => {
+describe("handling errors for assignments", () => {
   test("assignment mismatch - LHS has more variables", async () => {
     const program = `
     package main
@@ -370,9 +370,7 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a, b := 1
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 2 variables but 1 value",
     );
@@ -389,9 +387,7 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a, b, c := addOne(1,2)
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 3 variables but addOne returns 2 values",
     );
@@ -404,9 +400,7 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a := 1, 2
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 1 variable but 2 values",
     );
@@ -423,9 +417,7 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a := addOne(1,2)
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "assignment mismatch: 1 variable but addOne returns 2 values",
     );
@@ -438,9 +430,7 @@ describe.skip("handling errors for assignments", () => {
     func main() {
       a = 10;
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow("undefined: a");
   });
 
@@ -467,7 +457,7 @@ describe.skip("handling errors for assignments", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      'cannot use "hello" (untyped string constant) as int value in assignment',
+      "cannot use string as int value in assignment",
     );
   });
 });
