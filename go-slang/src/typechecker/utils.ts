@@ -1,3 +1,4 @@
+import * as AST from "../types/ast";
 import { FunctionType, LiteralType, Type, Types } from "../types/typing";
 import { DataType } from "../types";
 import { TypeError } from "../errors";
@@ -17,57 +18,28 @@ const binary_arith_type: FunctionType = make_function_type(
   make_literal_type(DataType.INT),
 );
 
-const binary_string_type: FunctionType = make_function_type(
-  [make_literal_type(DataType.STRING), make_literal_type(DataType.STRING)],
-  make_literal_type(DataType.STRING),
-);
-
-const number_comparison_type: FunctionType = make_function_type(
-  [make_literal_type(DataType.INT), make_literal_type(DataType.INT)],
-  make_literal_type(DataType.BOOL),
-);
-
-const string_comparison_type: FunctionType = make_function_type(
-  [make_literal_type(DataType.STRING), make_literal_type(DataType.STRING)],
-  make_literal_type(DataType.BOOL),
-);
-
 const binary_bool_type: FunctionType = make_function_type(
   [make_literal_type(DataType.BOOL), make_literal_type(DataType.BOOL)],
   make_literal_type(DataType.BOOL),
 );
 
+// TODO: Handle builtin function typechecking separately?
 const builtin_func_types: Record<string, Type | Type[]> = {
-  Println: [
-    make_function_type(
-      [make_literal_type(DataType.STRING)],
-      make_literal_type(DataType.STRING),
-    ),
-    make_function_type(
-      [make_literal_type(DataType.INT)],
-      make_literal_type(DataType.STRING),
-    ),
-  ],
+  Println: make_function_type(
+    [make_literal_type(DataType.STRING)],
+    make_literal_type(DataType.STRING),
+  ),
   Sleep: make_function_type(
     [make_literal_type(DataType.INT)],
     make_literal_type(DataType.STRING),
   ),
 };
 
-// For functions with multiple function types, ensure that each type has the same args length
-// Otherwise, error will be thrown at is_equal_types
 export const global_type_frame: Record<string, Type | Type[]> = {
-  "+": [binary_arith_type, binary_string_type],
-  "-": [binary_arith_type],
+  "-": binary_arith_type,
   "*": binary_arith_type,
   "/": binary_arith_type,
   "%": binary_arith_type,
-  "<": [number_comparison_type, string_comparison_type],
-  ">": [number_comparison_type, string_comparison_type],
-  "<=": [number_comparison_type, string_comparison_type],
-  ">=": [number_comparison_type, string_comparison_type],
-  "==": [number_comparison_type, string_comparison_type],
-  "!=": [number_comparison_type, string_comparison_type],
   "&&": binary_bool_type,
   "||": binary_bool_type,
   "-unary": unary_arith_type,
@@ -76,6 +48,29 @@ export const global_type_frame: Record<string, Type | Type[]> = {
 };
 
 // ===========================================
+
+/**
+ * Checks that types of left_operand and right_operand are the same, except booleans
+ */
+export function check_special_binary_expr_type(
+  op: AST.Token,
+  left_operand_type: any,
+  right_operand_type: any,
+) {
+  if (
+    left_operand_type.val === DataType.BOOL ||
+    right_operand_type.val === DataType.BOOL ||
+    !is_equal_type(left_operand_type, right_operand_type)
+  ) {
+    throw new TypeError(
+      `${op} expects [int, int] or [string, string], but got ${stringify_types([
+        left_operand_type,
+        right_operand_type,
+      ])}`,
+    );
+  }
+  return left_operand_type;
+}
 
 /**
  * Converts a Type object to a String representation
@@ -97,13 +92,6 @@ export function stringify_type(type: any): string {
 export function stringify_types(type_arr: any[]): string {
   const type_arr_in_str = type_arr.map((t) => stringify_type(t));
   return `[${type_arr_in_str.join(", ")}]`;
-}
-
-// Used by function with multiple function types for now
-// Example: [{ _type: "Function", args: [...], res: "..."}, { _type: "Function", args: [...], res: "..."}] -> ["int", "int"] or ["string"]
-export function stringify_multiple_types(type_arr: any[]): string {
-  const err_msg = type_arr.map((arr) => stringify_types(arr.args));
-  return `${err_msg.join(" or ")}`;
 }
 
 export function is_equal_type(expected_type: any, actual_type: any): boolean {
