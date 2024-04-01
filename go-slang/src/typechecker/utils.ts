@@ -37,6 +37,23 @@ const binary_bool_type: FunctionType = make_function_type(
   make_literal_type(DataType.BOOL),
 );
 
+const builtin_func_types: Record<string, Type | Type[]> = {
+  Println: [
+    make_function_type(
+      [make_literal_type(DataType.STRING)],
+      make_literal_type(DataType.STRING),
+    ),
+    make_function_type(
+      [make_literal_type(DataType.INT)],
+      make_literal_type(DataType.STRING),
+    ),
+  ],
+  Sleep: make_function_type(
+    [make_literal_type(DataType.INT)],
+    make_literal_type(DataType.STRING),
+  ),
+};
+
 // Type frames are JavaScript objects that map
 // symbols (strings) to types.
 export const global_type_frame: Record<string, Type | Type[]> = {
@@ -53,21 +70,9 @@ export const global_type_frame: Record<string, Type | Type[]> = {
   "!=": [number_comparison_type, string_comparison_type],
   "&&": binary_bool_type,
   "||": binary_bool_type,
+  "-unary": unary_arith_type,
   "!": unary_bool_type,
-  Println: [
-    make_function_type(
-      [make_literal_type(DataType.STRING)],
-      make_literal_type(DataType.STRING),
-    ),
-    make_function_type(
-      [make_literal_type(DataType.INT)],
-      make_literal_type(DataType.STRING),
-    ),
-  ],
-  Sleep: make_function_type(
-    [make_literal_type(DataType.INT)],
-    make_literal_type(DataType.STRING),
-  ),
+  ...builtin_func_types,
 };
 
 // ===========================================

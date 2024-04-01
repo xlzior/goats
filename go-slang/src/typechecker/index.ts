@@ -3,10 +3,7 @@ import * as AST from "../types/ast";
 import { Type, LiteralType, FunctionType } from "../types/typing";
 
 import { TypeError } from "../errors";
-import {
-  make_call_expr,
-  make_ident,
-} from "../compiler/utils";
+import { make_call_expr, make_ident } from "../compiler/utils";
 import {
   global_type_frame,
   make_literal_type,
@@ -69,13 +66,19 @@ export class GolangTypechecker {
     UnaryExpr: (astNode: AST.UnaryExpr) => {
       if (astNode.Op === AST.Token.ARROW) {
         return;
-      } else {
+      }
+      if (astNode.Op === AST.Token.SUB) {
         const call_expr_ast: AST.CallExpr = make_call_expr(
           [astNode.X],
-          make_ident(astNode.Op as string),
+          make_ident("-unary"),
         );
         return this.type(call_expr_ast);
       }
+      const call_expr_ast: AST.CallExpr = make_call_expr(
+        [astNode.X],
+        make_ident(astNode.Op as string),
+      );
+      return this.type(call_expr_ast);
     },
     ParenExpr: (astNode: AST.ParenExpr) => {
       return this.type(astNode.X);
@@ -96,6 +99,7 @@ export class GolangTypechecker {
     },
     CallExpr: (astNode: AST.CallExpr) => {
       const fun_type = this.type(astNode.Fun) as FunctionType | FunctionType[];
+
       // if (fun_type[0]._type !== Types.FUNCTION || fun_type._type !== Types.FUNCTION) {
       //   throw new TypeError(
       //     `Function ${astNode.Fun.Name} expects a function type`,
@@ -104,7 +108,8 @@ export class GolangTypechecker {
 
       const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
 
-      if (Array.isArray(fun_type)) { // has multiple types
+      if (Array.isArray(fun_type)) {
+        // has multiple types
         for (let i = 0; i < fun_type.length; i++) {
           const expected_arg_types: Type[] = fun_type[i].args;
           if (is_equal_types(actual_arg_types, expected_arg_types))
@@ -125,7 +130,6 @@ export class GolangTypechecker {
           expected_arg_types,
         )}, but got ${stringify_types(actual_arg_types)}`,
       );
-
     },
     GoStmt: (astNode: AST.GoStmt) => {
       return;
@@ -149,6 +153,7 @@ export class GolangTypechecker {
       return this.lookup_type(name);
     },
     ReturnStmt: (astNode: AST.ReturnStmt) => {
+      // astNode.Results.forEach(expr => this.type(expr))
       return;
     },
     ExprStmt: (astNode: AST.ExprStmt) => {

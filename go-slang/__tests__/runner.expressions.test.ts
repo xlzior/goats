@@ -465,41 +465,11 @@ describe(`incorrect types of binary expr with operator: ${Token.ADD}`, () => {
   );
 });
 
-// const binaryExprInputsForSub: [
-//   number | string | boolean,  // operand 1
-//   number | string | boolean, // operand 2
-//   string, // actual type
-// ][] = [
-//   [1, '"hello"', "[int, string]"],
-//   [1, false, "[int, bool]"],
-//   ['"hello"', '"world"', "[string, string]"],
-//   ['"hello"', true, "[string, bool"],
-//   [true, false, "[bool, bool]"],
-// ];
-// describe(`incorrect types of binary expr with operator: ${Token.SUB}`, () => {
-//   test.each(binaryExprInputsForSub)(
-//     `Incorrect type: %p %p`,
-//     async (operand1, operand2, actual_type) => {
-//       const program = `
-//       package main
-
-//       func main() {
-//           ${operand1} ${Token.SUB} ${operand2};
-//       }`;
-//       await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
-//       await expect(golangRunner.execute(program)).rejects.toThrow(
-//         `${Token.SUB} expects [int] or [int, int], but got ${actual_type}`,
-//       );
-//     },
-//   );
-// });
-
-
 // Expect both operands to be integers
-const binaryOps = [Token.MUL, Token.QUO, Token.REM];
+const binaryOps = [Token.SUB, Token.MUL, Token.QUO, Token.REM];
 
 const binaryExprInputs: [
-  number | string | boolean,  // operand 1
+  number | string | boolean, // operand 1
   number | string | boolean, // operand 2
   string, // actual type
 ][] = [
@@ -613,7 +583,7 @@ const equalityExprInputs: [
 ][] = [
   [1, '"hello"', "[int, string]"],
   [1, false, "[int, bool]"],
-  ['"hello"', true, "[string, bool]"], 
+  ['"hello"', true, "[string, bool]"],
 ];
 
 equalityOps.forEach((operator) => {
@@ -636,33 +606,33 @@ equalityOps.forEach((operator) => {
   });
 });
 
-// describe("incorrect types of unary minus operator", () => {
-//   test("Incorrect type: string", async () => {
-//     const program = `
-//     package main
-  
-//     func main() {
-//       -"hello"
-//     }`;
-//     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
-//     await expect(golangRunner.execute(program)).rejects.toThrow(
-//       `${Token.SUB} expects [int] or [int, int], but got [string]`,
-//     );
-//   });
+describe("incorrect types of unary minus operator", () => {
+  test("Incorrect type: string", async () => {
+    const program = `
+    package main
 
-//   test("Incorrect type: bool", async () => {
-//     const program = `
-//     package main
-  
-//     func main() {
-//       -true
-//     }`;
-//     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
-//     await expect(golangRunner.execute(program)).rejects.toThrow(
-//       `${Token.SUB} expects [int] or [int, int], but got [bool]`,
-//     );
-//   });
-// });
+    func main() {
+      -"hello"
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      `${Token.SUB}unary expects [int], but got [string]`,
+    );
+  });
+
+  test("Incorrect type: bool", async () => {
+    const program = `
+    package main
+
+    func main() {
+      -true
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      `${Token.SUB}unary expects [int], but got [bool]`,
+    );
+  });
+});
 
 describe("incorrect types of unary not operator", () => {
   test("Incorrect type: string", async () => {
