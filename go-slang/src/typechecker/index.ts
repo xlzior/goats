@@ -183,7 +183,9 @@ export class GolangTypechecker {
     CallExpr: (astNode: AST.CallExpr) => {
       const fun_type = this.type(astNode.Fun) as FunctionType;
       if (fun_type._type !== Types.FUNCTION)
-        throw new TypeError(`${astNode.Fun.Name} expects a function type`);
+        throw new TypeError(
+          `invalid operation: cannot call non-function ${astNode.Fun.Name}`,
+        );
       const expected_arg_types: Type[] = fun_type.args;
       const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
       if (
