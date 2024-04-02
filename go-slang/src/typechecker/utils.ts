@@ -3,6 +3,7 @@ import {
   FunctionType,
   LiteralType,
   ReturnType,
+  TupleType,
   Type,
   Types,
   UndefinedType,
@@ -31,7 +32,7 @@ const binary_bool_type: FunctionType = make_function_type(
 );
 
 // TODO: Handle builtin function typechecking separately?
-const builtin_func_types: Record<string, Type | Type[]> = {
+const builtin_func_types: Record<string, Type> = {
   Println: make_function_type(
     [make_literal_type(DataType.STRING)],
     make_literal_type(DataType.STRING)
@@ -83,13 +84,14 @@ export function check_special_binary_expr_type(
  * Converts a Type object to a String representation
  * Example: { _type: "Literal", val: "int"} -> "int"
  */
-export function stringify_type(type: any): string {
+export function stringify_type(type: Type): string {
   if (type._type === Types.UNDEFINED) {
     return "undefined";
   }
   if (type._type === Types.LITERAL) {
     return type.val;
   }
+
   throw new TypeError("Type does not exist");
 }
 
@@ -105,7 +107,6 @@ export function stringify_types(type_arr: Type[]): string {
 }
 
 export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
-  console.log({ expected_type, actual_type });
   return stringify_type(actual_type) === stringify_type(expected_type);
 }
 
@@ -150,17 +151,14 @@ export function make_literal_type(val: string): LiteralType {
   };
 }
 
-export function make_return_type(res: Type[]): ReturnType {
+export function make_return_type(res: Type): ReturnType {
   return {
     _type: Types.RETURN,
     res,
   };
 }
 
-export function make_function_type(
-  args: Type[],
-  res: Type | Type[]
-): FunctionType {
+export function make_function_type(args: Type[], res: Type): FunctionType {
   return {
     _type: Types.FUNCTION,
     args,
@@ -168,17 +166,24 @@ export function make_function_type(
   };
 }
 
+export function make_tuple_type(res: Type[]): TupleType {
+  return {
+    _type: Types.TUPLE,
+    res,
+  };
+}
+
 export function make_function_type_from_ast(astNode: AST.FuncDecl) {
+  // TODO: code is repeated in multiple places
   const param_types = astNode.Type.Params.List.flatMap((e) =>
     e.Names.map(() => make_literal_type(e.Type.Name))
   );
 
-  let declared_return_type: Type[] = [];
-  if (astNode.Type.Results) {
-    declared_return_type = astNode.Type.Results.List.flatMap((e) =>
-      make_literal_type(e.Type.Name)
-    );
-  }
+  const return_list =
+    astNode.Type.Results?.List.map((e) => make_literal_type(e.Type.Name)) ?? [];
 
-  return make_function_type(param_types, declared_return_type);
+  const return_type =
+    return_list.length === 1 ? return_list[0] : make_tuple_type(return_list);
+
+  return make_function_type(param_types, return_type);
 }

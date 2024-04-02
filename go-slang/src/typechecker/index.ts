@@ -21,6 +21,7 @@ import {
   make_return_type,
   make_undefined_type,
   make_function_type_from_ast,
+  make_tuple_type,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { pluralize } from "../utils";
@@ -42,14 +43,13 @@ export class GolangTypechecker {
   }
 
   private type(astNode: AST.Node): Type {
-    console.log(this.type_env);
     if (this.type_ast[astNode._type] === undefined)
       // throw new TypeError(`${astNode._type} not supported`);
       return {} as Type;
     return this.type_ast[astNode._type](astNode);
   }
 
-  private lookup_type(name: string): Type | Type[] {
+  private lookup_type(name: string): Type {
     for (let i = this.type_env.length - 1; i >= 0; i--) {
       const frame = this.type_env[i];
       if (frame.hasOwnProperty(name)) return frame[name];
@@ -132,9 +132,8 @@ export class GolangTypechecker {
       );
 
       const func_type = this.type(astNode.Name) as FunctionType;
-      const declared_return_type = func_type.res as Type[];
+      const declared_return_type = func_type.res;
 
-      console.log("extending environment with", { param_names, param_types });
       this.extend_env(param_names, param_types);
 
       const actual_result_type: Type = this.type(astNode.Body);
@@ -145,30 +144,31 @@ export class GolangTypechecker {
         return make_undefined_type();
       }
 
-      if (
-        declared_return_type.length > 0 &&
-        actual_result_type._type !== Types.RETURN
-      ) {
-        throw new TypeError(`${astNode.Name.Name}: missing return`);
-      }
+      // TODO: redo these checks
+      // if (
+      //   declared_return_type.length > 0 &&
+      //   actual_result_type._type !== Types.RETURN
+      // ) {
+      //   throw new TypeError(`${astNode.Name.Name}: missing return`);
+      // }
 
-      if (
-        actual_result_type._type === Types.RETURN &&
-        !is_equal_types(
-          declared_return_type,
-          (actual_result_type as ReturnType).res,
-          "too many return values",
-          "not enough return values"
-        )
-      ) {
-        throw new TypeError(
-          `${astNode.Name.Name}: cannot use ${stringify_types(
-            (actual_result_type as ReturnType).res
-          )} as ${stringify_types(
-            declared_return_type
-          )} value in return statement`
-        );
-      }
+      // if (
+      //   actual_result_type._type === Types.RETURN &&
+      //   !is_equal_types(
+      //     declared_return_type,
+      //     (actual_result_type as ReturnType).res,
+      //     "too many return values",
+      //     "not enough return values"
+      //   )
+      // ) {
+      //   throw new TypeError(
+      //     `${astNode.Name.Name}: cannot use ${stringify_types(
+      //       (actual_result_type as ReturnType).res
+      //     )} as ${stringify_types(
+      //       declared_return_type
+      //     )} value in return statement`
+      //   );
+      // }
 
       this.type_env.pop();
       return make_undefined_type();
@@ -188,8 +188,6 @@ export class GolangTypechecker {
         throw new TypeError(`${astNode.Fun.Name} expects a function type`);
       const expected_arg_types: Type[] = fun_type.args;
       const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
-      console.log(astNode.Args);
-      console.log("HI", actual_arg_types);
       if (
         is_equal_types(
           expected_arg_types,
@@ -222,7 +220,6 @@ export class GolangTypechecker {
         make_function_type_from_ast(func as AST.FuncDecl)
       );
 
-      console.log("extending environment with", { func_names, func_types });
       this.extend_env(func_names, func_types);
       const stmts = astNode.List;
       for (let i = 0; i < stmts.length; i++) {
@@ -238,7 +235,6 @@ export class GolangTypechecker {
     AssignStmt: (astNode: AST.AssignStmt) => {
       const curr_env_frame = peek(this.type_env);
 
-      console.log("assign", astNode);
       const rhs_types = astNode.Rhs.map((expr) => this.type(expr));
       if (astNode.Lhs.length != rhs_types.length) {
         throw new TypeError(
@@ -252,8 +248,6 @@ export class GolangTypechecker {
       // TODO: handle function returns
       if (astNode.Tok === AST.Token.DEFINE) {
         astNode.Lhs.forEach((ident, i) => {
-          console.log({ rhs_types });
-          console.log("setting", ident.Name, "to", rhs_types[i]);
           curr_env_frame[ident.Name] = rhs_types[i];
         });
       } else {
@@ -270,7 +264,7 @@ export class GolangTypechecker {
       }
       return make_undefined_type();
     },
-    Ident: (astNode: AST.Ident): Type | Type[] => {
+    Ident: (astNode: AST.Ident): Type => {
       const name = astNode.Name;
       if (name === "true" || name === "false") {
         return make_literal_type(DataType.BOOL);
@@ -278,8 +272,12 @@ export class GolangTypechecker {
       return this.lookup_type(name);
     },
     ReturnStmt: (astNode: AST.ReturnStmt) => {
-      const expr_types = astNode.Results.map((expr) => this.type(expr));
-      return make_return_type(expr_types);
+      const return_list = astNode.Results.map((expr) => this.type(expr));
+      const return_type =
+        return_list.length === 1
+          ? return_list[0]
+          : make_tuple_type(return_list);
+      return make_return_type(return_type);
     },
     ExprStmt: (astNode: AST.ExprStmt) => {
       return this.type(astNode.X);

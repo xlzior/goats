@@ -180,7 +180,7 @@ interface FieldList {
 
 interface FuncType {
   Params: FieldList; // function parameters
-  Results: FieldList; // return _type
+  Results?: FieldList; // return _type
 }
 
 export interface ValueSpec extends Spec {

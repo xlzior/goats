@@ -3,28 +3,38 @@ export enum Types {
   LITERAL = "Literal",
   FUNCTION = "Function",
   RETURN = "Return",
+  TUPLE = "Tuple",
 }
 
-export interface Type {
-  _type: Types;
-}
+export type Type =
+  | UndefinedType
+  | LiteralType
+  | FunctionType
+  | TupleType
+  | ReturnType;
 
-export interface UndefinedType extends Type {
+export type UndefinedType = {
   _type: Types.UNDEFINED;
-}
+};
 
-export interface LiteralType extends Type {
+export type LiteralType = {
   _type: Types.LITERAL;
   val: string; // the base type, such as int, string, bool
-}
+};
 
-export interface FunctionType extends Type {
+export type FunctionType = {
   _type: Types.FUNCTION;
   args: Type[];
-  res: Type | Type[];
-}
+  res: Type;
+};
 
-export interface ReturnType extends Type {
-  _type: Types.RETURN;
+// used when returning multiple values
+export type TupleType = {
+  _type: Types.TUPLE;
   res: Type[];
-}
+};
+
+export type ReturnType = {
+  _type: Types.RETURN;
+  res: Type;
+};
