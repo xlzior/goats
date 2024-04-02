@@ -170,6 +170,7 @@ export interface Spec extends Node {}
 
 interface Field {
   Names: Ident[]; // field/method parameter names
+  Type: Ident;
   _type: Expr; // parameter types
 }
 

@@ -202,7 +202,7 @@ describe("functions", () => {
   });
 });
 
-describe.skip("handling errors for functions", () => {
+describe("handling errors for functions", () => {
   test("Calling a variable as a function", async () => {
     const program = `
     package main
@@ -290,21 +290,88 @@ describe.skip("handling errors for functions", () => {
     );
   });
 
-  test("Declaring a function with the wrong return type", async () => {
+  test("Declaring a function with different return type", async () => {
     const program = `
     package main
 
     func add(x int) string {
-      return x + 10;
+      return 1;
     }
 
     func main() {
-      x := add(1)
-      return x
+      return 1
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "cannot use x + 10 (value of type int) as string value in return statement",
+      "add: cannot use [int] as [string] value in return statement",
+    );
+  });
+
+  test("Declaring a function with more declared return types", async () => {
+    const program = `
+    package main
+
+    func add(x int) (string, int, string) {
+      return 1;
+    }
+
+    func main() {
+      return 1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "not enough return values: have [int], want [string, int, string]",
+    );
+  });
+
+  test("Declaring a function with more actual return types", async () => {
+    const program = `
+    package main
+
+    func add(x int) (int) {
+      return 1, 2, 3;
+    }
+
+    func main() {
+      return 1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many return values: have [int, int, int], want [int]",
+    );
+  });
+
+  test("Declaring a function with declared return type but no return stmt", async () => {
+    const program = `
+    package main
+
+    func add(x int) (int) {
+      1 + 3
+    }
+
+    func main() {
+      return 1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "add: missing return",
+    );
+  });
+
+  test("Declaring a function with no declared return type but have return stmt", async () => {
+    const program = `
+    package main
+
+    func add(x int) {
+      return 1 + 3
+    }
+
+    func main() {
+      return 1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many return values: have [int], want []",
     );
   });
 });

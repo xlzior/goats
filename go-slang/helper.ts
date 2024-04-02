@@ -14,16 +14,12 @@ const runner = new GolangRunner(external_builtins);
 const program = `
 package main
 
-func send(messages chan int) {
-  Sleep(1000)
-  messages <- 1
+func add(x int) int {
+  return "hll";
 }
 
 func main() {
-  messages := make(chan int)
-  go send(messages)
-  msg := <-messages
-  Println(msg)
+  return 1;
 }
 `;
 
