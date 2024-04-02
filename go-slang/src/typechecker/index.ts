@@ -22,6 +22,7 @@ import {
   make_undefined_type,
   make_function_type_from_ast,
   make_tuple_type,
+  compare_return_types,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { pluralize } from "../utils";
@@ -130,12 +131,10 @@ export class GolangTypechecker {
       const param_types = params.flatMap((e) =>
         e.Names.map(() => make_literal_type(e.Type.Name))
       );
+      this.extend_env(param_names, param_types);
 
       const func_type = this.type(astNode.Name) as FunctionType;
       const declared_return_type = func_type.res;
-
-      this.extend_env(param_names, param_types);
-
       const actual_result_type: Type = this.type(astNode.Body);
 
       // skip return type check for main function because technically it doesn't have a return
@@ -144,32 +143,11 @@ export class GolangTypechecker {
         return make_undefined_type();
       }
 
-      // TODO: redo these checks
-      // if (
-      //   declared_return_type.length > 0 &&
-      //   actual_result_type._type !== Types.RETURN
-      // ) {
-      //   throw new TypeError(`${astNode.Name.Name}: missing return`);
-      // }
-
-      // if (
-      //   actual_result_type._type === Types.RETURN &&
-      //   !is_equal_types(
-      //     declared_return_type,
-      //     (actual_result_type as ReturnType).res,
-      //     "too many return values",
-      //     "not enough return values"
-      //   )
-      // ) {
-      //   throw new TypeError(
-      //     `${astNode.Name.Name}: cannot use ${stringify_types(
-      //       (actual_result_type as ReturnType).res
-      //     )} as ${stringify_types(
-      //       declared_return_type
-      //     )} value in return statement`
-      //   );
-      // }
-
+      compare_return_types(
+        astNode.Name.Name,
+        declared_return_type,
+        actual_result_type
+      );
       this.type_env.pop();
       return make_undefined_type();
     },
@@ -185,7 +163,9 @@ export class GolangTypechecker {
     CallExpr: (astNode: AST.CallExpr) => {
       const fun_type = this.type(astNode.Fun) as FunctionType;
       if (fun_type._type !== Types.FUNCTION)
-        throw new TypeError(`${astNode.Fun.Name} expects a function type`);
+        throw new TypeError(
+          `invalid operation: cannot call non-function ${astNode.Fun.Name}`
+        );
       const expected_arg_types: Type[] = fun_type.args;
       const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
       if (
@@ -198,9 +178,9 @@ export class GolangTypechecker {
       )
         return fun_type.res;
       throw new TypeError(
-        `${astNode.Fun.Name} expects ${stringify_types(
+        `${astNode.Fun.Name} expects [${stringify_types(
           expected_arg_types
-        )}, but got ${stringify_types(actual_arg_types)}`
+        )}], but got [${stringify_types(actual_arg_types)}]`
       );
     },
     GoStmt: (astNode: AST.GoStmt) => {
@@ -245,7 +225,7 @@ export class GolangTypechecker {
         );
       }
 
-      // TODO: handle function returns
+      // TODO: handle functions which return multiple values
       if (astNode.Tok === AST.Token.DEFINE) {
         astNode.Lhs.forEach((ident, i) => {
           curr_env_frame[ident.Name] = rhs_types[i];
@@ -273,11 +253,7 @@ export class GolangTypechecker {
     },
     ReturnStmt: (astNode: AST.ReturnStmt) => {
       const return_list = astNode.Results.map((expr) => this.type(expr));
-      const return_type =
-        return_list.length === 1
-          ? return_list[0]
-          : make_tuple_type(return_list);
-      return make_return_type(return_type);
+      return make_return_type(return_list);
     },
     ExprStmt: (astNode: AST.ExprStmt) => {
       return this.type(astNode.X);

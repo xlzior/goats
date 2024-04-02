@@ -212,11 +212,9 @@ describe("handling errors for functions", () => {
       y := add(1,2)
       return y
     }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      "invalid operation: cannot call non-function",
+      "invalid operation: cannot call non-function"
     );
   });
 
@@ -228,11 +226,9 @@ describe("handling errors for functions", () => {
       x := add(1,2)
       return x
     }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      "undefined: add",
+      "undefined: add"
     );
   });
 
@@ -250,7 +246,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "not enough arguments in call to add",
+      "not enough arguments in call to add"
     );
   });
 
@@ -268,7 +264,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "too many arguments in call to add",
+      "too many arguments in call to add"
     );
   });
 
@@ -286,7 +282,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "add expects [int, int], but got [int, string]",
+      "add expects [int, int], but got [int, string]"
     );
   });
 
@@ -303,7 +299,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "add: cannot use [int] as [string] value in return statement",
+      "add: cannot use [int] as [string] value in return statement"
     );
   });
 
@@ -320,7 +316,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "not enough return values: have [int], want [string, int, string]",
+      "not enough return values: have [int], want [string, int, string]"
     );
   });
 
@@ -337,7 +333,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "too many return values: have [int, int, int], want [int]",
+      "too many return values: have [int, int, int], want [int]"
     );
   });
 
@@ -354,7 +350,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "add: missing return",
+      "add: missing return"
     );
   });
 
@@ -371,7 +367,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "too many return values: have [int], want []",
+      "too many return values: have [int], want []"
     );
   });
 });

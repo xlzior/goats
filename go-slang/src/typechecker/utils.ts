@@ -71,10 +71,9 @@ export function check_special_binary_expr_type(
     !is_equal_type(left_operand_type, right_operand_type)
   ) {
     throw new TypeError(
-      `${op} expects [int, int] or [string, string], but got ${stringify_types([
-        left_operand_type,
-        right_operand_type,
-      ])}`
+      `${op} expects [int, int] or [string, string], but got [${stringify_types(
+        [left_operand_type, right_operand_type]
+      )}]`
     );
   }
   return left_operand_type;
@@ -85,12 +84,13 @@ export function check_special_binary_expr_type(
  * Example: { _type: "Literal", val: "int"} -> "int"
  */
 export function stringify_type(type: Type): string {
-  if (type._type === Types.UNDEFINED) {
-    return "undefined";
-  }
-  if (type._type === Types.LITERAL) {
-    return type.val;
-  }
+  if (type._type === Types.UNDEFINED) return "undefined";
+
+  if (type._type === Types.LITERAL) return type.val;
+
+  if (type._type === Types.RETURN) return `[${stringify_type(type.res)}]`;
+
+  if (type._type === Types.TUPLE) return stringify_types(type.res);
 
   throw new TypeError("Type does not exist");
 }
@@ -102,12 +102,93 @@ export function stringify_type(type: Type): string {
  * @returns String enclosed by square brackets
  */
 export function stringify_types(type_arr: Type[]): string {
-  const type_arr_in_str = type_arr.map((t) => stringify_type(t));
-  return `[${type_arr_in_str.join(", ")}]`;
+  return type_arr.map((t) => stringify_type(t)).join(", ");
 }
 
 export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
   return stringify_type(actual_type) === stringify_type(expected_type);
+}
+
+export function compare_tuple_types(expected: TupleType, actual: TupleType) {
+  const actual_string = stringify_type(actual);
+  const expected_string = stringify_type(expected);
+  if (expected.res.length < actual.res.length) {
+    throw new TypeError(
+      `too many return values: have ${actual_string}, want ${expected_string}`
+    );
+  }
+  if (expected.res.length > actual.res.length) {
+    throw new TypeError(
+      `not enough return values: have ${actual_string}, want ${expected_string}`
+    );
+  }
+  if (!is_equal_types(expected.res, actual.res)) {
+    throw new TypeError(
+      `cannot use ${actual_string} as ${expected_string} value in return statement`
+    );
+  }
+}
+
+function is_undefined_return(type: Type): boolean {
+  return (
+    type._type === Types.UNDEFINED ||
+    (type._type === Types.RETURN && type.res._type === Types.UNDEFINED)
+  );
+}
+
+function is_single_return(type: Type): boolean {
+  return type._type === Types.RETURN && type.res._type === Types.LITERAL;
+}
+
+function is_multiple_return(type: Type): boolean {
+  return type._type === Types.RETURN && type.res._type === Types.TUPLE;
+}
+
+export function compare_return_types(
+  func_name: string,
+  expected: Type,
+  actual: Type
+) {
+  if (expected._type === Types.UNDEFINED && !is_undefined_return(actual)) {
+    throw new TypeError(
+      `too many return values: have ${stringify_type(actual)}, want []`
+    );
+  }
+
+  if (expected._type !== Types.UNDEFINED && is_undefined_return(actual)) {
+    throw new TypeError(`${func_name}: missing return`);
+  }
+
+  if (expected._type === Types.LITERAL && is_single_return(actual)) {
+    actual = actual as ReturnType;
+    if (!is_equal_type(expected, actual.res)) {
+      throw new TypeError(
+        `${func_name}: cannot use ${stringify_type(
+          actual
+        )} as [${stringify_type(expected)}] value in return statement`
+      );
+    }
+  }
+
+  if (expected._type === Types.TUPLE && is_multiple_return(actual)) {
+    return compare_tuple_types(expected as TupleType, actual as TupleType);
+  }
+
+  if (expected._type === Types.LITERAL && is_multiple_return(actual)) {
+    throw new TypeError(
+      `too many return values: have ${stringify_type(
+        actual
+      )}, want [${stringify_type(expected)}]`
+    );
+  }
+
+  if (expected._type === Types.TUPLE && is_single_return(actual)) {
+    throw new TypeError(
+      `not enough return values: have ${stringify_type(
+        actual
+      )}, want [${stringify_type(expected)}]`
+    );
+  }
 }
 
 // used by function type for now
@@ -151,30 +232,26 @@ export function make_literal_type(val: string): LiteralType {
   };
 }
 
-export function make_return_type(res: Type): ReturnType {
-  return {
-    _type: Types.RETURN,
-    res,
-  };
+function return_list_to_type(return_list: Type[]): Type {
+  if (return_list.length === 0) return make_undefined_type();
+  if (return_list.length === 1) return return_list[0];
+  return make_tuple_type(return_list);
+}
+
+export function make_return_type(return_list: Type[]): ReturnType {
+  const res = return_list_to_type(return_list);
+  return { _type: Types.RETURN, res };
 }
 
 export function make_function_type(args: Type[], res: Type): FunctionType {
-  return {
-    _type: Types.FUNCTION,
-    args,
-    res,
-  };
+  return { _type: Types.FUNCTION, args, res };
 }
 
 export function make_tuple_type(res: Type[]): TupleType {
-  return {
-    _type: Types.TUPLE,
-    res,
-  };
+  return { _type: Types.TUPLE, res };
 }
 
 export function make_function_type_from_ast(astNode: AST.FuncDecl) {
-  // TODO: code is repeated in multiple places
   const param_types = astNode.Type.Params.List.flatMap((e) =>
     e.Names.map(() => make_literal_type(e.Type.Name))
   );
@@ -182,8 +259,7 @@ export function make_function_type_from_ast(astNode: AST.FuncDecl) {
   const return_list =
     astNode.Type.Results?.List.map((e) => make_literal_type(e.Type.Name)) ?? [];
 
-  const return_type =
-    return_list.length === 1 ? return_list[0] : make_tuple_type(return_list);
+  const return_type = return_list_to_type(return_list);
 
   return make_function_type(param_types, return_type);
 }
