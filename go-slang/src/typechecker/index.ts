@@ -126,11 +126,9 @@ export class GolangTypechecker {
       // TODO: Handle higher order function. For now only literal return types
       const params = astNode.Type.Params.List;
       const param_names = params.flatMap((e) => e.Names.map((x) => x.Name));
-      const param_types = params.flatMap((e) =>
-        e.Names.map(() => make_literal_type(e.Type.Name)),
-      );
 
       const func_type = this.type(astNode.Name) as FunctionType;
+      const param_types = func_type.args;
       const declared_return_type = func_type.res as Type[];
 
       this.extend_env(param_names, param_types);
@@ -195,8 +193,13 @@ export class GolangTypechecker {
           `too many arguments in call to ${astNode.Fun.Name}`,
           `not enough arguments in call to ${astNode.Fun.Name}`,
         )
-      )
-        return fun_type.res;
+      ) {
+        const results = fun_type.res;
+        if (results.length === 0) return make_undefined_type();
+        if (results.length === 1) return results[0];
+        return make_return_type(results);
+      }
+
       throw new TypeError(
         `${astNode.Fun.Name} expects ${stringify_types(
           expected_arg_types,

@@ -21,7 +21,7 @@ export interface LiteralType extends Type {
 export interface FunctionType extends Type {
   _type: Types.FUNCTION;
   args: Type[];
-  res: Type | Type[];
+  res: Type[];
 }
 
 export interface ReturnType extends Type {
