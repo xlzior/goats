@@ -123,14 +123,13 @@ export class GolangTypechecker {
       return this.type(astNode.X);
     },
     FuncDecl: (astNode: AST.FuncDecl) => {
-
       // TODO: Handle higher order function. For now only literal return types
       const param_names = astNode.Type.Params.List.flatMap((e) =>
         e.Names.map((name) => name.Name),
       );
-      const func_type = this.type(astNode.Name) as FunctionType
-      const params_type = func_type.args
-      const declared_return_type = func_type.res as Type[]
+      const func_type = this.type(astNode.Name) as FunctionType;
+      const params_type = func_type.args;
+      const declared_return_type = func_type.res as Type[];
 
       this.extend_env(param_names, params_type);
 
@@ -153,6 +152,8 @@ export class GolangTypechecker {
         !is_equal_types(
           declared_return_type,
           (actual_result_type as ReturnType).res,
+          "too many return values",
+          "not enough return values",
         )
       ) {
         throw new TypeError(
@@ -165,7 +166,7 @@ export class GolangTypechecker {
       }
 
       this.type_env.pop();
-      return make_undefined_type()
+      return make_undefined_type();
     },
     GenDecl: (astNode: AST.GenDecl) => {
       return;
@@ -182,7 +183,14 @@ export class GolangTypechecker {
         throw new TypeError(`${astNode.Fun.Name} expects a function type`);
       const expected_arg_types: Type[] = fun_type.args;
       const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
-      if (is_equal_types(expected_arg_types, actual_arg_types))
+      if (
+        is_equal_types(
+          expected_arg_types,
+          actual_arg_types,
+          `too many arguments in call to ${astNode.Fun.Name}`,
+          `not enough arguments in call to ${astNode.Fun.Name}`,
+        )
+      )
         return fun_type.res;
       throw new TypeError(
         `${astNode.Fun.Name} expects ${stringify_types(

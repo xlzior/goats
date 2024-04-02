@@ -112,12 +112,14 @@ export function is_equal_type(expected_type: any, actual_type: any): boolean {
 export function is_equal_types(
   expected_types: Type[],
   actual_types: Type[],
+  err_msg_if_expect_less_than_actual = "",
+  err_msg_if_expect_more_than_actual = "",
 ): boolean {
   if (expected_types.length !== actual_types.length) {
     const errorMsg =
       expected_types.length < actual_types.length
-        ? "too many return values"
-        : "not enough return values";
+        ? err_msg_if_expect_less_than_actual
+        : err_msg_if_expect_more_than_actual;
     throw new TypeError(
       `${errorMsg}: have ${stringify_types(
         actual_types,
