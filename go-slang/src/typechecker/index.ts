@@ -124,19 +124,22 @@ export class GolangTypechecker {
     },
     FuncDecl: (astNode: AST.FuncDecl) => {
       // TODO: Handle higher order function. For now only literal return types
-      const param_names = astNode.Type.Params.List.flatMap((e) =>
-        e.Names.map((name) => name.Name),
+      const params = astNode.Type.Params.List;
+      const param_names = params.flatMap((e) => e.Names.map((x) => x.Name));
+      const param_types = params.flatMap((e) =>
+        e.Names.map(() => make_literal_type(e.Type.Name)),
       );
+
       const func_type = this.type(astNode.Name) as FunctionType;
-      const params_type = func_type.args;
       const declared_return_type = func_type.res as Type[];
 
-      this.extend_env(param_names, params_type);
+      this.extend_env(param_names, param_types);
 
       const actual_result_type: Type = this.type(astNode.Body);
 
       // skip return type check for main function because technically it doesn't have a return
       if (astNode.Name.Name === "main") {
+        this.type_env.pop();
         return make_undefined_type();
       }
 
@@ -214,11 +217,15 @@ export class GolangTypechecker {
       const func_types = func_decls.map((func) =>
         make_function_type_from_ast(func as AST.FuncDecl),
       );
+
       this.extend_env(func_names, func_types);
       const stmts = astNode.List;
       for (let i = 0; i < stmts.length; i++) {
         const stmt_type = this.type(stmts[i]);
-        if (stmt_type._type === Types.RETURN) return stmt_type;
+        if (stmt_type._type === Types.RETURN) {
+          this.type_env.pop();
+          return stmt_type;
+        }
       }
       this.type_env.pop();
       return make_undefined_type();
@@ -253,6 +260,7 @@ export class GolangTypechecker {
           }
         }
       }
+      return make_undefined_type();
     },
     Ident: (astNode: AST.Ident): Type | Type[] => {
       const name = astNode.Name;

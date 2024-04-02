@@ -99,12 +99,12 @@ export function stringify_type(type: any): string {
  *
  * @returns String enclosed by square brackets
  */
-export function stringify_types(type_arr: any[]): string {
+export function stringify_types(type_arr: Type[]): string {
   const type_arr_in_str = type_arr.map((t) => stringify_type(t));
   return `[${type_arr_in_str.join(", ")}]`;
 }
 
-export function is_equal_type(expected_type: any, actual_type: any): boolean {
+export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
   return stringify_type(actual_type) === stringify_type(expected_type);
 }
 
@@ -169,7 +169,7 @@ export function make_function_type(
 
 export function make_function_type_from_ast(astNode: AST.FuncDecl) {
   const param_types = astNode.Type.Params.List.flatMap((e) =>
-    make_literal_type(e.Type.Name),
+    e.Names.map(() => make_literal_type(e.Type.Name)),
   );
 
   let declared_return_type: Type[] = [];
