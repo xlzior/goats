@@ -1,5 +1,5 @@
 import { GolangRunner } from "../src";
-import { CompilationError, TypeError } from "../src/errors";
+import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -212,9 +212,7 @@ describe("handling errors for functions", () => {
       y := add(1,2)
       return y
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "invalid operation: cannot call non-function",
     );
@@ -228,9 +226,7 @@ describe("handling errors for functions", () => {
       x := add(1,2)
       return x
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "undefined: add",
     );
