@@ -14,13 +14,26 @@ const runner = new GolangRunner(external_builtins);
 const program = `
 package main
 
-func add(x int) int {
-  return 2;
+func add(a, b int) int {
+  return a + b
+}
+
+func no_return() {
+  a := 5
+  b := 10
+  c := a * b + a + b
 }
 
 func main() {
-  add(33,3432)
-  return 1;
+  no_return()
+  a := add(5, 7)
+  no_return()
+  no_return()
+  no_return()
+  b := add(3, 7)
+  no_return()
+  no_return()
+  return a * b
 }
 `;
 

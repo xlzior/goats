@@ -12,33 +12,33 @@ import { TypeError } from "../errors";
 
 const unary_arith_type: FunctionType = make_function_type(
   [make_literal_type(DataType.INT)],
-  make_literal_type(DataType.INT),
+  make_literal_type(DataType.INT)
 );
 
 const unary_bool_type: FunctionType = make_function_type(
   [make_literal_type(DataType.BOOL)],
-  make_literal_type(DataType.BOOL),
+  make_literal_type(DataType.BOOL)
 );
 
 const binary_arith_type: FunctionType = make_function_type(
   [make_literal_type(DataType.INT), make_literal_type(DataType.INT)],
-  make_literal_type(DataType.INT),
+  make_literal_type(DataType.INT)
 );
 
 const binary_bool_type: FunctionType = make_function_type(
   [make_literal_type(DataType.BOOL), make_literal_type(DataType.BOOL)],
-  make_literal_type(DataType.BOOL),
+  make_literal_type(DataType.BOOL)
 );
 
 // TODO: Handle builtin function typechecking separately?
 const builtin_func_types: Record<string, Type | Type[]> = {
   Println: make_function_type(
     [make_literal_type(DataType.STRING)],
-    make_literal_type(DataType.STRING),
+    make_literal_type(DataType.STRING)
   ),
   Sleep: make_function_type(
     [make_literal_type(DataType.INT)],
-    make_literal_type(DataType.STRING),
+    make_literal_type(DataType.STRING)
   ),
 };
 
@@ -62,7 +62,7 @@ export const global_type_frame: Record<string, Type> = {
 export function check_special_binary_expr_type(
   op: AST.Token,
   left_operand_type: any,
-  right_operand_type: any,
+  right_operand_type: any
 ) {
   if (
     left_operand_type.val === DataType.BOOL ||
@@ -73,7 +73,7 @@ export function check_special_binary_expr_type(
       `${op} expects [int, int] or [string, string], but got ${stringify_types([
         left_operand_type,
         right_operand_type,
-      ])}`,
+      ])}`
     );
   }
   return left_operand_type;
@@ -99,12 +99,13 @@ export function stringify_type(type: any): string {
  *
  * @returns String enclosed by square brackets
  */
-export function stringify_types(type_arr: any[]): string {
+export function stringify_types(type_arr: Type[]): string {
   const type_arr_in_str = type_arr.map((t) => stringify_type(t));
   return `[${type_arr_in_str.join(", ")}]`;
 }
 
-export function is_equal_type(expected_type: any, actual_type: any): boolean {
+export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
+  console.log({ expected_type, actual_type });
   return stringify_type(actual_type) === stringify_type(expected_type);
 }
 
@@ -113,7 +114,7 @@ export function is_equal_types(
   expected_types: Type[],
   actual_types: Type[],
   err_msg_if_expect_less_than_actual = "",
-  err_msg_if_expect_more_than_actual = "",
+  err_msg_if_expect_more_than_actual = ""
 ): boolean {
   if (expected_types.length !== actual_types.length) {
     const errorMsg =
@@ -122,13 +123,13 @@ export function is_equal_types(
         : err_msg_if_expect_more_than_actual;
     throw new TypeError(
       `${errorMsg}: have ${stringify_types(
-        actual_types,
-      )}, want ${stringify_types(expected_types)}`,
+        actual_types
+      )}, want ${stringify_types(expected_types)}`
     );
   }
 
   return expected_types.every((expected_type, i) =>
-    is_equal_type(expected_type, actual_types[i]),
+    is_equal_type(expected_type, actual_types[i])
   );
 }
 
@@ -158,7 +159,7 @@ export function make_return_type(res: Type[]): ReturnType {
 
 export function make_function_type(
   args: Type[],
-  res: Type | Type[],
+  res: Type | Type[]
 ): FunctionType {
   return {
     _type: Types.FUNCTION,
@@ -169,13 +170,13 @@ export function make_function_type(
 
 export function make_function_type_from_ast(astNode: AST.FuncDecl) {
   const param_types = astNode.Type.Params.List.flatMap((e) =>
-    make_literal_type(e.Type.Name),
+    e.Names.map(() => make_literal_type(e.Type.Name))
   );
 
   let declared_return_type: Type[] = [];
   if (astNode.Type.Results) {
     declared_return_type = astNode.Type.Results.List.flatMap((e) =>
-      make_literal_type(e.Type.Name),
+      make_literal_type(e.Type.Name)
     );
   }
 

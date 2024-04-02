@@ -42,6 +42,7 @@ export class GolangTypechecker {
   }
 
   private type(astNode: AST.Node): Type {
+    console.log(this.type_env);
     if (this.type_ast[astNode._type] === undefined)
       // throw new TypeError(`${astNode._type} not supported`);
       return {} as Type;
@@ -91,14 +92,14 @@ export class GolangTypechecker {
         return check_special_binary_expr_type(
           op,
           this.type(astNode.X),
-          this.type(astNode.Y),
+          this.type(astNode.Y)
         );
       }
 
       // the rest are treated as function call with 2 params
       const call_expr_ast: AST.CallExpr = make_call_expr(
         [astNode.X, astNode.Y],
-        make_ident(astNode.Op as string),
+        make_ident(astNode.Op as string)
       );
       return this.type(call_expr_ast);
     },
@@ -109,13 +110,13 @@ export class GolangTypechecker {
       if (astNode.Op === AST.Token.SUB) {
         const call_expr_ast: AST.CallExpr = make_call_expr(
           [astNode.X],
-          make_ident("-unary"),
+          make_ident("-unary")
         );
         return this.type(call_expr_ast);
       }
       const call_expr_ast: AST.CallExpr = make_call_expr(
         [astNode.X],
-        make_ident(astNode.Op as string),
+        make_ident(astNode.Op as string)
       );
       return this.type(call_expr_ast);
     },
@@ -124,19 +125,23 @@ export class GolangTypechecker {
     },
     FuncDecl: (astNode: AST.FuncDecl) => {
       // TODO: Handle higher order function. For now only literal return types
-      const param_names = astNode.Type.Params.List.flatMap((e) =>
-        e.Names.map((name) => name.Name),
+      const params = astNode.Type.Params.List;
+      const param_names = params.flatMap((e) => e.Names.map((x) => x.Name));
+      const param_types = params.flatMap((e) =>
+        e.Names.map(() => make_literal_type(e.Type.Name))
       );
+
       const func_type = this.type(astNode.Name) as FunctionType;
-      const params_type = func_type.args;
       const declared_return_type = func_type.res as Type[];
 
-      this.extend_env(param_names, params_type);
+      console.log("extending environment with", { param_names, param_types });
+      this.extend_env(param_names, param_types);
 
       const actual_result_type: Type = this.type(astNode.Body);
 
       // skip return type check for main function because technically it doesn't have a return
       if (astNode.Name.Name === "main") {
+        this.type_env.pop();
         return make_undefined_type();
       }
 
@@ -153,15 +158,15 @@ export class GolangTypechecker {
           declared_return_type,
           (actual_result_type as ReturnType).res,
           "too many return values",
-          "not enough return values",
+          "not enough return values"
         )
       ) {
         throw new TypeError(
           `${astNode.Name.Name}: cannot use ${stringify_types(
-            (actual_result_type as ReturnType).res,
+            (actual_result_type as ReturnType).res
           )} as ${stringify_types(
-            declared_return_type,
-          )} value in return statement`,
+            declared_return_type
+          )} value in return statement`
         );
       }
 
@@ -183,19 +188,21 @@ export class GolangTypechecker {
         throw new TypeError(`${astNode.Fun.Name} expects a function type`);
       const expected_arg_types: Type[] = fun_type.args;
       const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
+      console.log(astNode.Args);
+      console.log("HI", actual_arg_types);
       if (
         is_equal_types(
           expected_arg_types,
           actual_arg_types,
           `too many arguments in call to ${astNode.Fun.Name}`,
-          `not enough arguments in call to ${astNode.Fun.Name}`,
+          `not enough arguments in call to ${astNode.Fun.Name}`
         )
       )
         return fun_type.res;
       throw new TypeError(
         `${astNode.Fun.Name} expects ${stringify_types(
-          expected_arg_types,
-        )}, but got ${stringify_types(actual_arg_types)}`,
+          expected_arg_types
+        )}, but got ${stringify_types(actual_arg_types)}`
       );
     },
     GoStmt: (astNode: AST.GoStmt) => {
@@ -206,19 +213,24 @@ export class GolangTypechecker {
     },
     BlockStmt: (astNode: AST.BlockStmt): Type => {
       const func_decls = astNode.List.filter(
-        (val) => val._type === AST.NodeType.FUNC_DECL,
+        (val) => val._type === AST.NodeType.FUNC_DECL
       );
       const func_names = func_decls.map(
-        (func) => (func as AST.FuncDecl).Name.Name,
+        (func) => (func as AST.FuncDecl).Name.Name
       );
       const func_types = func_decls.map((func) =>
-        make_function_type_from_ast(func as AST.FuncDecl),
+        make_function_type_from_ast(func as AST.FuncDecl)
       );
+
+      console.log("extending environment with", { func_names, func_types });
       this.extend_env(func_names, func_types);
       const stmts = astNode.List;
       for (let i = 0; i < stmts.length; i++) {
         const stmt_type = this.type(stmts[i]);
-        if (stmt_type._type === Types.RETURN) return stmt_type;
+        if (stmt_type._type === Types.RETURN) {
+          this.type_env.pop();
+          return stmt_type;
+        }
       }
       this.type_env.pop();
       return make_undefined_type();
@@ -226,19 +238,22 @@ export class GolangTypechecker {
     AssignStmt: (astNode: AST.AssignStmt) => {
       const curr_env_frame = peek(this.type_env);
 
+      console.log("assign", astNode);
       const rhs_types = astNode.Rhs.map((expr) => this.type(expr));
       if (astNode.Lhs.length != rhs_types.length) {
         throw new TypeError(
           `assignment mismatch: ${astNode.Lhs.length} ${pluralize(
             "variable",
-            astNode.Lhs.length,
-          )} but ${rhs_types.length} ${pluralize("value", rhs_types.length)}`,
+            astNode.Lhs.length
+          )} but ${rhs_types.length} ${pluralize("value", rhs_types.length)}`
         );
       }
 
       // TODO: handle function returns
       if (astNode.Tok === AST.Token.DEFINE) {
         astNode.Lhs.forEach((ident, i) => {
+          console.log({ rhs_types });
+          console.log("setting", ident.Name, "to", rhs_types[i]);
           curr_env_frame[ident.Name] = rhs_types[i];
         });
       } else {
@@ -247,12 +262,13 @@ export class GolangTypechecker {
           if (!is_equal_type(curr_lhs_types[i], rhs_types[i])) {
             throw new TypeError(
               `cannot use ${stringify_type(rhs_types[i])} as ${stringify_type(
-                curr_lhs_types[i],
-              )} value in assignment`,
+                curr_lhs_types[i]
+              )} value in assignment`
             );
           }
         }
       }
+      return make_undefined_type();
     },
     Ident: (astNode: AST.Ident): Type | Type[] => {
       const name = astNode.Name;

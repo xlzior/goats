@@ -28,7 +28,7 @@ describe("functions", () => {
       return a + b
     }
 
-    func useless() int {
+    func useless() {
       
     }
   
@@ -53,7 +53,7 @@ describe("functions", () => {
       return a + b
     }
 
-    func no_return() int {
+    func no_return() {
       a := 5
       b := 10
       c := a * b + a + b
@@ -83,7 +83,7 @@ describe("functions", () => {
       return a + b
     }
 
-    func no_return_value() int {
+    func no_return_value() {
       a := 5
       b := 10
       c := a * b + a + b
