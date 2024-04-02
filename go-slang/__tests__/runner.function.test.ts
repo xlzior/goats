@@ -250,7 +250,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "not enough arguments in function call",
+      "not enough arguments in call to add",
     );
   });
 
@@ -268,7 +268,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "too many arguments in function call",
+      "too many arguments in call to add",
     );
   });
 
@@ -286,7 +286,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      'cannot use "hello" as int value in argument to add',
+      "add expects [int, int], but got [int, string]",
     );
   });
 
