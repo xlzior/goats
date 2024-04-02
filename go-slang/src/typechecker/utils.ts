@@ -1,5 +1,12 @@
 import * as AST from "../types/ast";
-import { FunctionType, LiteralType, Type, Types } from "../types/typing";
+import {
+  FunctionType,
+  LiteralType,
+  ReturnType,
+  Type,
+  Types,
+  UndefinedType,
+} from "../types/typing";
 import { DataType } from "../types";
 import { TypeError } from "../errors";
 
@@ -77,6 +84,9 @@ export function check_special_binary_expr_type(
  * Example: { _type: "Literal", val: "int"} -> "int"
  */
 export function stringify_type(type: any): string {
+  if (type._type === Types.UNDEFINED) {
+    return "undefined";
+  }
   if (type._type === Types.LITERAL) {
     return type.val;
   }
@@ -103,12 +113,18 @@ export function is_equal_types(
   expected_types: Type[],
   actual_types: Type[],
 ): boolean {
-  if (expected_types.length != actual_types.length)
+  if (expected_types.length !== actual_types.length) {
+    const errorMsg =
+      expected_types.length < actual_types.length
+        ? "too many return values"
+        : "not enough return values";
     throw new TypeError(
-      `Expected ${expected_types.length} type${
-        expected_types.length > 1 ? "s" : ""
-      }, but got ${actual_types.length} `,
+      `${errorMsg}: have ${stringify_types(
+        actual_types,
+      )}, want ${stringify_types(expected_types)}`,
     );
+  }
+
   return expected_types.every((expected_type, i) =>
     is_equal_type(expected_type, actual_types[i]),
   );
@@ -117,6 +133,12 @@ export function is_equal_types(
 // ===========================================
 // HELPER METHODS TO RECONSTRUCT TYPE OBJECTS
 // ===========================================
+
+export function make_undefined_type(): UndefinedType {
+  return {
+    _type: Types.UNDEFINED,
+  };
+}
 
 export function make_literal_type(val: string): LiteralType {
   return {
@@ -132,6 +154,13 @@ export function make_function_type(
   return {
     _type: Types.FUNCTION,
     args,
+    res,
+  };
+}
+
+export function make_return_type(res: Type[]): ReturnType {
+  return {
+    _type: Types.RETURN,
     res,
   };
 }
