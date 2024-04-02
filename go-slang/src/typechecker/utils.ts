@@ -12,33 +12,33 @@ import { TypeError } from "../errors";
 
 const unary_arith_type: FunctionType = make_function_type(
   [make_literal_type(DataType.INT)],
-  make_literal_type(DataType.INT),
+  [make_literal_type(DataType.INT)],
 );
 
 const unary_bool_type: FunctionType = make_function_type(
   [make_literal_type(DataType.BOOL)],
-  make_literal_type(DataType.BOOL),
+  [make_literal_type(DataType.BOOL)],
 );
 
 const binary_arith_type: FunctionType = make_function_type(
   [make_literal_type(DataType.INT), make_literal_type(DataType.INT)],
-  make_literal_type(DataType.INT),
+  [make_literal_type(DataType.INT)],
 );
 
 const binary_bool_type: FunctionType = make_function_type(
   [make_literal_type(DataType.BOOL), make_literal_type(DataType.BOOL)],
-  make_literal_type(DataType.BOOL),
+  [make_literal_type(DataType.BOOL)],
 );
 
 // TODO: Handle builtin function typechecking separately?
 const builtin_func_types: Record<string, Type | Type[]> = {
   Println: make_function_type(
     [make_literal_type(DataType.STRING)],
-    make_literal_type(DataType.STRING),
+    [make_literal_type(DataType.STRING)],
   ),
   Sleep: make_function_type(
     [make_literal_type(DataType.INT)],
-    make_literal_type(DataType.STRING),
+    [make_literal_type(DataType.STRING)],
   ),
 };
 
@@ -84,13 +84,13 @@ export function check_special_binary_expr_type(
  * Example: { _type: "Literal", val: "int"} -> "int"
  */
 export function stringify_type(type: any): string {
-  if (type._type === Types.UNDEFINED) {
-    return "undefined";
-  }
-  if (type._type === Types.LITERAL) {
-    return type.val;
-  }
-  throw new TypeError("Type does not exist");
+  if (type._type === Types.UNDEFINED) return "undefined";
+
+  if (type._type === Types.LITERAL) return type.val;
+
+  if (type._type === Types.RETURN) return stringify_types(type.res);
+
+  throw new TypeError(`Cannot stringify type ${type._type}`);
 }
 
 /**
@@ -156,10 +156,7 @@ export function make_return_type(res: Type[]): ReturnType {
   };
 }
 
-export function make_function_type(
-  args: Type[],
-  res: Type | Type[],
-): FunctionType {
+export function make_function_type(args: Type[], res: Type[]): FunctionType {
   return {
     _type: Types.FUNCTION,
     args,
