@@ -147,6 +147,13 @@ export function make_literal_type(val: string): LiteralType {
   };
 }
 
+export function make_return_type(res: Type[]): ReturnType {
+  return {
+    _type: Types.RETURN,
+    res,
+  };
+}
+
 export function make_function_type(
   args: Type[],
   res: Type | Type[],
@@ -158,9 +165,17 @@ export function make_function_type(
   };
 }
 
-export function make_return_type(res: Type[]): ReturnType {
-  return {
-    _type: Types.RETURN,
-    res,
-  };
+export function make_function_type_from_ast(astNode: AST.FuncDecl) {
+  const param_types = astNode.Type.Params.List.flatMap((e) =>
+    make_literal_type(e.Type.Name),
+  );
+
+  let declared_return_type: Type[] = [];
+  if (astNode.Type.Results) {
+    declared_return_type = astNode.Type.Results.List.flatMap((e) =>
+      make_literal_type(e.Type.Name),
+    );
+  }
+
+  return make_function_type(param_types, declared_return_type);
 }

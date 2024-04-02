@@ -5,7 +5,6 @@ import {
   LiteralType,
   FunctionType,
   Types,
-  UndefinedType,
   ReturnType,
 } from "../types/typing";
 
@@ -19,9 +18,9 @@ import {
   check_special_binary_expr_type,
   is_equal_type,
   stringify_type,
-  make_function_type,
   make_return_type,
   make_undefined_type,
+  make_function_type_from_ast,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { pluralize } from "../utils";
@@ -58,11 +57,11 @@ export class GolangTypechecker {
   }
 
   private extend_env(names: string[], types: Type[]): void {
-    const env_frame: Record<string, Type> = {};
+    const new_env_frame: Record<string, Type> = {};
     names.forEach((name, i) => {
-      env_frame[name] = types[i];
+      new_env_frame[name] = types[i];
     });
-    this.type_env.push(env_frame);
+    this.type_env.push(new_env_frame);
   }
 
   private type_ast: Record<AST.NodeType, any> = {
@@ -123,27 +122,23 @@ export class GolangTypechecker {
     ParenExpr: (astNode: AST.ParenExpr) => {
       return this.type(astNode.X);
     },
-    FuncDecl: (astNode: AST.FuncDecl): FunctionType => {
-      // TODO: Handle higher order function. For now only literal return types.
+    FuncDecl: (astNode: AST.FuncDecl) => {
+
+      // TODO: Handle higher order function. For now only literal return types
       const param_names = astNode.Type.Params.List.flatMap((e) =>
         e.Names.map((name) => name.Name),
       );
-      const param_types = astNode.Type.Params.List.flatMap((e) =>
-        make_literal_type(e.Type.Name),
-      );
-      this.extend_env(param_names, param_types);
+      const func_type = this.type(astNode.Name) as FunctionType
+      const params_type = func_type.args
+      const declared_return_type = func_type.res as Type[]
 
-      let declared_return_type: Type[] = [];
-      if (astNode.Type.Results) {
-        declared_return_type = astNode.Type.Results.List.flatMap((e) =>
-          make_literal_type(e.Type.Name),
-        );
-      }
+      this.extend_env(param_names, params_type);
+
       const actual_result_type: Type = this.type(astNode.Body);
 
-      // skip typecheck for main function
+      // skip return type check for main function because technically it doesn't have a return
       if (astNode.Name.Name === "main") {
-        return make_function_type(param_types, declared_return_type);
+        return make_undefined_type();
       }
 
       if (
@@ -170,12 +165,7 @@ export class GolangTypechecker {
       }
 
       this.type_env.pop();
-
-      const func_type: FunctionType = make_function_type(
-        param_types,
-        declared_return_type,
-      );
-      return func_type;
+      return make_undefined_type()
     },
     GenDecl: (astNode: AST.GenDecl) => {
       return;
@@ -187,9 +177,7 @@ export class GolangTypechecker {
       return;
     },
     CallExpr: (astNode: AST.CallExpr) => {
-      console.log(this.type_env)
       const fun_type = this.type(astNode.Fun) as FunctionType;
-      console.log("funtype:", fun_type)
       if (fun_type._type !== Types.FUNCTION)
         throw new TypeError(`${astNode.Fun.Name} expects a function type`);
       const expected_arg_types: Type[] = fun_type.args;
@@ -212,11 +200,11 @@ export class GolangTypechecker {
       const func_decls = astNode.List.filter(
         (val) => val._type === AST.NodeType.FUNC_DECL,
       );
-      const func_types = func_decls.map((func) =>
-        this.type(func as AST.FuncDecl),
-      );
       const func_names = func_decls.map(
         (func) => (func as AST.FuncDecl).Name.Name,
+      );
+      const func_types = func_decls.map((func) =>
+        make_function_type_from_ast(func as AST.FuncDecl),
       );
       this.extend_env(func_names, func_types);
       const stmts = astNode.List;
@@ -241,7 +229,6 @@ export class GolangTypechecker {
       }
 
       // TODO: handle function returns
-
       if (astNode.Tok === AST.Token.DEFINE) {
         astNode.Lhs.forEach((ident, i) => {
           curr_env_frame[ident.Name] = rhs_types[i];

@@ -15,10 +15,11 @@ const program = `
 package main
 
 func add(x int) int {
-  return "hll";
+  return 2;
 }
 
 func main() {
+  add(33,3432)
   return 1;
 }
 `;
