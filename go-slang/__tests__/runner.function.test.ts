@@ -373,7 +373,7 @@ describe("handling errors for functions", () => {
 });
 
 describe("typechecking if statements in functions", () => {
-  test("after return statement in if block, continue to typecheck", async () => {
+  test("should continue to typecheck after return statement in if block", async () => {
     const program = `
     package main
   
@@ -388,6 +388,28 @@ describe("typechecking if statements in functions", () => {
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "+ expects [int, int] or [string, string], but got [string, int]",
+    );
+  });
+
+  test("should continue to typecheck even if there is return in both if and else branches", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if (true) {
+        return 1
+      } else {
+        return 2
+      }
+      return 1,2,3
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: too many return values: have [int, int, int], want [int]",
     );
   });
 
@@ -577,6 +599,95 @@ describe("typechecking if statements in functions", () => {
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "foo: not enough return values: have [], want [int]",
+    );
+  });
+
+  test("return non-undefined in if in function with no return type", async () => {
+    const program = `
+    package main
+
+    func foo() {
+      if (true) {
+        return 1
+      } else {
+        return
+      }
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: too many return values: have [int], want []",
+    );
+  });
+
+  test("return non-undefined in else if in function with no return type", async () => {
+    const program = `
+    package main
+
+    func foo() {
+      if (true) {
+        return 
+      } else if false {
+        return 1,2,3
+      } else {
+        return
+      }
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: too many return values: have [int, int, int], want []",
+    );
+  });
+
+  test("return non-undefined in else in function with no return type", async () => {
+    const program = `
+    package main
+
+    func foo() {
+      if (true) {
+        return 
+      } else if false {
+        return
+      } else {
+        return "hello"
+      }
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: too many return values: have [string], want []",
+    );
+  });
+
+  test("return non-undefined with no else in function with no return type", async () => {
+    const program = `
+    package main
+
+    func foo() {
+      if (true) {
+        return 
+      } else if false {
+        return
+      }
+      return 1 + 2
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: too many return values: have [int], want []",
     );
   });
 });
