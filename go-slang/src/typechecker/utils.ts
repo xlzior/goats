@@ -106,6 +106,10 @@ export function stringify_types(type_arr: Type[]): string {
   return `[${type_arr_in_str.join(", ")}]`;
 }
 
+export function is_bool_literal(type: Type): boolean {
+  return type._type === Types.LITERAL && type.val === DataType.BOOL;
+}
+
 export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
   return stringify_type(actual_type) === stringify_type(expected_type);
 }

@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -145,5 +146,43 @@ describe("conditional statements", () => {
     const { value } = await golangRunner.execute(program);
     const expected = 400;
     expect(value).toEqual(expected);
+  });
+});
+
+describe("typechecker for conditional statements", () => {
+  test("non-boolean condition in if statement", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := 7
+      if (x) {
+        return 100
+      }
+      return -1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "non-boolean condition in if statement",
+    );
+  });
+
+  test("non-boolean condition in else if statement", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := 7
+      if (x < 5) {
+        return 100
+      } else if (x) {
+        return 200
+      }
+      return -1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "non-boolean condition in if statement",
+    );
   });
 });
