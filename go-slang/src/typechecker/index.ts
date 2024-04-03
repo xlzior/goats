@@ -18,8 +18,6 @@ import {
   is_int_literal,
   make_channel_type,
   make_return_type,
-  make_union_type,
-  type_union,
 } from "./objects";
 import {
   check_lhs_rhs_equal_length,
@@ -29,8 +27,10 @@ import {
   global_type_frame,
   is_equal_type,
   is_equal_types,
+  make_union_type,
   stringify_type,
   stringify_types,
+  type_union,
 } from "./utils";
 
 export class GolangTypechecker {

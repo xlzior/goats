@@ -11,7 +11,6 @@ import {
   UndefinedType,
   WaitGroupType,
 } from "../types/typing";
-import { is_equal_type } from "./utils";
 
 // ===========================================
 // SINGLETON TYPES
@@ -104,34 +103,6 @@ function ast_to_function_type(astNode: AST.FuncDecl) {
   return make_function_type(param_types, declared_return_type);
 }
 
-export function make_union_type(types: Type[]): Type {
-  if (types.length === 0) return UNDEFINED_TYPE;
-
-  const deduped_types: Type[] = [];
-  for (const type of types) {
-    const exists = deduped_types.some((x) => is_equal_type(type, x));
-    if (!exists) deduped_types.push(type);
-  }
-  if (deduped_types.length === 1) return types[0];
-
-  return {
-    _type: Types.UNION,
-    types: deduped_types,
-  };
-}
-
-export function type_union(type1: Type, type2: Type): Type {
-  if (is_equal_type(type1, type2)) return type1;
-
-  const types_in_1 = type1._type === Types.UNION ? type1.types : [type1];
-  const types_in_2 = type2._type === Types.UNION ? type2.types : [type2];
-
-  return make_union_type([...types_in_1, ...types_in_2]);
-}
-
 export function make_channel_type(val: Type): Type {
-  return {
-    _type: Types.CHANNEL,
-    val,
-  };
+  return { _type: Types.CHANNEL, val };
 }
