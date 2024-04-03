@@ -23,6 +23,7 @@ import {
   check_lhs_rhs_equal_length,
   make_channel_type,
   make_type_from_ast,
+  is_int_literal,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { peek } from "../utils";
@@ -82,7 +83,7 @@ export class GolangTypechecker {
 
     if (astNode.Args.length === 2) {
       const second_arg = this.type(astNode.Args[1]);
-      if (second_arg._type !== Types.LITERAL)
+      if (!is_int_literal(second_arg))
         throw new TypeError(
           `cannot convert ${stringify_type(second_arg)} to type int`,
         );

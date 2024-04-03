@@ -97,7 +97,7 @@ export function stringify_type(type: Type): string {
     case Types.UNION:
       return `(${Array.from(type.types).join(" | ")})`;
     case Types.CHANNEL:
-      return `chan ${type.val}`;
+      return `chan ${stringify_type(type.val)}`;
     default:
       throw new TypeError(`Cannot stringify type ${type._type}`);
   }
@@ -116,6 +116,10 @@ export function stringify_types(type_arr: Type[]): string {
 
 export function is_bool_literal(type: Type): boolean {
   return type._type === Types.LITERAL && type.val === DataType.BOOL;
+}
+
+export function is_int_literal(type: Type): boolean {
+  return type._type === Types.LITERAL && type.val === DataType.INT;
 }
 
 export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
