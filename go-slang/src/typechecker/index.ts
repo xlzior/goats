@@ -22,6 +22,9 @@ import {
   make_undefined_type,
   make_function_type_from_ast,
   is_bool_literal,
+  type_union,
+  make_union_type,
+  check_return_type,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { pluralize } from "../utils";
@@ -142,6 +145,12 @@ export class GolangTypechecker {
         return make_undefined_type();
       }
 
+      if (actual_result_type._type === Types.UNION) {
+        actual_result_type.types.forEach((type) => {
+          check_return_type(astNode.Name.Name, type, declared_return_type);
+        });
+      }
+
       if (
         declared_return_type.length > 0 &&
         actual_result_type._type !== Types.RETURN
@@ -149,23 +158,11 @@ export class GolangTypechecker {
         throw new TypeError(`${astNode.Name.Name}: missing return`);
       }
 
-      if (
-        actual_result_type._type === Types.RETURN &&
-        !is_equal_types(
-          declared_return_type,
-          (actual_result_type as ReturnType).res,
-          "too many return values",
-          "not enough return values"
-        )
-      ) {
-        throw new TypeError(
-          `${astNode.Name.Name}: cannot use ${stringify_types(
-            (actual_result_type as ReturnType).res
-          )} as ${stringify_types(
-            declared_return_type
-          )} value in return statement`
-        );
-      }
+      check_return_type(
+        astNode.Name.Name,
+        actual_result_type,
+        declared_return_type
+      );
 
       this.type_env.pop();
       return make_undefined_type();
@@ -226,15 +223,24 @@ export class GolangTypechecker {
 
       this.extend_env(func_names, func_types);
       const stmts = astNode.List;
+      const types_seen = [];
       for (let i = 0; i < stmts.length; i++) {
         const stmt_type = this.type(stmts[i]);
+        if (stmt_type._type === Types.UNION) {
+          types_seen.push(...stmt_type.types);
+        }
         if (stmt_type._type === Types.RETURN) {
+          types_seen.push(stmt_type);
           this.type_env.pop();
-          return stmt_type;
+          return make_union_type(
+            types_seen.filter((x) => x._type === Types.RETURN)
+            // since we have top-level return, function always returns; drop undefined
+          );
         }
       }
+      // no top-level return, function may not always return; do not drop undefined
       this.type_env.pop();
-      return make_undefined_type();
+      return make_union_type(types_seen);
     },
     AssignStmt: (astNode: AST.AssignStmt) => {
       const curr_env_frame = peek(this.type_env);
@@ -294,7 +300,7 @@ export class GolangTypechecker {
 
       if (is_equal_type(then_type, else_type)) return then_type;
 
-      return make_undefined_type();
+      return type_union(then_type, else_type);
     },
     ForStmt: (astNode: AST.ForStmt) => {
       return make_undefined_type();

@@ -3,9 +3,15 @@ export enum Types {
   LITERAL = "Literal",
   FUNCTION = "Function",
   RETURN = "Return",
+  UNION = "Union",
 }
 
-export type Type = UndefinedType | LiteralType | FunctionType | ReturnType;
+export type Type =
+  | UndefinedType
+  | LiteralType
+  | FunctionType
+  | ReturnType
+  | UnionType;
 
 export type UndefinedType = {
   _type: Types.UNDEFINED;
@@ -25,4 +31,10 @@ export type FunctionType = {
 export type ReturnType = {
   _type: Types.RETURN;
   res: Type[];
+};
+
+// we don't support UnionTypes, so this is usually a TypeError
+export type UnionType = {
+  _type: Types.UNION;
+  types: Type[];
 };
