@@ -5,6 +5,7 @@ export enum Types {
   RETURN = "Return",
   UNION = "Union",
   CHANNEL = "Channel",
+  MUTEX = "Mutex",
   ANY = "Any",
 }
 
@@ -15,6 +16,7 @@ export type Type =
   | ReturnType
   | UnionType
   | ChannelType
+  | MutexType
   | AnyType;
 
 export type UndefinedType = {
@@ -50,4 +52,8 @@ export type UnionType = {
 export type ChannelType = {
   _type: Types.CHANNEL;
   val: Type;
+};
+
+export type MutexType = {
+  _type: Types.MUTEX;
 };

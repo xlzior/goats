@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -196,5 +197,115 @@ describe("mutex", () => {
     const { value } = await golangRunner.execute(program);
     const expected = 0;
     expect(value).toEqual(expected);
+  });
+});
+
+describe("typechecker for mutex", () => {
+  test("incorrect number of args (0) passed into Lock function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      Lock()
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "not enough arguments in call to Lock: have [], want [Mutex]",
+    );
+  });
+
+  test("incorrect number of args (2) passed into Lock function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x = 1
+      var y = 2
+      Lock(x, y)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many arguments in call to Lock: have [int, int], want [Mutex]",
+    );
+  });
+
+  test("incorrect number of args (0) passed into Unlock function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      Unlock()
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "not enough arguments in call to Unlock: have [], want [Mutex]",
+    );
+  });
+
+  test("incorrect number of args (2) passed into Unlock function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x = 1
+      var y = 2
+      Unlock(x, y)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many arguments in call to Unlock: have [int, int], want [Mutex]",
+    );
+  });
+
+  test("incorrect type passed into Lock function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x int = 33
+      Lock(x)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "Lock expects [Mutex], but got [int]",
+    );
+  });
+
+  test("incorrect type passed into Unlock function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x int = 33
+      Unlock(x)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "Unlock expects [Mutex], but got [int]",
+    );
   });
 });

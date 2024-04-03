@@ -24,6 +24,7 @@ import {
   make_channel_type,
   make_type_from_ast,
   is_int_literal,
+  MUTEX_TYPE,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { peek } from "../utils";
@@ -346,6 +347,7 @@ export class GolangTypechecker {
       if (name === "true" || name === "false") {
         return make_literal_type(DataType.BOOL);
       }
+      if (name === DataType.MUTEX) return MUTEX_TYPE;
       return this.lookup_type(name);
     },
     ReturnStmt: (astNode: AST.ReturnStmt) => {
