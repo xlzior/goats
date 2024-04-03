@@ -21,6 +21,8 @@ import {
   check_return_type,
   check_lhs_rhs_types,
   check_lhs_rhs_equal_length,
+  make_channel_type,
+  make_type_from_ast,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { peek } from "../utils";
@@ -63,7 +65,36 @@ export class GolangTypechecker {
     this.type_env.push(new_env_frame);
   }
 
+  private check_make_call(astNode: AST.CallExpr) {
+    if (astNode.Args.length !== 1 && astNode.Args.length !== 2)
+      throw new TypeError(
+        `invalid operation: make expects 1 or 2 arguments; found ${astNode.Args.length}`,
+      );
+
+    const first_arg = this.type(astNode.Args[0]);
+    if (first_arg._type !== Types.CHANNEL) {
+      throw new TypeError(
+        `invalid argument: cannot make ${stringify_type(
+          first_arg,
+        )}; type must be channel`,
+      );
+    }
+
+    if (astNode.Args.length === 2) {
+      const second_arg = this.type(astNode.Args[1]);
+      if (second_arg._type !== Types.LITERAL)
+        throw new TypeError(
+          `cannot convert ${stringify_type(second_arg)} to type int`,
+        );
+    }
+    return first_arg;
+  }
+
   private check_function_call(astNode: AST.CallExpr) {
+    if (astNode.Fun.Name === "make") {
+      return this.check_make_call(astNode);
+    }
+
     const fun_type = this.type(astNode.Fun);
     if (fun_type._type !== Types.FUNCTION)
       throw new TypeError(
@@ -132,7 +163,14 @@ export class GolangTypechecker {
     },
     UnaryExpr: (astNode: AST.UnaryExpr) => {
       if (astNode.Op === AST.Token.ARROW) {
-        return;
+        const chan_type = this.type(astNode.X);
+        if (chan_type._type !== Types.CHANNEL)
+          throw new TypeError(
+            `invalid operation: cannot receive from non-channel type ${stringify_type(
+              chan_type,
+            )}`,
+          );
+        return chan_type.val;
       }
       if (astNode.Op === AST.Token.SUB) {
         const call_expr_ast: AST.CallExpr = make_call_expr(
@@ -224,7 +262,7 @@ export class GolangTypechecker {
       });
     },
     ChanType: (astNode: AST.ChanType) => {
-      return make_undefined_type();
+      return make_channel_type(make_type_from_ast(astNode.Value));
     },
     CallExpr: (astNode: AST.CallExpr) => {
       return this.check_function_call(astNode);
@@ -234,6 +272,23 @@ export class GolangTypechecker {
       return this.check_function_call(astNode.Call);
     },
     SendStmt: (astNode: AST.SendStmt) => {
+      const chan_type = this.type(astNode.Chan);
+      if (chan_type._type !== Types.CHANNEL)
+        throw new TypeError(
+          `invalid operation: cannot send to non-channel type ${stringify_type(
+            chan_type,
+          )}`,
+        );
+
+      const value_type = this.type(astNode.Value);
+      if (!is_equal_type(chan_type.val, value_type)) {
+        throw new TypeError(
+          `cannot use ${stringify_type(value_type)} as type ${stringify_type(
+            chan_type.val,
+          )} in send`,
+        );
+      }
+
       return make_undefined_type();
     },
     BlockStmt: (astNode: AST.BlockStmt): Type => {
