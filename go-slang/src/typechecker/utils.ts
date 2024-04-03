@@ -35,11 +35,11 @@ const binary_bool_type: FunctionType = make_function_type(
 const builtin_func_types: Record<string, Type | Type[]> = {
   Println: make_function_type(
     [make_literal_type(DataType.STRING)],
-    [make_literal_type(DataType.STRING)],
+    [make_undefined_type()],
   ),
   Sleep: make_function_type(
     [make_literal_type(DataType.INT)],
-    [make_literal_type(DataType.STRING)],
+    [make_undefined_type()],
   ),
 };
 
@@ -86,17 +86,21 @@ export function check_special_binary_expr_type(
  * Converts a Type object to a String representation
  * Example: { _type: "Literal", val: "int"} -> "int"
  */
-export function stringify_type(type: any): string {
-  if (type._type === Types.UNDEFINED) return "undefined";
-
-  if (type._type === Types.LITERAL) return type.val;
-
-  if (type._type === Types.RETURN) return stringify_types(type.res);
-
-  if (type._type === Types.UNION)
-    return `(${Array.from(type.types).join(" | ")})`;
-
-  throw new TypeError(`Cannot stringify type ${type._type}`);
+export function stringify_type(type: Type): string {
+  switch (type._type) {
+    case Types.UNDEFINED:
+      return "undefined";
+    case Types.LITERAL:
+      return type.val;
+    case Types.RETURN:
+      return stringify_types(type.res);
+    case Types.UNION:
+      return `(${Array.from(type.types).join(" | ")})`;
+    case Types.CHANNEL:
+      return `chan ${type.val}`;
+    default:
+      throw new TypeError(`Cannot stringify type ${type._type}`);
+  }
 }
 
 /**
@@ -230,9 +234,21 @@ export function make_function_type(args: Type[], res: Type[]): FunctionType {
   };
 }
 
+export function make_type_from_ast(astNode: AST.Node): Type {
+  switch (astNode._type) {
+    case AST.NodeType.IDENT:
+      return make_literal_type((astNode as AST.Ident).Name);
+    case AST.NodeType.CHAN_TYPE:
+      const content_type = make_type_from_ast((astNode as AST.ChanType).Value);
+      return make_channel_type(content_type);
+    default:
+      return make_undefined_type();
+  }
+}
+
 export function make_function_type_from_ast(astNode: AST.FuncDecl) {
   const param_types = astNode.Type.Params.List.flatMap((e) =>
-    e.Names.map(() => make_literal_type(e.Type.Name)),
+    e.Names.map(() => make_type_from_ast(e.Type)),
   );
 
   let declared_return_type: Type[] = [];
@@ -268,4 +284,11 @@ export function type_union(type1: Type, type2: Type): Type {
   const types_in_2 = type2._type === Types.UNION ? type2.types : [type2];
 
   return make_union_type([...types_in_1, ...types_in_2]);
+}
+
+export function make_channel_type(val: Type): Type {
+  return {
+    _type: Types.CHANNEL,
+    val,
+  };
 }

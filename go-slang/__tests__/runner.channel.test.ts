@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { DataType } from "../src/types";
 import { strip_quotes } from "../src/utils";
 
 let golangRunner: GolangRunner;
@@ -13,9 +14,9 @@ type Value = string | boolean | number;
 
 describe("unbuffered channels", () => {
   const messages = [
-    ["string", '"Hello, World!"'],
-    ["boolean", true],
-    ["integer", 42],
+    [DataType.STRING, '"Hello, World!"'],
+    [DataType.BOOL, true],
+    [DataType.INT, 42],
   ] as [string, Value][];
 
   test.each(messages)("make(chan %s)", async (type, message) => {
@@ -243,9 +244,9 @@ describe("unbuffered channels", () => {
 
 describe("buffered channels", () => {
   const messages = [
-    ["string", '"a"', '"b"', '"c"'],
-    ["boolean", true, false, true],
-    ["integer", 1, 2, 3],
+    [DataType.STRING, '"a"', '"b"', '"c"'],
+    [DataType.BOOL, true, false, true],
+    [DataType.INT, 1, 2, 3],
   ] as [string, Value, Value, Value][];
 
   test.each(messages)(
