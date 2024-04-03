@@ -58,6 +58,7 @@ export const global_type_frame: Record<string, Type> = {
 
 /**
  * Checks that types of left_operand and right_operand are the same, except booleans
+ * Special operators are +, >, >=, <, <=, ==, !=
  */
 export function check_special_binary_expr_type(
   op: AST.Token,
@@ -76,7 +77,8 @@ export function check_special_binary_expr_type(
       ])}`,
     );
   }
-  return left_operand_type;
+  if (op === AST.Token.ADD) return left_operand_type // for add operator
+  return make_literal_type(DataType.BOOL) // for comparison operators
 }
 
 /**
