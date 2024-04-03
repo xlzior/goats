@@ -6,29 +6,30 @@ import { TypeError } from "../errors";
 import { make_call_expr, make_ident } from "../compiler/utils";
 import {
   global_type_frame,
-  make_literal_type,
   is_equal_types,
   stringify_types,
   check_special_binary_expr_type,
   is_equal_type,
   stringify_type,
-  make_return_type,
-  make_undefined_type,
-  make_function_type_from_ast,
   is_bool_literal,
-  type_union,
-  make_union_type,
   check_return_type,
   check_lhs_rhs_types,
   check_lhs_rhs_equal_length,
-  make_channel_type,
-  make_type_from_ast,
   is_int_literal,
   MUTEX_TYPE,
   WAITGROUP_TYPE,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
 import { peek } from "../utils";
+import {
+  make_undefined_type,
+  make_return_type,
+  make_literal_type,
+  make_channel_type,
+  ast_to_type,
+  make_union_type,
+  type_union,
+} from "./objects";
 
 export class GolangTypechecker {
   private type_env: Array<Record<string, Type>>;
@@ -265,7 +266,7 @@ export class GolangTypechecker {
       });
     },
     ChanType: (astNode: AST.ChanType) => {
-      return make_channel_type(make_type_from_ast(astNode.Value));
+      return make_channel_type(ast_to_type(astNode.Value));
     },
     CallExpr: (astNode: AST.CallExpr) => {
       return this.check_function_call(astNode);
@@ -302,7 +303,7 @@ export class GolangTypechecker {
         (func) => (func as AST.FuncDecl).Name.Name,
       );
       const func_types = func_decls.map((func) =>
-        make_function_type_from_ast(func as AST.FuncDecl),
+        ast_to_type(func as AST.FuncDecl),
       );
 
       this.extend_env(func_names, func_types);
