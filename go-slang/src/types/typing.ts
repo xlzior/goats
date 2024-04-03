@@ -6,6 +6,7 @@ export enum Types {
   UNION = "Union",
   CHANNEL = "Channel",
   MUTEX = "Mutex",
+  WAITGROUP = "WaitGroup",
   ANY = "Any",
 }
 
@@ -17,6 +18,7 @@ export type Type =
   | UnionType
   | ChannelType
   | MutexType
+  | WaitGroupType
   | AnyType;
 
 export type UndefinedType = {
@@ -56,4 +58,8 @@ export type ChannelType = {
 
 export type MutexType = {
   _type: Types.MUTEX;
+};
+
+export type WaitGroupType = {
+  _type: Types.WAITGROUP;
 };

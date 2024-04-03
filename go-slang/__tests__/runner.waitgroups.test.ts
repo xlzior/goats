@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -172,5 +173,177 @@ describe("waitgroups", () => {
     expect(println).toHaveBeenCalledWith("goroutine 1");
     expect(println).toHaveBeenCalledWith("goroutine 2");
     expect(println).toHaveBeenCalledWith("goroutine 3");
+  });
+});
+
+describe("typechecker for waitgroups", () => {
+  test("incorrect number of args (0) passed into Add function", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      Add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "not enough arguments in call to Add: have [], want [WaitGroup, int]",
+    );
+  });
+
+  test("incorrect number of args (3) passed into Add function", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      Add(1,2,3)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many arguments in call to Add: have [int, int, int], want [WaitGroup, int]",
+    );
+  });
+
+  test("incorrect number of args (0) passed into Wait function", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      Wait()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "not enough arguments in call to Wait: have [], want [WaitGroup]",
+    );
+  });
+
+  test("incorrect number of args (2) passed into Wait function", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      Wait(1,2)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many arguments in call to Wait: have [int, int], want [WaitGroup]",
+    );
+  });
+
+  test("incorrect number of args (0) passed into Done function", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      Done()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "not enough arguments in call to Done: have [], want [WaitGroup]",
+    );
+  });
+
+  test("incorrect number of args (2) passed into Done function", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      Done(1,2)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "too many arguments in call to Done: have [int, int], want [WaitGroup]",
+    );
+  });
+
+  test("incorrect type passed (only first arg) into Add function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x int = 33
+      Add(x, 1)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "Add expects [WaitGroup, int], but got [int, int]",
+    );
+  });
+
+  test("incorrect type passed (only second arg) into Add function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var mutex Mutex
+      var x string = "hello"
+      Add(mutex, x)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "Add expects [WaitGroup, int], but got [Mutex, string]",
+    );
+  });
+
+  test("incorrect type passed (both args) into Add function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x bool = false
+      var y string = "hello"
+      Add(x, y)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "Add expects [WaitGroup, int], but got [bool, string]",
+    );
+  });
+
+  test("incorrect type passed into Wait function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x int = 33
+      Wait(x)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "Wait expects [WaitGroup], but got [int]",
+    );
+  });
+
+  test("incorrect type passed into Done function", async () => {
+    const program = `
+    package main
+
+    func add() {
+      var x int = 33
+      Done(x)
+    }
+  
+    func main() {
+      add()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "Done expects [WaitGroup], but got [int]",
+    );
   });
 });
