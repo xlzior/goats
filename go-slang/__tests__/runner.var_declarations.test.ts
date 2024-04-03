@@ -1,6 +1,7 @@
 import { GolangRunner } from "../src";
 import { strip_quotes } from "../src/utils";
 import { DataType } from "../src/types/index";
+import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -157,5 +158,88 @@ describe("variable declarations at a function level", () => {
     const { value } = await golangRunner.execute(program);
     const expected = 333;
     expect(value).toEqual(expected);
+  });
+});
+
+describe("typecheck variable declarations", () => {
+  test("var decl more init values than variables", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x int = 1,2,3
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "assignment mismatch: 1 variable but 3 values", // deviating from Go's err msg
+    );
+  });
+
+  test("var decl more variables than init values", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var a, b int = 1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "assignment mismatch: 2 variables but 1 value",
+    );
+  });
+
+  test("var decl with declaration and initialisation, but mismatch declared type and value", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x int = "hello"
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot use string as int value in variable declaration",
+    );
+  });
+
+  test("var decl with declaration, but reassign to different type", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x int
+      x = true
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot use bool as int value in assignment",
+    );
+  });
+
+  test("var decl with initialisation without declared type, but reassign to different type", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x = "hello"
+      x = 1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot use int as string value in assignment",
+    );
+  });
+
+  test("multiple var decl with initialisation without declared type, but reassign to different type", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      var x,y int = "hello", 1
+      x = 1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot use string as int value in variable declaration",
+    );
   });
 });
