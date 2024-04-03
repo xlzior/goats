@@ -4,8 +4,10 @@ import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
+const println = jest.fn();
 beforeEach(() => {
-  golangRunner = new GolangRunner();
+  println.mockClear();
+  golangRunner = new GolangRunner({ Println: { arity: 1, apply: println } });
 });
 
 describe("binary expressions", () => {
@@ -190,27 +192,39 @@ describe("logical expressions", () => {
   test("short circuit for OR", async () => {
     const program = `
     package main
+
+    func boo() bool {
+      Println("DONT PRINT")
+      return false
+    }
   
     func main() {
-      x := true || 1 + true;
+      x := true || boo()
       return x
     }`;
     const actual = await golangRunner.execute(program);
     const expected = true;
     expect(actual.value).toEqual(expected);
+    expect(println).not.toHaveBeenCalledWith("DONT PRINT");
   });
 
   test("short circuit for AND", async () => {
     const program = `
     package main
+
+    func boo() bool {
+      Println("DONT PRINT")
+      return false
+    }
   
     func main() {
-      x := false && 1 + true;
+      x := false && boo();
       return x
     }`;
     const actual = await golangRunner.execute(program);
     const expected = false;
     expect(actual.value).toEqual(expected);
+    expect(println).not.toHaveBeenCalledWith("DONT PRINT");
   });
 });
 

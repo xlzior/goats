@@ -170,13 +170,13 @@ export class GolangTypechecker {
       return make_undefined_type();
     },
     GenDecl: (astNode: AST.GenDecl) => {
-      return;
+      return make_undefined_type()
     },
     ValueSpec: (astNode: AST.ValueSpec) => {
-      return;
+      return make_undefined_type()
     },
     ChanType: (astNode: AST.ChanType) => {
-      return;
+      return make_undefined_type()
     },
     CallExpr: (astNode: AST.CallExpr) => {
       const fun_type = this.type(astNode.Fun) as FunctionType;
@@ -207,10 +207,10 @@ export class GolangTypechecker {
       );
     },
     GoStmt: (astNode: AST.GoStmt) => {
-      return;
+      return make_undefined_type()
     },
     SendStmt: (astNode: AST.SendStmt) => {
-      return;
+      return make_undefined_type()
     },
     BlockStmt: (astNode: AST.BlockStmt): Type => {
       const func_decls = astNode.List.filter(
@@ -282,16 +282,16 @@ export class GolangTypechecker {
       return this.type(astNode.X);
     },
     IfStmt: (astNode: AST.IfStmt) => {
-      return;
+      return make_undefined_type()
     },
     ForStmt: (astNode: AST.ForStmt) => {
-      return;
+      return make_undefined_type()
     },
     IncDecStmt: (astNode: AST.IncDecStmt) => {
-      return;
+      return make_undefined_type()
     },
     DeclStmt: (astNode: AST.DeclStmt) => {
-      return;
+      return make_undefined_type()
     },
     File: () => {
       return;
