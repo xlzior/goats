@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "format": "biome format --write ./src ./__tests__"
+    "format": "biome format --write . && biome check --apply .",
+    "lint": "biome lint ."
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.0",
