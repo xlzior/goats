@@ -63,6 +63,35 @@ export class GolangTypechecker {
     this.type_env.push(new_env_frame);
   }
 
+  private check_function_call(astNode: AST.CallExpr) {
+    const fun_type = this.type(astNode.Fun);
+    if (fun_type._type !== Types.FUNCTION)
+      throw new TypeError(
+        `invalid operation: cannot call non-function ${astNode.Fun.Name}`,
+      );
+    const expected_arg_types: Type[] = fun_type.args;
+    const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
+    if (
+      is_equal_types(
+        expected_arg_types,
+        actual_arg_types,
+        `too many arguments in call to ${astNode.Fun.Name}`,
+        `not enough arguments in call to ${astNode.Fun.Name}`,
+      )
+    ) {
+      const results = fun_type.res;
+      if (results.length === 0) return make_undefined_type();
+      if (results.length === 1) return results[0];
+      return make_return_type(results);
+    }
+
+    throw new TypeError(
+      `${astNode.Fun.Name} expects ${stringify_types(
+        expected_arg_types,
+      )}, but got ${stringify_types(actual_arg_types)}`,
+    );
+  }
+
   private type_ast: Record<AST.NodeType, any> = {
     // base case
     BasicLit: (astNode: AST.BasicLit): LiteralType => {
@@ -198,35 +227,11 @@ export class GolangTypechecker {
       return make_undefined_type();
     },
     CallExpr: (astNode: AST.CallExpr) => {
-      const fun_type = this.type(astNode.Fun) as FunctionType;
-      if (fun_type._type !== Types.FUNCTION)
-        throw new TypeError(
-          `invalid operation: cannot call non-function ${astNode.Fun.Name}`,
-        );
-      const expected_arg_types: Type[] = fun_type.args;
-      const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
-      if (
-        is_equal_types(
-          expected_arg_types,
-          actual_arg_types,
-          `too many arguments in call to ${astNode.Fun.Name}`,
-          `not enough arguments in call to ${astNode.Fun.Name}`,
-        )
-      ) {
-        const results = fun_type.res;
-        if (results.length === 0) return make_undefined_type();
-        if (results.length === 1) return results[0];
-        return make_return_type(results);
-      }
-
-      throw new TypeError(
-        `${astNode.Fun.Name} expects ${stringify_types(
-          expected_arg_types,
-        )}, but got ${stringify_types(actual_arg_types)}`,
-      );
+      return this.check_function_call(astNode);
     },
     GoStmt: (astNode: AST.GoStmt) => {
-      return make_undefined_type();
+      // TODO: write tests for this
+      return this.check_function_call(astNode.Call);
     },
     SendStmt: (astNode: AST.SendStmt) => {
       return make_undefined_type();
