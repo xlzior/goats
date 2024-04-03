@@ -77,8 +77,8 @@ export function check_special_binary_expr_type(
       ])}`,
     );
   }
-  if (op === AST.Token.ADD) return left_operand_type // for add operator
-  return make_literal_type(DataType.BOOL) // for comparison operators
+  if (op === AST.Token.ADD) return left_operand_type; // for add operator
+  return make_literal_type(DataType.BOOL); // for comparison operators
 }
 
 /**

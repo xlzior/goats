@@ -170,13 +170,13 @@ export class GolangTypechecker {
       return make_undefined_type();
     },
     GenDecl: (astNode: AST.GenDecl) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     ValueSpec: (astNode: AST.ValueSpec) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     ChanType: (astNode: AST.ChanType) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     CallExpr: (astNode: AST.CallExpr) => {
       const fun_type = this.type(astNode.Fun) as FunctionType;
@@ -207,10 +207,10 @@ export class GolangTypechecker {
       );
     },
     GoStmt: (astNode: AST.GoStmt) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     SendStmt: (astNode: AST.SendStmt) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     BlockStmt: (astNode: AST.BlockStmt): Type => {
       const func_decls = astNode.List.filter(
@@ -282,16 +282,27 @@ export class GolangTypechecker {
       return this.type(astNode.X);
     },
     IfStmt: (astNode: AST.IfStmt) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     ForStmt: (astNode: AST.ForStmt) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     IncDecStmt: (astNode: AST.IncDecStmt) => {
-      return make_undefined_type()
+      if (astNode.X._type !== AST.NodeType.IDENT)
+        throw new TypeError(
+          `invalid operation ${astNode.Tok} on non-identifier type`,
+        );
+      const ident_type = this.type(astNode.X);
+      if (!is_equal_type(ident_type, make_literal_type(DataType.INT)))
+        throw new TypeError(
+          `invalid operation ${astNode.Tok} on type ${stringify_type(
+            ident_type,
+          )}`,
+        );
+      return make_undefined_type();
     },
     DeclStmt: (astNode: AST.DeclStmt) => {
-      return make_undefined_type()
+      return make_undefined_type();
     },
     File: () => {
       return;
