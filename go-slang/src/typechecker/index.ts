@@ -7,26 +7,28 @@ import { TypeError } from "../errors";
 import { BuiltinFunction, DataType } from "../types";
 import { peek } from "../utils";
 import {
+  BOOL_TYPE,
+  INT_TYPE,
+  MUTEX_TYPE,
+  STRING_TYPE,
+  UNDEFINED_TYPE,
+  WAITGROUP_TYPE,
   ast_to_type,
+  is_bool_literal,
+  is_int_literal,
   make_channel_type,
-  make_literal_type,
   make_return_type,
-  make_undefined_type,
   make_union_type,
   type_union,
 } from "./objects";
 import {
-  MUTEX_TYPE,
-  WAITGROUP_TYPE,
   check_lhs_rhs_equal_length,
   check_lhs_rhs_types,
   check_return_type,
   check_special_binary_expr_type,
   global_type_frame,
-  is_bool_literal,
   is_equal_type,
   is_equal_types,
-  is_int_literal,
   stringify_type,
   stringify_types,
 } from "./utils";
@@ -115,7 +117,7 @@ export class GolangTypechecker {
       )
     ) {
       const results = fun_type.res;
-      if (results.length === 0) return make_undefined_type();
+      if (results.length === 0) return UNDEFINED_TYPE;
       if (results.length === 1) return results[0];
       return make_return_type(results);
     }
@@ -132,9 +134,9 @@ export class GolangTypechecker {
     BasicLit: (astNode: AST.BasicLit): LiteralType => {
       switch (astNode.Kind) {
         case AST.Token.INT:
-          return make_literal_type(DataType.INT);
+          return INT_TYPE;
         case AST.Token.STRING:
-          return make_literal_type(DataType.STRING);
+          return STRING_TYPE;
         default:
           throw new TypeError(`type: ${astNode.Kind} not supported`);
       }
@@ -208,7 +210,7 @@ export class GolangTypechecker {
       // skip return type check for main function because technically it doesn't have a return
       if (astNode.Name.Name === "main") {
         this.type_env.pop();
-        return make_undefined_type();
+        return UNDEFINED_TYPE;
       }
 
       if (actual_result_type._type === Types.UNION) {
@@ -231,11 +233,11 @@ export class GolangTypechecker {
       );
 
       this.type_env.pop();
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
     },
     GenDecl: (astNode: AST.GenDecl) => {
       astNode.Specs.forEach((spec) => this.type(spec));
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
     },
     ValueSpec: (astNode: AST.ValueSpec) => {
       const curr_env_frame = peek(this.type_env);
@@ -245,9 +247,7 @@ export class GolangTypechecker {
 
         const rhs_types = astNode.Values.map((expr) => this.type(expr));
         if (astNode.Type) {
-          const lhs_types = astNode.Names.map((_) =>
-            make_literal_type(astNode.Type.Name),
-          );
+          const lhs_types = astNode.Names.map((_) => ast_to_type(astNode.Type));
           check_lhs_rhs_types(lhs_types, rhs_types, "variable declaration");
         }
 
@@ -258,9 +258,7 @@ export class GolangTypechecker {
       }
 
       // if rhs has no values, lhs must have declared type(s)
-      const lhs_types = astNode.Names.map((_) =>
-        make_literal_type(astNode.Type.Name),
-      );
+      const lhs_types = astNode.Names.map((_) => ast_to_type(astNode.Type));
       astNode.Names.forEach((name, i) => {
         curr_env_frame[name.Name] = lhs_types[i];
       });
@@ -293,7 +291,7 @@ export class GolangTypechecker {
         );
       }
 
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
     },
     BlockStmt: (astNode: AST.BlockStmt): Type => {
       const func_decls = astNode.List.filter(
@@ -333,7 +331,6 @@ export class GolangTypechecker {
       }
       check_lhs_rhs_equal_length(astNode.Lhs.length, rhs_types.length);
 
-      // TODO: handle function returns
       if (astNode.Tok === AST.Token.DEFINE) {
         astNode.Lhs.forEach((ident, i) => {
           curr_env_frame[ident.Name] = rhs_types[i];
@@ -342,12 +339,12 @@ export class GolangTypechecker {
         const curr_lhs_types = astNode.Lhs.map((ident) => this.type(ident));
         check_lhs_rhs_types(curr_lhs_types, rhs_types, "assignment");
       }
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
     },
     Ident: (astNode: AST.Ident): Type | Type[] => {
       const name = astNode.Name;
       if (name === "true" || name === "false") {
-        return make_literal_type(DataType.BOOL);
+        return BOOL_TYPE;
       }
       if (name === DataType.MUTEX) return MUTEX_TYPE;
       if (name === DataType.WAITGROUP) return WAITGROUP_TYPE;
@@ -366,16 +363,14 @@ export class GolangTypechecker {
         throw new TypeError("non-boolean condition in if statement");
 
       const then_type = this.type(astNode.Body);
-      const else_type = astNode.Else
-        ? this.type(astNode.Else)
-        : make_undefined_type();
+      const else_type = astNode.Else ? this.type(astNode.Else) : UNDEFINED_TYPE;
 
       if (is_equal_type(then_type, else_type)) return then_type;
 
       return type_union(then_type, else_type);
     },
     ForStmt: (astNode: AST.ForStmt) => {
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
     },
     IncDecStmt: (astNode: AST.IncDecStmt) => {
       if (astNode.X._type !== AST.NodeType.IDENT)
@@ -383,17 +378,17 @@ export class GolangTypechecker {
           `invalid operation ${astNode.Tok} on non-identifier type`,
         );
       const ident_type = this.type(astNode.X);
-      if (!is_equal_type(ident_type, make_literal_type(DataType.INT)))
+      if (!is_equal_type(ident_type, INT_TYPE))
         throw new TypeError(
           `invalid operation ${astNode.Tok} on type ${stringify_type(
             ident_type,
           )}`,
         );
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
     },
     DeclStmt: (astNode: AST.DeclStmt) => {
       this.type(astNode.Decl);
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
     },
     File: () => {
       return;

@@ -1,25 +1,68 @@
-// ===========================================
-// HELPER METHODS TO RECONSTRUCT TYPE OBJECTS
-// ===========================================
+import { DataType } from "../types";
 import * as AST from "../types/ast";
 import {
   AnyType,
   FunctionType,
   LiteralType,
+  MutexType,
   ReturnType,
   Type,
   Types,
   UndefinedType,
+  WaitGroupType,
 } from "../types/typing";
 import { is_equal_type } from "./utils";
 
-export function make_undefined_type(): UndefinedType {
-  return { _type: Types.UNDEFINED };
+// ===========================================
+// SINGLETON TYPES
+// ===========================================
+
+export const UNDEFINED_TYPE: UndefinedType = {
+  _type: Types.UNDEFINED,
+};
+
+export const ANY_TYPE: AnyType = {
+  _type: Types.ANY,
+};
+
+export const INT_TYPE: LiteralType = {
+  _type: Types.LITERAL,
+  val: DataType.INT,
+};
+
+export const BOOL_TYPE: LiteralType = {
+  _type: Types.LITERAL,
+  val: DataType.BOOL,
+};
+
+export const STRING_TYPE: LiteralType = {
+  _type: Types.LITERAL,
+  val: DataType.STRING,
+};
+
+export const MUTEX_TYPE: MutexType = {
+  _type: Types.MUTEX,
+};
+
+export const WAITGROUP_TYPE: WaitGroupType = {
+  _type: Types.WAITGROUP,
+};
+
+// ===========================================
+// HELPER METHODS TO CHECK TYPE OBJECTS
+// ===========================================
+
+export function is_bool_literal(type: Type): boolean {
+  return type._type === Types.LITERAL && type.val === DataType.BOOL;
 }
 
-export function make_any_type(): AnyType {
-  return { _type: Types.ANY };
+export function is_int_literal(type: Type): boolean {
+  return type._type === Types.LITERAL && type.val === DataType.INT;
 }
+
+// ===========================================
+// HELPER METHODS TO RECONSTRUCT TYPE OBJECTS
+// ===========================================
 
 export function make_literal_type(val: string): LiteralType {
   return { _type: Types.LITERAL, val };
@@ -43,7 +86,7 @@ export function ast_to_type(astNode: AST.Node): Type {
     case AST.NodeType.FUNC_DECL:
       return ast_to_function_type(astNode as AST.FuncDecl);
     default:
-      return make_undefined_type();
+      return UNDEFINED_TYPE;
   }
 }
 
@@ -62,7 +105,7 @@ function ast_to_function_type(astNode: AST.FuncDecl) {
 }
 
 export function make_union_type(types: Type[]): Type {
-  if (types.length === 0) return make_undefined_type();
+  if (types.length === 0) return UNDEFINED_TYPE;
 
   const deduped_types: Type[] = [];
   for (const type of types) {
