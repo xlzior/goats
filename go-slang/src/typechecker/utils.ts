@@ -92,6 +92,9 @@ export function stringify_type(type: any): string {
 
   if (type._type === Types.RETURN) return stringify_types(type.res);
 
+  if (type._type === Types.UNION)
+    return `(${Array.from(type.types).join(" | ")})`;
+
   throw new TypeError(`Cannot stringify type ${type._type}`);
 }
 
@@ -136,6 +139,28 @@ export function is_equal_types(
   return expected_types.every((expected_type, i) =>
     is_equal_type(expected_type, actual_types[i]),
   );
+}
+
+export function check_return_type(
+  func_name: string,
+  actual_result_type: Type,
+  declared_return_type: Type[],
+) {
+  if (
+    actual_result_type._type === Types.RETURN &&
+    !is_equal_types(
+      declared_return_type,
+      (actual_result_type as ReturnType).res,
+      `${func_name}: too many return values`,
+      `${func_name}: not enough return values`,
+    )
+  ) {
+    throw new TypeError(
+      `${func_name}: cannot use ${stringify_types(
+        (actual_result_type as ReturnType).res,
+      )} as ${stringify_types(declared_return_type)} value in return statement`,
+    );
+  }
 }
 
 // ===========================================
@@ -183,4 +208,29 @@ export function make_function_type_from_ast(astNode: AST.FuncDecl) {
   }
 
   return make_function_type(param_types, declared_return_type);
+}
+
+export function make_union_type(types: Type[]): Type {
+  if (types.length === 0) return make_undefined_type();
+
+  const deduped_types: Type[] = [];
+  for (const type of types) {
+    const exists = deduped_types.some((x) => is_equal_type(type, x));
+    if (!exists) deduped_types.push(type);
+  }
+  if (deduped_types.length === 1) return types[0];
+
+  return {
+    _type: Types.UNION,
+    types: deduped_types,
+  };
+}
+
+export function type_union(type1: Type, type2: Type): Type {
+  if (is_equal_type(type1, type2)) return type1;
+
+  const types_in_1 = type1._type === Types.UNION ? type1.types : [type1];
+  const types_in_2 = type2._type === Types.UNION ? type2.types : [type2];
+
+  return make_union_type([...types_in_1, ...types_in_2]);
 }

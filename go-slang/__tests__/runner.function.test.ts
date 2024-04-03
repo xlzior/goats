@@ -172,7 +172,7 @@ describe("functions", () => {
       }
       return n * factorial(n-1)
     }
-  
+
     func main() {
       return factorial(6)
     }`;
@@ -316,7 +316,7 @@ describe("handling errors for functions", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "not enough return values: have [int], want [string, int, string]",
+      "add: not enough return values: have [int], want [string, int, string]",
     );
   });
 
@@ -368,6 +368,215 @@ describe("handling errors for functions", () => {
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "too many return values: have [int], want []",
+    );
+  });
+});
+
+describe("typechecking if statements in functions", () => {
+  test("after return statement in if block, continue to typecheck", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      x := 7
+      if (x < 5) {
+        return 100
+      }
+      "hello" + 1
+      return -1
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "+ expects [int, int] or [string, string], but got [string, int]",
+    );
+  });
+
+  test("missing return because of missing else statement", async () => {
+    const program = `
+    package main
+  
+    func foo() int {
+      if (true) {
+        return 1
+      }
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("missing return because of missing else statement", async () => {
+    const program = `
+    package main
+  
+    func foo() int {
+      if (true) {
+        return 1
+      } else if (false) {
+        return 2
+      }
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("missing return in deeply-nested conditional statement", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      x := 7
+      if (x < 5) {
+        return 100
+      } else {
+        if (x == 5) {
+          return 200
+        } else {
+          if (x == 6) {
+
+          } else {
+            return 400
+          }
+        }
+      }
+    }
+
+    func main() {
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("return statement in if block which does not match function return type", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if (true) {
+        return "hello"
+      }
+      return 1
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: cannot use [string] as [int] value in return statement",
+    );
+  });
+
+  test("return statement in else if block which does not match function return type", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if (true) {
+        return 1
+      } else if (false) {
+        return "hello"
+      }
+      return 1
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: cannot use [string] as [int] value in return statement",
+    );
+  });
+
+  test("return statement in else block which does not match function return type", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if (true) {
+        return 1
+      } else {
+        return "hello"
+      }
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: cannot use [string] as [int] value in return statement",
+    );
+  });
+
+  test("return undefined in if in function with return type", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if (true) {
+        return
+      } else {
+        return 1
+      }
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: not enough return values: have [], want [int]",
+    );
+  });
+
+  test("return undefined in else if in function with return type", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if (true) {
+        return 1
+      } else if (false) {
+        return
+      } else {
+        return 3
+      }
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: not enough return values: have [], want [int]",
+    );
+  });
+
+  test("return undefined in else in function with return type", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if (true) {
+        return 1
+      } else {
+        return
+      }
+    }
+
+    func main() {
+
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: not enough return values: have [], want [int]",
     );
   });
 });
