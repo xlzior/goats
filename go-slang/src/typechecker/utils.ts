@@ -47,7 +47,7 @@ const binary_bool_type: FunctionType = make_function_type(
   [make_literal_type(DataType.BOOL)],
 );
 
-const builtin_func_types: Record<string, Type | Type[]> = {
+const builtin_func_types: Record<string, Type> = {
   Println: make_function_type([make_any_type()], [make_undefined_type()]),
   Sleep: make_function_type(
     [make_literal_type(DataType.INT)],
