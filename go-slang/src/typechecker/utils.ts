@@ -8,6 +8,7 @@ import {
   Type,
   Types,
   UndefinedType,
+  WaitGroupType,
 } from "../types/typing";
 import { DataType } from "../types";
 import { TypeError } from "../errors";
@@ -19,6 +20,12 @@ import { pluralize } from "../utils";
 export const MUTEX_TYPE: MutexType = {
   _type: Types.MUTEX,
 };
+
+export const WAITGROUP_TYPE: WaitGroupType = {
+  _type: Types.WAITGROUP,
+};
+
+// ===========================================
 
 const unary_arith_type: FunctionType = make_function_type(
   [make_literal_type(DataType.INT)],
@@ -48,6 +55,12 @@ const builtin_func_types: Record<string, Type | Type[]> = {
   ),
   Lock: make_function_type([MUTEX_TYPE], [make_undefined_type()]),
   Unlock: make_function_type([MUTEX_TYPE], [make_undefined_type()]),
+  Add: make_function_type(
+    [WAITGROUP_TYPE, make_literal_type(DataType.INT)],
+    [make_undefined_type()],
+  ),
+  Wait: make_function_type([WAITGROUP_TYPE], [make_undefined_type()]),
+  Done: make_function_type([WAITGROUP_TYPE], [make_undefined_type()]),
 };
 
 export const global_type_frame: Record<string, Type> = {
@@ -109,6 +122,8 @@ export function stringify_type(type: Type): string {
       return "any";
     case Types.MUTEX:
       return "Mutex";
+    case Types.WAITGROUP:
+      return "WaitGroup";
     default:
       throw new TypeError(`Cannot stringify type ${type._type}`);
   }
