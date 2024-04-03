@@ -5,6 +5,7 @@ export enum Types {
   RETURN = "Return",
   UNION = "Union",
   CHANNEL = "Channel",
+  ANY = "Any",
 }
 
 export type Type =
@@ -13,10 +14,15 @@ export type Type =
   | FunctionType
   | ReturnType
   | UnionType
-  | ChannelType;
+  | ChannelType
+  | AnyType;
 
 export type UndefinedType = {
   _type: Types.UNDEFINED;
+};
+
+export type AnyType = {
+  _type: Types.ANY;
 };
 
 export type LiteralType = {

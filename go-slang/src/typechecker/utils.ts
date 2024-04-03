@@ -1,5 +1,6 @@
 import * as AST from "../types/ast";
 import {
+  AnyType,
   FunctionType,
   LiteralType,
   ReturnType,
@@ -33,10 +34,7 @@ const binary_bool_type: FunctionType = make_function_type(
 
 // TODO: Handle builtin function typechecking separately?
 const builtin_func_types: Record<string, Type | Type[]> = {
-  Println: make_function_type(
-    [make_literal_type(DataType.STRING)],
-    [make_undefined_type()],
-  ),
+  Println: make_function_type([make_any_type()], [make_undefined_type()]),
   Sleep: make_function_type(
     [make_literal_type(DataType.INT)],
     [make_undefined_type()],
@@ -98,6 +96,8 @@ export function stringify_type(type: Type): string {
       return `(${Array.from(type.types).join(" | ")})`;
     case Types.CHANNEL:
       return `chan ${stringify_type(type.val)}`;
+    case Types.ANY:
+      return "any";
     default:
       throw new TypeError(`Cannot stringify type ${type._type}`);
   }
@@ -123,6 +123,7 @@ export function is_int_literal(type: Type): boolean {
 }
 
 export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
+  if (expected_type._type === Types.ANY) return true;
   return stringify_type(actual_type) === stringify_type(expected_type);
 }
 
@@ -211,31 +212,23 @@ export function check_lhs_rhs_equal_length(lhs: number, rhs: number) {
 // ===========================================
 
 export function make_undefined_type(): UndefinedType {
-  return {
-    _type: Types.UNDEFINED,
-  };
+  return { _type: Types.UNDEFINED };
+}
+
+export function make_any_type(): AnyType {
+  return { _type: Types.ANY };
 }
 
 export function make_literal_type(val: string): LiteralType {
-  return {
-    _type: Types.LITERAL,
-    val,
-  };
+  return { _type: Types.LITERAL, val };
 }
 
 export function make_return_type(res: Type[]): ReturnType {
-  return {
-    _type: Types.RETURN,
-    res,
-  };
+  return { _type: Types.RETURN, res };
 }
 
 export function make_function_type(args: Type[], res: Type[]): FunctionType {
-  return {
-    _type: Types.FUNCTION,
-    args,
-    res,
-  };
+  return { _type: Types.FUNCTION, args, res };
 }
 
 export function make_type_from_ast(astNode: AST.Node): Type {
