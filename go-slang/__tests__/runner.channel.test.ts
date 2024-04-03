@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { TypeError } from "../src/errors";
 import { DataType } from "../src/types";
 import { strip_quotes } from "../src/utils";
 
@@ -494,5 +495,134 @@ describe("channels", () => {
     }`;
     const { value } = await golangRunner.execute(program);
     expect(value).toEqual(0);
+  });
+});
+
+describe("Typechecker for channels", () => {
+  test("make with 0 arguments", async () => {
+    const program = `
+    package main
+
+    func main() {
+      make()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: make expects 1 or 2 arguments; found 0",
+    );
+  });
+
+  test("make with 3 arguments", async () => {
+    const program = `
+    package main
+
+    func main() {
+      make(chan int, 0, 0)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: make expects 1 or 2 arguments; found 3",
+    );
+  });
+
+  test("make with non-channel-type first argument", async () => {
+    const program = `
+    package main
+
+    func main() {
+      make(42)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid argument: cannot make int; type must be channel",
+    );
+  });
+
+  test("make with non-integer buffer size", async () => {
+    const program = `
+    package main
+
+    func main() {
+      make(chan int, "0")
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot convert string to type int",
+    );
+  });
+
+  test("channel as function argument with wrong content type", async () => {
+    const program = `
+    package main
+
+    func foo(c chan int) {
+      return
+    }
+
+    func main() {
+      c := make(chan string)
+      foo(c)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo expects [chan int], but got [chan string]",
+    );
+  });
+
+  test("sending to a non-channel type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      1 <- 42
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: cannot send to non-channel type int",
+    );
+  });
+
+  test("receiving from a non-channel type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := <-42
+      return x
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: cannot receive from non-channel type int",
+    );
+  });
+
+  test("sending to a channel with wrong content type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      c := make(chan int)
+      c <- "hello"
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot use string as type int in send",
+    );
+  });
+
+  test("receiving from a channel with wrong content type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      var x string
+      c := make(chan int)
+      x = <-c
+      return x
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot use int as string value in assignment",
+    );
   });
 });
