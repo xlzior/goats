@@ -460,4 +460,86 @@ describe("handling errors for assignments", () => {
       "cannot use string as int value in assignment",
     );
   });
+
+  test("Increment operator invalid on non-indentifier type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      1++
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation ++ on non-identifier type",
+    );
+  });
+
+  test("Increment operator invalid on string type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := "hello"
+      x++
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation ++ on type string",
+    );
+  });
+
+  test("Increment operator invalid on bool type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := false
+      x++
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation ++ on type bool",
+    );
+  });
+
+  test("Increment operator invalid on non-indentifier type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      1--
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation -- on non-identifier type",
+    );
+  });
+
+  test("Decrement operator invalid on string type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := "hello"
+      x--
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation -- on type string",
+    );
+  });
+
+  test("Decrement operator invalid on bool type", async () => {
+    const program = `
+    package main
+
+    func main() {
+      x := true
+      x--
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation -- on type bool",
+    );
+  });
 });
