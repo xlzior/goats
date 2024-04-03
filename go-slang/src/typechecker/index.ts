@@ -223,7 +223,7 @@ export class GolangTypechecker {
 
       this.extend_env(func_names, func_types);
       const stmts = astNode.List;
-      const types_seen = [];
+      let types_seen: Type[] = [];
       for (let i = 0; i < stmts.length; i++) {
         const stmt_type = this.type(stmts[i]);
         if (stmt_type._type === Types.UNION) {
@@ -231,11 +231,8 @@ export class GolangTypechecker {
         }
         if (stmt_type._type === Types.RETURN) {
           types_seen.push(stmt_type);
-          this.type_env.pop();
-          return make_union_type(
-            types_seen.filter((x) => x._type === Types.RETURN)
-            // since we have top-level return, function always returns; drop undefined
-          );
+          // since we have top-level return, function always returns; drop undefined
+          types_seen = types_seen.filter((x) => x._type === Types.RETURN);
         }
       }
       // no top-level return, function may not always return; do not drop undefined
