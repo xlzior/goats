@@ -168,12 +168,11 @@ export class GolangTypechecker {
     },
     ValueSpec: (astNode: AST.ValueSpec) => {
       const curr_env_frame = peek(this.type_env);
-      let rhs_types: Type[] = [];
 
       if (astNode.Values.length > 0) {
         check_lhs_rhs_equal_length(astNode.Names.length, astNode.Values.length);
 
-        rhs_types = astNode.Values.map((expr) => this.type(expr));
+        const rhs_types = astNode.Values.map((expr) => this.type(expr));
         if (astNode.Type) {
           const lhs_types = astNode.Names.map((_) =>
             make_literal_type(astNode.Type.Name),
@@ -187,7 +186,7 @@ export class GolangTypechecker {
         return;
       }
 
-      // if rhs has no values, lhs must have a declared type
+      // if rhs has no values, lhs must have declared type(s)
       const lhs_types = astNode.Names.map((_) =>
         make_literal_type(astNode.Type.Name),
       );
