@@ -5,26 +5,24 @@ export enum Types {
   RETURN = "Return",
 }
 
-export interface Type {
-  _type: Types;
-}
+export type Type = UndefinedType | LiteralType | FunctionType | ReturnType;
 
-export interface UndefinedType extends Type {
+export type UndefinedType = {
   _type: Types.UNDEFINED;
-}
+};
 
-export interface LiteralType extends Type {
+export type LiteralType = {
   _type: Types.LITERAL;
   val: string; // the base type, such as int, string, bool
-}
+};
 
-export interface FunctionType extends Type {
+export type FunctionType = {
   _type: Types.FUNCTION;
   args: Type[];
   res: Type[];
-}
+};
 
-export interface ReturnType extends Type {
+export type ReturnType = {
   _type: Types.RETURN;
   res: Type[];
-}
+};
