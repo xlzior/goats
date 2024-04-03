@@ -1,69 +1,46 @@
 import { TypeError } from "../errors";
 import { DataType } from "../types";
 import * as AST from "../types/ast";
-import {
-  FunctionType,
-  MutexType,
-  ReturnType,
-  Type,
-  Types,
-  WaitGroupType,
-} from "../types/typing";
+import { FunctionType, ReturnType, Type, Types } from "../types/typing";
 import { pluralize } from "../utils";
 import {
-  make_any_type,
+  ANY_TYPE,
+  BOOL_TYPE,
+  INT_TYPE,
+  MUTEX_TYPE,
+  UNDEFINED_TYPE,
+  WAITGROUP_TYPE,
   make_function_type,
-  make_literal_type,
-  make_undefined_type,
 } from "./objects";
 
-// ===========================================
-// SINGLETON TYPES
-// ===========================================
-export const MUTEX_TYPE: MutexType = {
-  _type: Types.MUTEX,
-};
-
-export const WAITGROUP_TYPE: WaitGroupType = {
-  _type: Types.WAITGROUP,
-};
-
-// ===========================================
-
 const unary_arith_type: FunctionType = make_function_type(
-  [make_literal_type(DataType.INT)],
-  [make_literal_type(DataType.INT)],
+  [INT_TYPE],
+  [INT_TYPE],
 );
 
 const unary_bool_type: FunctionType = make_function_type(
-  [make_literal_type(DataType.BOOL)],
-  [make_literal_type(DataType.BOOL)],
+  [BOOL_TYPE],
+  [BOOL_TYPE],
 );
 
 const binary_arith_type: FunctionType = make_function_type(
-  [make_literal_type(DataType.INT), make_literal_type(DataType.INT)],
-  [make_literal_type(DataType.INT)],
+  [INT_TYPE, INT_TYPE],
+  [INT_TYPE],
 );
 
 const binary_bool_type: FunctionType = make_function_type(
-  [make_literal_type(DataType.BOOL), make_literal_type(DataType.BOOL)],
-  [make_literal_type(DataType.BOOL)],
+  [BOOL_TYPE, BOOL_TYPE],
+  [BOOL_TYPE],
 );
 
 const builtin_func_types: Record<string, Type> = {
-  Println: make_function_type([make_any_type()], [make_undefined_type()]),
-  Sleep: make_function_type(
-    [make_literal_type(DataType.INT)],
-    [make_undefined_type()],
-  ),
-  Lock: make_function_type([MUTEX_TYPE], [make_undefined_type()]),
-  Unlock: make_function_type([MUTEX_TYPE], [make_undefined_type()]),
-  Add: make_function_type(
-    [WAITGROUP_TYPE, make_literal_type(DataType.INT)],
-    [make_undefined_type()],
-  ),
-  Wait: make_function_type([WAITGROUP_TYPE], [make_undefined_type()]),
-  Done: make_function_type([WAITGROUP_TYPE], [make_undefined_type()]),
+  Println: make_function_type([ANY_TYPE], [UNDEFINED_TYPE]),
+  Sleep: make_function_type([INT_TYPE], [UNDEFINED_TYPE]),
+  Lock: make_function_type([MUTEX_TYPE], [UNDEFINED_TYPE]),
+  Unlock: make_function_type([MUTEX_TYPE], [UNDEFINED_TYPE]),
+  Add: make_function_type([WAITGROUP_TYPE, INT_TYPE], [UNDEFINED_TYPE]),
+  Wait: make_function_type([WAITGROUP_TYPE], [UNDEFINED_TYPE]),
+  Done: make_function_type([WAITGROUP_TYPE], [UNDEFINED_TYPE]),
 };
 
 export const global_type_frame: Record<string, Type> = {
@@ -102,7 +79,7 @@ export function check_special_binary_expr_type(
     );
   }
   if (op === AST.Token.ADD) return left_operand_type; // for add operator
-  return make_literal_type(DataType.BOOL); // for comparison operators
+  return BOOL_TYPE; // for comparison operators
 }
 
 /**
@@ -143,14 +120,6 @@ export function stringify_type(type: Type): string {
 export function stringify_types(type_arr: Type[]): string {
   const type_arr_in_str = type_arr.map((t) => stringify_type(t));
   return `[${type_arr_in_str.join(", ")}]`;
-}
-
-export function is_bool_literal(type: Type): boolean {
-  return type._type === Types.LITERAL && type.val === DataType.BOOL;
-}
-
-export function is_int_literal(type: Type): boolean {
-  return type._type === Types.LITERAL && type.val === DataType.INT;
 }
 
 export function is_equal_type(expected_type: Type, actual_type: Type): boolean {
