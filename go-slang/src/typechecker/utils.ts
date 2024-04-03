@@ -13,6 +13,28 @@ import {
   make_function_type,
 } from "./objects";
 
+export function make_union_type(types: Type[]): Type {
+  if (types.length === 0) return UNDEFINED_TYPE;
+
+  const deduped_types: Type[] = [];
+  for (const type of types) {
+    const exists = deduped_types.some((x) => is_equal_type(type, x));
+    if (!exists) deduped_types.push(type);
+  }
+  if (deduped_types.length === 1) return types[0];
+
+  return { _type: Types.UNION, types: deduped_types };
+}
+
+export function type_union(type1: Type, type2: Type): Type {
+  if (is_equal_type(type1, type2)) return type1;
+
+  const types_in_1 = type1._type === Types.UNION ? type1.types : [type1];
+  const types_in_2 = type2._type === Types.UNION ? type2.types : [type2];
+
+  return make_union_type([...types_in_1, ...types_in_2]);
+}
+
 const unary_arith_type: FunctionType = make_function_type(
   [INT_TYPE],
   [INT_TYPE],
