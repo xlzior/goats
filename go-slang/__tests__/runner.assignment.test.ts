@@ -502,7 +502,7 @@ describe("handling errors for assignments", () => {
     );
   });
 
-  test("Increment operator invalid on non-indentifier type", async () => {
+  test("Decrement operator invalid on non-indentifier type", async () => {
     const program = `
     package main
 
