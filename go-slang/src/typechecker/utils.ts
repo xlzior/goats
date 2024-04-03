@@ -2,14 +2,11 @@ import { TypeError } from "../errors";
 import { DataType } from "../types";
 import * as AST from "../types/ast";
 import {
-  AnyType,
   FunctionType,
-  LiteralType,
   MutexType,
   ReturnType,
   Type,
   Types,
-  UndefinedType,
   WaitGroupType,
 } from "../types/typing";
 import { pluralize } from "../utils";

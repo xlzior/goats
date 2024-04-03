@@ -3,13 +3,13 @@
 // ===========================================
 import * as AST from "../types/ast";
 import {
-  UndefinedType,
-  Types,
   AnyType,
-  LiteralType,
-  Type,
   FunctionType,
+  LiteralType,
   ReturnType,
+  Type,
+  Types,
+  UndefinedType,
 } from "../types/typing";
 import { is_equal_type } from "./utils";
 

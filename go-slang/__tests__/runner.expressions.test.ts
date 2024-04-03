@@ -1,6 +1,6 @@
 import { GolangRunner } from "../src";
-import { Token } from "../src/types/ast";
 import { TypeError } from "../src/errors";
+import { Token } from "../src/types/ast";
 
 let golangRunner: GolangRunner;
 

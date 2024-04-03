@@ -1,8 +1,8 @@
+import { RuntimeError } from "../errors";
+import { is_number, is_string } from "../utils";
+import { BufferedChannel, Channel } from "./channel";
 import { Heap } from "./heap";
 import { Tag } from "./tag";
-import { RuntimeError } from "../errors";
-import { is_string, is_number } from "../utils";
-import { Channel, BufferedChannel } from "./channel";
 
 export class Memory {
   heap: Heap;

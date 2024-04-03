@@ -1,5 +1,5 @@
 import { GolangRunner } from "../src";
-import { CompilationError, SyntaxError, TypeError } from "../src/errors";
+import { SyntaxError, TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
