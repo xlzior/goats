@@ -3,6 +3,7 @@ import {
   AnyType,
   FunctionType,
   LiteralType,
+  MutexType,
   ReturnType,
   Type,
   Types,
@@ -11,6 +12,13 @@ import {
 import { DataType } from "../types";
 import { TypeError } from "../errors";
 import { pluralize } from "../utils";
+
+// ===========================================
+// SINGLETON TYPES
+// ===========================================
+export const MUTEX_TYPE: MutexType = {
+  _type: Types.MUTEX,
+};
 
 const unary_arith_type: FunctionType = make_function_type(
   [make_literal_type(DataType.INT)],
@@ -32,13 +40,14 @@ const binary_bool_type: FunctionType = make_function_type(
   [make_literal_type(DataType.BOOL)],
 );
 
-// TODO: Handle builtin function typechecking separately?
 const builtin_func_types: Record<string, Type | Type[]> = {
   Println: make_function_type([make_any_type()], [make_undefined_type()]),
   Sleep: make_function_type(
     [make_literal_type(DataType.INT)],
     [make_undefined_type()],
   ),
+  Lock: make_function_type([MUTEX_TYPE], [make_undefined_type()]),
+  Unlock: make_function_type([MUTEX_TYPE], [make_undefined_type()]),
 };
 
 export const global_type_frame: Record<string, Type> = {
@@ -98,6 +107,8 @@ export function stringify_type(type: Type): string {
       return `chan ${stringify_type(type.val)}`;
     case Types.ANY:
       return "any";
+    case Types.MUTEX:
+      return "Mutex";
     default:
       throw new TypeError(`Cannot stringify type ${type._type}`);
   }
