@@ -1,16 +1,16 @@
-import { BuiltinFunction, DataType } from "../types/index";
 import * as AST from "../types/ast";
-import { GOTO, JOF, Instruction, ENTER_SCOPE } from "../types/vm_instructions";
+import { BuiltinFunction, DataType } from "../types/index";
+import { ENTER_SCOPE, GOTO, Instruction, JOF } from "../types/vm_instructions";
 
 import { peek, strip_quotes } from "../utils";
 import {
   MAIN_CALL,
-  noNewVariables,
   compoundAssignmentToBinaryOperator,
-  typeToDefaultValue,
-  make_basic_lit,
   make_assign_stmt,
+  make_basic_lit,
   make_binary_expr,
+  noNewVariables,
+  typeToDefaultValue,
 } from "./utils";
 
 import { CompilationError } from "../errors";

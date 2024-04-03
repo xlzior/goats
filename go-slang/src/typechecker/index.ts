@@ -1,35 +1,35 @@
 import * as AST from "../types/ast";
 
-import { Type, LiteralType, FunctionType, Types } from "../types/typing";
+import { FunctionType, LiteralType, Type, Types } from "../types/typing";
 
-import { TypeError } from "../errors";
 import { make_call_expr, make_ident } from "../compiler/utils";
-import {
-  global_type_frame,
-  is_equal_types,
-  stringify_types,
-  check_special_binary_expr_type,
-  is_equal_type,
-  stringify_type,
-  is_bool_literal,
-  check_return_type,
-  check_lhs_rhs_types,
-  check_lhs_rhs_equal_length,
-  is_int_literal,
-  MUTEX_TYPE,
-  WAITGROUP_TYPE,
-} from "./utils";
+import { TypeError } from "../errors";
 import { BuiltinFunction, DataType } from "../types";
 import { peek } from "../utils";
 import {
-  make_undefined_type,
-  make_return_type,
-  make_literal_type,
-  make_channel_type,
   ast_to_type,
+  make_channel_type,
+  make_literal_type,
+  make_return_type,
+  make_undefined_type,
   make_union_type,
   type_union,
 } from "./objects";
+import {
+  MUTEX_TYPE,
+  WAITGROUP_TYPE,
+  check_lhs_rhs_equal_length,
+  check_lhs_rhs_types,
+  check_return_type,
+  check_special_binary_expr_type,
+  global_type_frame,
+  is_bool_literal,
+  is_equal_type,
+  is_equal_types,
+  is_int_literal,
+  stringify_type,
+  stringify_types,
+} from "./utils";
 
 export class GolangTypechecker {
   private type_env: Array<Record<string, Type>>;
