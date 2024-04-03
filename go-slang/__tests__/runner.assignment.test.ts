@@ -268,66 +268,24 @@ describe("assignment statements", () => {
   });
 
   const compoundAssignTestCases = [
-    {
-      program: `
-      package main
-      
-      func main() {
-        x := 5
-        x += 5
-        return x
-      }`,
-      expected: 10,
-    },
-    {
-      program: `
-      package main
-      
-      func main() {
-        x := 5
-        x -= 5
-        return x
-      }`,
-      expected: 0,
-    },
-    {
-      program: `
-      package main
-      
-      func main() {
-        x := 5
-        x *= 5
-        return x
-      }`,
-      expected: 25,
-    },
-    {
-      program: `
-      package main
-      
-      func main() {
-        x := 5
-        x /= 5
-        return x
-      }`,
-      expected: 1.0,
-    },
-    {
-      program: `
-      package main
-      
-      func main() {
-        x := 5
-        x %= 2
-        return x
-      }`,
-      expected: 1,
-    },
+    { a: 5, op: "+=", b: 5, expected: 10 },
+    { a: 5, op: "-=", b: 5, expected: 0 },
+    { a: 5, op: "*=", b: 5, expected: 25 },
+    { a: 5, op: "/=", b: 5, expected: 1.0 },
+    { a: 5, op: "%=", b: 2, expected: 1 },
   ];
 
   test.each(compoundAssignTestCases)(
     "a compound assignment: %s",
-    async ({ program, expected }) => {
+    async ({ a, op, b, expected }) => {
+      const program = `
+      package main
+      
+      func main() {
+        x := ${a}
+        x ${op} ${b}
+        return x
+      }`;
       const actual = await golangRunner.execute(program);
       expect(actual.value).toEqual(expected);
     },
