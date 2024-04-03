@@ -1,7 +1,8 @@
+import { CompilationError } from "../errors";
+import { InternalBuiltinNames } from "../internal_builtins";
 import * as AST from "../types/ast";
 import { BuiltinFunction, DataType } from "../types/index";
 import { ENTER_SCOPE, GOTO, Instruction, JOF } from "../types/vm_instructions";
-
 import { peek, strip_quotes } from "../utils";
 import {
   MAIN_CALL,
@@ -12,9 +13,6 @@ import {
   noNewVariables,
   typeToDefaultValue,
 } from "./utils";
-
-import { CompilationError } from "../errors";
-import { InternalBuiltinNames } from "../internal_builtins";
 
 export class GolangCompiler {
   private wc: number;

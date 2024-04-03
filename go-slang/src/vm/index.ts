@@ -1,16 +1,13 @@
+import { RuntimeError } from "../errors";
+import { InternalBuiltinNames } from "../internal_builtins";
 import { BuiltinFunction } from "../types";
 import * as VM from "../types/vm_instructions";
-
 import { peek } from "../utils";
-import { apply_binop, apply_unop } from "./utils";
-
 import { Memory } from "./memory";
 import { Tag } from "./tag";
 import { Context } from "./thread_context";
-
-import { RuntimeError } from "../errors";
-import { InternalBuiltinNames } from "../internal_builtins";
 import { ThreadManager } from "./thread_manager";
+import { apply_binop, apply_unop } from "./utils";
 
 export class GolangVM {
   private ctx: Context;

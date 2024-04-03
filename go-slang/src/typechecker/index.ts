@@ -1,10 +1,8 @@
-import * as AST from "../types/ast";
-
-import { FunctionType, LiteralType, Type, Types } from "../types/typing";
-
 import { make_call_expr, make_ident } from "../compiler/utils";
 import { TypeError } from "../errors";
 import { BuiltinFunction, DataType } from "../types";
+import * as AST from "../types/ast";
+import { FunctionType, LiteralType, Type, Types } from "../types/typing";
 import { peek } from "../utils";
 import {
   BOOL_TYPE,
