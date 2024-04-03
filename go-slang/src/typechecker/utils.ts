@@ -9,6 +9,7 @@ import {
 } from "../types/typing";
 import { DataType } from "../types";
 import { TypeError } from "../errors";
+import { pluralize } from "../utils";
 
 const unary_arith_type: FunctionType = make_function_type(
   [make_literal_type(DataType.INT)],
@@ -159,6 +160,40 @@ export function check_return_type(
       `${func_name}: cannot use ${stringify_types(
         (actual_result_type as ReturnType).res,
       )} as ${stringify_types(declared_return_type)} value in return statement`,
+    );
+  }
+}
+
+/**
+ * Used by var decl and assign stmts to compare lhs and rhs types
+ * It will terminate whenever any one type fails to match
+ */
+export function check_lhs_rhs_types(
+  lhs_types: Type[],
+  rhs_types: Type[],
+  stmt: string,
+) {
+  for (let i = 0; i < lhs_types.length; i++) {
+    if (!is_equal_type(lhs_types[i], rhs_types[i])) {
+      throw new TypeError(
+        `cannot use ${stringify_type(rhs_types[i])} as ${stringify_type(
+          lhs_types[i],
+        )} value in ${stmt}`,
+      );
+    }
+  }
+}
+
+/**
+ * Used by var decl and assign stmts to compare length on lhs and rhs
+ */
+export function check_lhs_rhs_equal_length(lhs: number, rhs: number) {
+  if (lhs != rhs) {
+    throw new TypeError(
+      `assignment mismatch: ${lhs} ${pluralize(
+        "variable",
+        lhs,
+      )} but ${rhs} ${pluralize("value", rhs)}`,
     );
   }
 }

@@ -1,12 +1,6 @@
 import * as AST from "../types/ast";
 
-import {
-  Type,
-  LiteralType,
-  FunctionType,
-  Types,
-  ReturnType,
-} from "../types/typing";
+import { Type, LiteralType, FunctionType, Types } from "../types/typing";
 
 import { TypeError } from "../errors";
 import { make_call_expr, make_ident } from "../compiler/utils";
@@ -25,9 +19,10 @@ import {
   type_union,
   make_union_type,
   check_return_type,
+  check_lhs_rhs_types,
+  check_lhs_rhs_equal_length,
 } from "./utils";
 import { BuiltinFunction, DataType } from "../types";
-import { pluralize } from "../utils";
 import { peek } from "../utils";
 
 export class GolangTypechecker {
@@ -95,14 +90,14 @@ export class GolangTypechecker {
         return check_special_binary_expr_type(
           op,
           this.type(astNode.X),
-          this.type(astNode.Y)
+          this.type(astNode.Y),
         );
       }
 
       // the rest are treated as function call with 2 params
       const call_expr_ast: AST.CallExpr = make_call_expr(
         [astNode.X, astNode.Y],
-        make_ident(astNode.Op as string)
+        make_ident(astNode.Op as string),
       );
       return this.type(call_expr_ast);
     },
@@ -113,13 +108,13 @@ export class GolangTypechecker {
       if (astNode.Op === AST.Token.SUB) {
         const call_expr_ast: AST.CallExpr = make_call_expr(
           [astNode.X],
-          make_ident("-unary")
+          make_ident("-unary"),
         );
         return this.type(call_expr_ast);
       }
       const call_expr_ast: AST.CallExpr = make_call_expr(
         [astNode.X],
-        make_ident(astNode.Op as string)
+        make_ident(astNode.Op as string),
       );
       return this.type(call_expr_ast);
     },
@@ -161,17 +156,44 @@ export class GolangTypechecker {
       check_return_type(
         astNode.Name.Name,
         actual_result_type,
-        declared_return_type
+        declared_return_type,
       );
 
       this.type_env.pop();
       return make_undefined_type();
     },
     GenDecl: (astNode: AST.GenDecl) => {
+      astNode.Specs.forEach((spec) => this.type(spec));
       return make_undefined_type();
     },
     ValueSpec: (astNode: AST.ValueSpec) => {
-      return make_undefined_type();
+      const curr_env_frame = peek(this.type_env);
+      let rhs_types: Type[] = [];
+
+      if (astNode.Values.length > 0) {
+        check_lhs_rhs_equal_length(astNode.Names.length, astNode.Values.length);
+
+        rhs_types = astNode.Values.map((expr) => this.type(expr));
+        if (astNode.Type) {
+          const lhs_types = astNode.Names.map((_) =>
+            make_literal_type(astNode.Type.Name),
+          );
+          check_lhs_rhs_types(lhs_types, rhs_types, "variable declaration");
+        }
+
+        astNode.Names.forEach((name, i) => {
+          curr_env_frame[name.Name] = rhs_types[i];
+        });
+        return;
+      }
+
+      // if rhs has no values, lhs must have a declared type
+      const lhs_types = astNode.Names.map((_) =>
+        make_literal_type(astNode.Type.Name),
+      );
+      astNode.Names.forEach((name, i) => {
+        curr_env_frame[name.Name] = lhs_types[i];
+      });
     },
     ChanType: (astNode: AST.ChanType) => {
       return make_undefined_type();
@@ -180,7 +202,7 @@ export class GolangTypechecker {
       const fun_type = this.type(astNode.Fun) as FunctionType;
       if (fun_type._type !== Types.FUNCTION)
         throw new TypeError(
-          `invalid operation: cannot call non-function ${astNode.Fun.Name}`
+          `invalid operation: cannot call non-function ${astNode.Fun.Name}`,
         );
       const expected_arg_types: Type[] = fun_type.args;
       const actual_arg_types: Type[] = astNode.Args.map((e) => this.type(e));
@@ -189,7 +211,7 @@ export class GolangTypechecker {
           expected_arg_types,
           actual_arg_types,
           `too many arguments in call to ${astNode.Fun.Name}`,
-          `not enough arguments in call to ${astNode.Fun.Name}`
+          `not enough arguments in call to ${astNode.Fun.Name}`,
         )
       ) {
         const results = fun_type.res;
@@ -200,8 +222,8 @@ export class GolangTypechecker {
 
       throw new TypeError(
         `${astNode.Fun.Name} expects ${stringify_types(
-          expected_arg_types
-        )}, but got ${stringify_types(actual_arg_types)}`
+          expected_arg_types,
+        )}, but got ${stringify_types(actual_arg_types)}`,
       );
     },
     GoStmt: (astNode: AST.GoStmt) => {
@@ -212,13 +234,13 @@ export class GolangTypechecker {
     },
     BlockStmt: (astNode: AST.BlockStmt): Type => {
       const func_decls = astNode.List.filter(
-        (val) => val._type === AST.NodeType.FUNC_DECL
+        (val) => val._type === AST.NodeType.FUNC_DECL,
       );
       const func_names = func_decls.map(
-        (func) => (func as AST.FuncDecl).Name.Name
+        (func) => (func as AST.FuncDecl).Name.Name,
       );
       const func_types = func_decls.map((func) =>
-        make_function_type_from_ast(func as AST.FuncDecl)
+        make_function_type_from_ast(func as AST.FuncDecl),
       );
 
       this.extend_env(func_names, func_types);
@@ -243,14 +265,7 @@ export class GolangTypechecker {
       const curr_env_frame = peek(this.type_env);
 
       const rhs_types = astNode.Rhs.map((expr) => this.type(expr));
-      if (astNode.Lhs.length != rhs_types.length) {
-        throw new TypeError(
-          `assignment mismatch: ${astNode.Lhs.length} ${pluralize(
-            "variable",
-            astNode.Lhs.length
-          )} but ${rhs_types.length} ${pluralize("value", rhs_types.length)}`
-        );
-      }
+      check_lhs_rhs_equal_length(astNode.Lhs.length, rhs_types.length);
 
       // TODO: handle function returns
       if (astNode.Tok === AST.Token.DEFINE) {
@@ -259,15 +274,7 @@ export class GolangTypechecker {
         });
       } else {
         const curr_lhs_types = astNode.Lhs.map((ident) => this.type(ident));
-        for (let i = 0; i < curr_lhs_types.length; i++) {
-          if (!is_equal_type(curr_lhs_types[i], rhs_types[i])) {
-            throw new TypeError(
-              `cannot use ${stringify_type(rhs_types[i])} as ${stringify_type(
-                curr_lhs_types[i]
-              )} value in assignment`
-            );
-          }
-        }
+        check_lhs_rhs_types(curr_lhs_types, rhs_types, "assignment");
       }
       return make_undefined_type();
     },
@@ -305,18 +312,19 @@ export class GolangTypechecker {
     IncDecStmt: (astNode: AST.IncDecStmt) => {
       if (astNode.X._type !== AST.NodeType.IDENT)
         throw new TypeError(
-          `invalid operation ${astNode.Tok} on non-identifier type`
+          `invalid operation ${astNode.Tok} on non-identifier type`,
         );
       const ident_type = this.type(astNode.X);
       if (!is_equal_type(ident_type, make_literal_type(DataType.INT)))
         throw new TypeError(
           `invalid operation ${astNode.Tok} on type ${stringify_type(
-            ident_type
-          )}`
+            ident_type,
+          )}`,
         );
       return make_undefined_type();
     },
     DeclStmt: (astNode: AST.DeclStmt) => {
+      this.type(astNode.Decl);
       return make_undefined_type();
     },
     File: () => {
