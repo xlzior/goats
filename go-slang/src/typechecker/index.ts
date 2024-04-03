@@ -263,7 +263,10 @@ export class GolangTypechecker {
     AssignStmt: (astNode: AST.AssignStmt) => {
       const curr_env_frame = peek(this.type_env);
 
-      const rhs_types = astNode.Rhs.map((expr) => this.type(expr));
+      let rhs_types = astNode.Rhs.map((expr) => this.type(expr));
+      if (rhs_types.length === 1 && rhs_types[0]._type === Types.RETURN) {
+        rhs_types = rhs_types[0].res;
+      }
       check_lhs_rhs_equal_length(astNode.Lhs.length, rhs_types.length);
 
       // TODO: handle function returns

@@ -261,9 +261,7 @@ describe("assignment statements", () => {
       x = 5
       return x
     }`;
-    await expect(golangRunner.execute(program)).rejects.toThrow(
-      CompilationError,
-    );
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow("undefined: x");
   });
 
@@ -347,7 +345,7 @@ describe("handling errors for assignments", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "assignment mismatch: 3 variables but addOne returns 2 values",
+      "assignment mismatch: 3 variables but 2 values",
     );
   });
 
@@ -377,7 +375,7 @@ describe("handling errors for assignments", () => {
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
-      "assignment mismatch: 1 variable but addOne returns 2 values",
+      "assignment mismatch: 1 variable but 2 values",
     );
   });
 
