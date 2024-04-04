@@ -1,5 +1,5 @@
 import * as AST from "../types/ast";
-import { DataType } from "../types/index";
+import { DataType } from "../types/data_type";
 
 export const compoundAssignmentToBinaryOperator = new Map([
   [AST.Token.ADD_ASSIGN, AST.Token.ADD],

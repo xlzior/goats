@@ -1,6 +1,6 @@
 import { TypeError } from "../errors";
-import { DataType } from "../types";
 import * as AST from "../types/ast";
+import { DataType } from "../types/data_type";
 import { FunctionType, ReturnType, Type, Types } from "../types/typing";
 import { pluralize } from "../utils";
 import {

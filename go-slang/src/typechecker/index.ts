@@ -1,7 +1,8 @@
 import { make_call_expr, make_ident } from "../compiler/utils";
 import { TypeError } from "../errors";
-import { BuiltinFunction, DataType } from "../types";
+import { BuiltinFunction, } from "../types";
 import * as AST from "../types/ast";
+import { DataType } from "../types/data_type";
 import { FunctionType, LiteralType, Type, Types } from "../types/typing";
 import { peek } from "../utils";
 import {
