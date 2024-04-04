@@ -63,8 +63,8 @@ export function is_int_literal(type: Type): boolean {
 // HELPER METHODS TO RECONSTRUCT TYPE OBJECTS
 // ===========================================
 
-export function get_literal_type(val: string): Type {
-  switch (val) {
+export function ident_to_type(val: AST.Ident): Type {
+  switch (val.Name) {
     case DataType.INT:
       return INT_TYPE;
     case DataType.BOOL:
@@ -76,7 +76,7 @@ export function get_literal_type(val: string): Type {
     case DataType.WAITGROUP:
       return WAITGROUP_TYPE;
     default:
-      throw new Error(`Unknown literal type: ${val}`);
+      throw new Error(`Unknown Ident: ${val}`);
   }
 }
 
@@ -91,7 +91,7 @@ export function make_function_type(args: Type[], res: Type[]): FunctionType {
 export function ast_to_type(astNode: AST.Node): Type {
   switch (astNode._type) {
     case AST.NodeType.IDENT:
-      return get_literal_type((astNode as AST.Ident).Name);
+      return ident_to_type(astNode as AST.Ident);
     case AST.NodeType.CHAN_TYPE:
       const content_type = ast_to_type((astNode as AST.ChanType).Value);
       return make_channel_type(content_type);
