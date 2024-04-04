@@ -691,3 +691,148 @@ describe("typechecking if statements in functions", () => {
     );
   });
 });
+
+describe("typechecking while statements in functions", () => {
+  test("missing return in function even if while loop has return stmt ", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      i := 10
+      for i > 0 {
+        return i
+      }
+    }
+
+    func main() {
+      foo()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("missing return in function even if while loop has return stmt in if branch", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      i := 10
+      for i > 0 {
+        if i == 5 {
+          return 100
+        }
+        i -= 1
+      }
+    }
+
+    func main() {
+      foo()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("missing return in function even if while loop has return stmt in else branch", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      i := 10
+      for i > 0 {
+        if i == 5 {
+          a := 6
+        } else {
+          return 200
+        }
+        i -= 1
+      }
+    }
+
+    func main() {
+      foo()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("missing return in function even if while loop has return stmt in both conditional branches", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      i := 10
+      for i > 0 {
+        if i == 5 {
+          return 100
+        } else {
+          return 200
+        }
+        i -= 1
+      }
+    }
+
+    func main() {
+      foo()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("missing return in function even if while loop inside an if stmt has return stmt", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      if true {
+        i := 10
+        for i > 0 {
+          if i == 5 {
+            return 100
+          } else {
+            return 200
+          }
+          i -= 1
+        }
+      }
+    }
+
+    func main() {
+      foo()
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "foo: missing return",
+    );
+  });
+
+  test("should not throw error when function contains return statement outside of while loop", async () => {
+    const program = `
+    package main
+
+    func foo() int {
+      i := 10
+      for i > 0 {
+        if i == 5 {
+          return 100
+        } else {
+          return 200
+        }
+        i -= 1
+      }
+      return 300
+    }
+
+    func main() {
+      foo()
+    }`;
+    await expect(golangRunner.execute(program)).resolves.not.toThrow(TypeError);
+  });
+});

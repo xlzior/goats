@@ -369,6 +369,10 @@ export class GolangTypechecker {
       return type_union(then_type, else_type);
     },
     ForStmt: (astNode: AST.ForStmt) => {
+      const cond_type = this.type(astNode.Cond);
+      if (!is_bool_literal(cond_type))
+        throw new TypeError("non-boolean condition in for statement");
+      this.type(astNode.Body);
       return UNDEFINED_TYPE;
     },
     IncDecStmt: (astNode: AST.IncDecStmt) => {
