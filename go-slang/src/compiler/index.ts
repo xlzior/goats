@@ -4,7 +4,7 @@ import * as AST from "../types/ast";
 import { DataType } from "../types/data_type";
 import { BuiltinFunction } from "../types/index";
 import { ENTER_SCOPE, GOTO, Instruction, JOF } from "../types/vm_instructions";
-import { peek, strip_quotes } from "../utils";
+import { peek, strip_quotes, unescape_string } from "../utils";
 import {
   MAIN_CALL,
   compoundAssignmentToBinaryOperator,
@@ -113,7 +113,7 @@ export class GolangCompiler {
         _type: "LDC",
         val:
           astNode.Kind === AST.Token.STRING
-            ? strip_quotes(astNode.Value as string)
+            ? strip_quotes(unescape_string(astNode.Value as string))
             : Number(astNode.Value), // can handle integers and floating point values
       };
     },
