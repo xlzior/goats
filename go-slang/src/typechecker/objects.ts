@@ -1,5 +1,5 @@
-import { DataType } from "../types";
 import * as AST from "../types/ast";
+import { DataType } from "../types/data_type";
 import {
   AnyType,
   FunctionType,

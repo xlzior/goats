@@ -1,6 +1,6 @@
 import { GolangRunner } from "../src";
 import { TypeError } from "../src/errors";
-import { DataType } from "../src/types";
+import { DataType } from "../src/types/data_type";
 import { strip_quotes } from "../src/utils";
 
 let golangRunner: GolangRunner;
