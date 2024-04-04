@@ -7,7 +7,7 @@ import { BuiltinFunction } from "./src/types";
 const external_builtins: Record<string, BuiltinFunction> = {
   Println: {
     arity: 1,
-    apply: (v: any) => console.log("Go program printed:", v),
+    apply: (v: any) => console.log(v),
   },
 };
 const runner = new GolangRunner(external_builtins);
@@ -19,7 +19,12 @@ func add(x int) int {
 }
 
 func main() {
-  add(33,3432)
+  x := 10
+  for x > 0 {
+    Println(x)
+    x -= 1
+  }
+  PrintOS()
   return 1;
 }
 `;
