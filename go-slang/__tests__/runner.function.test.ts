@@ -791,16 +791,14 @@ describe("typechecking while statements in functions", () => {
     package main
 
     func foo() int {
-      if true {
-        i := 10
+      x := 1
+      if x > 1 {
+        i := 5 
         for i > 0 {
-          if i == 5 {
-            return 100
-          } else {
-            return 200
-          }
-          i -= 1
+          return i
         }
+      } else {
+        return 4
       }
     }
 
