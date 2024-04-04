@@ -1,4 +1,5 @@
 import { GolangRunner } from "../src";
+import { TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -198,5 +199,42 @@ describe("while loop statements", () => {
     const { value } = await golangRunner.execute(program);
     const expected = 6;
     expect(value).toEqual(expected);
+  });
+});
+
+describe("typechecker for while loop", () => {
+  test("non-boolean condition in while loop", async () => {
+    const program = `
+    package main
+
+    func main() {
+      i := 55
+      for i {
+        i -= 1
+      }
+      return 10
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "non-boolean condition in for statement",
+    );
+  });
+
+  test("type error in one of the stmts in the for loop body", async () => {
+    const program = `
+    package main
+
+    func main() {
+      i := 55
+      for i > 0 {
+        i -= 1
+        var x int = "hello"
+      }
+      return 10
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "cannot use string as int value in variable declaration",
+    );
   });
 });
