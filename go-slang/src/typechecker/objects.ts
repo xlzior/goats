@@ -63,7 +63,7 @@ export function is_int_literal(type: Type): boolean {
 // HELPER METHODS TO RECONSTRUCT TYPE OBJECTS
 // ===========================================
 
-export function get_literal_type(val: string): LiteralType {
+export function get_literal_type(val: string): Type {
   switch (val) {
     case DataType.INT:
       return INT_TYPE;
@@ -71,6 +71,10 @@ export function get_literal_type(val: string): LiteralType {
       return BOOL_TYPE;
     case DataType.STRING:
       return STRING_TYPE;
+    case DataType.MUTEX:
+      return MUTEX_TYPE;
+    case DataType.WAITGROUP:
+      return WAITGROUP_TYPE;
     default:
       throw new Error(`Unknown literal type: ${val}`);
   }
