@@ -13,6 +13,10 @@ export function strip_quotes(val: any) {
   return is_string(val) ? val.replace(/^"|"$/g, "") : val;
 }
 
+export function unescape_string(val: string) {
+  return val.replace(/\\n/g, "\n");
+}
+
 export function pluralize(word: string, num: number): string {
   return num > 1 ? `${word}s` : word;
 }

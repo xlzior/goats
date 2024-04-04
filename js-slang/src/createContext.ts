@@ -281,7 +281,7 @@ export const importBuiltins = (context: Context, externalBuiltIns: CustomBuiltIn
   }
 
   if (context.chapter === Chapter.GOLANG) {
-    defineBuiltin(context, 'Println(val)', display, 1)
+    defineBuiltin(context, 'Println(val)', rawDisplay, 1)
   }
 
   if (context.chapter >= 1) {
