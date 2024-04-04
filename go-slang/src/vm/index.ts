@@ -7,7 +7,7 @@ import { Memory } from "./memory";
 import { Tag } from "./tag";
 import { Context } from "./thread_context";
 import { ThreadManager } from "./thread_manager";
-import { apply_binop, apply_unop } from "./utils";
+import { apply_binop, apply_unop, format_stack } from "./utils";
 
 export class GolangVM {
   private ctx: Context;
@@ -18,8 +18,8 @@ export class GolangVM {
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
     this.memory = new Memory(10000000);
     this.builtins = [
-      ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
+      ...Object.values(this.internal_builtins),
     ];
     this.ctx = new Context(0, this.initialise_environment());
     this.thread_manager = new ThreadManager();
@@ -74,6 +74,16 @@ export class GolangVM {
         }
       },
     },
+    PrintOS: {
+      arity: 0,
+      apply: () => {
+        const stack_in_string = this.ctx.operand_stack
+          .map(addr => this.memory.address_to_js_value(addr))
+          .map(val => JSON.stringify(val))
+        const formatted_stack = format_stack(stack_in_string)
+        this.builtins[0].apply(formatted_stack)
+      }
+    }
   };
 
   private get is_sleeping() {

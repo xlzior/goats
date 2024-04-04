@@ -24,7 +24,7 @@ export class GolangCompiler {
     this.wc = 0;
     this.instrs = [];
     this.compile_env = [
-      [...Object.keys(InternalBuiltinNames), ...Object.keys(external_builtins)],
+      [...Object.keys(external_builtins), ...Object.keys(InternalBuiltinNames)],
     ];
   }
 
