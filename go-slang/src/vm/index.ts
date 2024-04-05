@@ -46,7 +46,9 @@ export class GolangVM {
       );
     });
 
-    return this.memory.environment.extend(global_frame, empty_environment);
+    const env = this.memory.environment.extend(global_frame, empty_environment);
+    this.memory.heap.set_bottom();
+    return env;
   }
 
   run(instrs: VM.Instruction[]) {
@@ -99,6 +101,7 @@ export class GolangVM {
         this.println("Heap:");
         let i = 0;
         while (i < this.memory.heap.free) {
+          // TODO: fix printing when address has been garbage collected and there's nothing there
           const obj = this.memory.address_to_object(i);
           this.println(`${format_address(i)}: ${obj.to_string()}`);
 
@@ -204,12 +207,8 @@ export class GolangVM {
   }
 
   private get_roots(): number[] {
-    // TODO: get roots from all threads
-    return [
-      this.ctx.environment,
-      ...this.ctx.runtime_stack,
-      ...this.ctx.operand_stack,
-    ];
+    // TODO: handle temp roots
+    return [...this.ctx.get_roots(), ...this.thread_manager.get_roots()];
   }
 
   private pop_os() {

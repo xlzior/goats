@@ -18,4 +18,8 @@ export class Context {
     this.environment = environment;
     this.sleep_until = sleep_until;
   }
+
+  get_roots(): number[] {
+    return [this.environment, ...this.operand_stack, ...this.runtime_stack];
+  }
 }

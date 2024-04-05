@@ -18,6 +18,10 @@ export class ThreadManager {
     return new Date().getTime() - this.last_context_switch.getTime();
   }
 
+  get_roots(): number[] {
+    return this.thread_queue.flatMap((ctx) => ctx.get_roots());
+  }
+
   /**
    * Updates the scheduler based on the current context.
    */
