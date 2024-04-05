@@ -1,0 +1,20 @@
+Running Go program:
+Environment(size=4)
+├─ EnvFrame(size=6)
+│  ├─  @11 - Builtin(id=0)
+│  ├─  @12 - Builtin(id=1)
+│  ├─  @13 - Builtin(id=2)
+│  ├─  @14 - Builtin(id=3)
+│  ├─  @15 - Builtin(id=4)
+│  └─  @16 - Builtin(id=5)
+├─ EnvFrame(size=1)
+│  └─  @26 - Closure(arity=0, pc=3)
+├─ EnvFrame(size=0)
+└─ EnvFrame(size=5)
+   ├─  @48 - Number(value=1)
+   ├─  @50 - String(value=hello world)
+   ├─   @0 - False()
+   ├─  @51 - Mutex(is_available=false)
+   └─  @53 - WaitGroup(value=8)
+
+{ value: undefined }
