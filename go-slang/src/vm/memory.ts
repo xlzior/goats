@@ -143,7 +143,7 @@ export class Memory {
 
   frame = {
     allocate: (num_values: number) => {
-      return this.heap.allocate(Tag.Frame, num_values + 1);
+      return this.heap.allocate(Tag.EnvFrame, num_values + 1);
     },
     get_num_values: (frame_address: number) => {
       return this.heap.get_size(frame_address) - 1;
