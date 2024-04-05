@@ -19,12 +19,11 @@ func add(x int) int {
 }
 
 func main() {
-  x := 10
-  for x > 0 {
-    Println(x)
-    x -= 1
-  }
-  PrintOS()
+  x := 1 + 3 - 5 / 14 * 331 + 12 / 212
+  y := "today "
+  y += "is "
+  y += "a "
+  y += "good day"
   return 1;
 }
 `;
