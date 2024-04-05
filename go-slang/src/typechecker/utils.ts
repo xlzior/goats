@@ -130,7 +130,7 @@ export function stringify_type(type: Type): string {
     case Types.WAITGROUP:
       return "WaitGroup";
     case Types.FUNCTION:
-      return `(${stringify_types(type.args)}) -> ${stringify_types(type.res)}`;
+      return `${stringify_types(type.args)} -> ${stringify_types(type.res)}`;
     default:
       throw new TypeError(`Cannot stringify type ${type}`);
   }

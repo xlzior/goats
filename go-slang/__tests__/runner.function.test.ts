@@ -200,6 +200,51 @@ describe("functions", () => {
     const expected = 3;
     expect(value).toEqual(expected);
   });
+
+  test("higher order function - function receive another function as argument", async () => {
+    const program = `
+    package main
+
+    func add(a int, b int) int {
+      return a + b
+    }
+
+    func applyFunc(x, y int, f func(int, int) int) int {
+      x := f(x, y)
+      return x
+    }
+  
+    func main() {
+      result := applyFunc(3, 5, add)
+      return result
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 8;
+    expect(value).toEqual(expected);
+  });
+
+  test("higher order function - function return another function", async () => {
+    const program = `
+    package main
+
+    func add(n int) int {
+      return n + 1
+    }
+    
+    func proxy() func(int) int {
+      x := "all i do is to return another function"
+      return add
+    }
+  
+    func main() {
+      fn := proxy()
+      res := fn(2)
+      return res
+    }`;
+    const { value } = await golangRunner.execute(program);
+    const expected = 3;
+    expect(value).toEqual(expected);
+  });
 });
 
 describe("handling errors for functions", () => {
@@ -368,6 +413,53 @@ describe("handling errors for functions", () => {
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "too many return values: have [int], want []",
+    );
+  });
+
+  test("Higher order function receiving function arg with mismatched argument count", async () => {
+    const program = `
+    package main
+
+    func add(a int, b int) int {
+      return a + b
+    }
+
+    func applyFunc(x, y, z int, f func(int, int, int) int) int {
+      x := f(x, y, z)
+      return x
+    }
+  
+    func main() {
+      result := applyFunc(3, 5, 8, add)
+      return result
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "applyFunc expects [int, int, int, [int, int, int] -> [int]], but got [int, int, int, [int, int] -> [int]]",
+    );
+  });
+
+  test("Higher order function return function type mismatch", async () => {
+    const program = `
+    package main
+
+    func add(n int) int {
+      return n + 1
+    }
+    
+    func proxy() func(int, int) int {
+      x := "all i do is to return another function"
+      return add
+    }
+  
+    func main() {
+      fn := proxy()
+      res := fn(2)
+      return res
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "proxy: cannot use [[int] -> [int]] as [[int, int] -> [int]] value in return statement",
     );
   });
 });

@@ -399,5 +399,8 @@ export class GolangTypechecker {
     BranchStmt: () => {
       return;
     },
+    FuncType: () => {
+      return;
+    },
   };
 }

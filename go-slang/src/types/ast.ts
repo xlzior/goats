@@ -34,6 +34,7 @@ export enum NodeType {
   VALUE_SPEC = "ValueSpec",
   CHAN_TYPE = "ChanType",
   SEND_STMT = "SendStmt",
+  FUNC_TYPE = "FuncType",
 }
 
 export enum Token {
@@ -170,17 +171,16 @@ export interface Spec extends Node {}
 
 interface Field {
   Names: Ident[]; // field/method parameter names
-  Type: Ident;
-  _type: Expr; // parameter types
+  Type: Expr; // parameter types
 }
 
 interface FieldList {
   List: Field[];
 }
 
-interface FuncType {
+export interface FuncType extends Node {
   Params: FieldList; // function parameters
-  Results: FieldList; // return _type
+  Results: FieldList; // return type
 }
 
 export interface ValueSpec extends Spec {
