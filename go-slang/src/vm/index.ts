@@ -3,12 +3,16 @@ import { InternalBuiltinNames } from "../internal_builtins";
 import { BuiltinFunction } from "../types";
 import * as VM from "../types/vm_instructions";
 import { peek } from "../utils";
-import { print_os } from "./debugger";
+import { print_stack } from "./debugger";
 import { Memory } from "./memory";
 import { Tag } from "./tag";
 import { Context } from "./thread_context";
 import { ThreadManager } from "./thread_manager";
 import { apply_binop, apply_unop } from "./utils";
+
+const DEBUG_CONFIG = {
+  os: true,
+};
 
 export class GolangVM {
   private ctx: Context;
@@ -52,9 +56,15 @@ export class GolangVM {
       if (this.microcode[instr._type] === undefined)
         throw new RuntimeError(`${instr._type} not supported`);
 
-      this.microcode[instr._type](instr);
+      if (DEBUG_CONFIG.os) {
+        const content_in_string = this.ctx.operand_stack.map((addr) => {
+          const val = this.memory.address_to_js_value(addr);
+          return val === undefined ? "undefined" : JSON.stringify(val);
+        });
+        print_stack("operand stack", content_in_string);
+      }
 
-      // print_os(this.ctx.operand_stack, this.memory);
+      this.microcode[instr._type](instr);
 
       this.ctx = this.thread_manager.get_context(this.ctx);
     }
