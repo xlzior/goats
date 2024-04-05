@@ -11,7 +11,7 @@ import { ThreadManager } from "./thread_manager";
 import { apply_binop, apply_unop } from "./utils";
 
 const DEBUG_CONFIG = {
-  os: true,
+  os: false,
 };
 
 export class GolangVM {
