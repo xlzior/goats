@@ -1,15 +1,17 @@
 package main
 
 func main() {
-	a := 1
-	b := "hello world"
-	c := false
+	n := 1
+	s := "hello world"
+	b := false
 
-	var d Mutex
-	var e WaitGroup
+	channel := make(chan int)
+	buffered_channel := make(chan string, 10)
+	var mutex Mutex
+	var wait_group WaitGroup
 
-	Lock(d)
-	Add(e, 8)
+	Lock(mutex)
+	Add(wait_group, 8)
 
 	PrintHeap()
 }

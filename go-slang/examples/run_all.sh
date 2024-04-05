@@ -1,8 +1,13 @@
 #!/bin/bash
 
-for file in *.go
+# Run from the root of the project as:
+# ./examples/run_all.sh
+
+yarn build
+
+for file in examples/*.go
 do
   # remove the .go extension
   file="${file%.*}"
-  npx ts-node run.ts < $file.go > $file.out
+  node dist/examples/run.js < $file.go > $file.out
 done
