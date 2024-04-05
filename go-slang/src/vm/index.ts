@@ -54,13 +54,7 @@ export class GolangVM {
 
       this.microcode[instr._type](instr);
 
-      const stack_in_string = this.ctx.operand_stack
-        .map((addr) => this.memory.address_to_js_value(addr))
-        .map((val) => {
-          if (val === undefined) return "undefined";
-          return JSON.stringify(val);
-        });
-      print_os(stack_in_string);
+      print_os(this.ctx.operand_stack, this.memory);
 
       this.ctx = this.thread_manager.get_context(this.ctx);
     }

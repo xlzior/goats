@@ -20,10 +20,7 @@ func add(x int) int {
 
 func main() {
   x := 1 + 3 - 5 / 14 * 331 + 12 / 212
-  y := "today "
-  y += "is "
-  y += "a "
-  y += "good day"
+  y := "today " + "is " + "a " + "good day"
   return 1;
 }
 `;
