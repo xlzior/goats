@@ -96,22 +96,22 @@ export function ast_to_type(astNode: AST.Node): Type {
       const content_type = ast_to_type((astNode as AST.ChanType).Value);
       return make_channel_type(content_type);
     case AST.NodeType.FUNC_DECL:
-      return make_function_type_from_func((astNode as AST.FuncDecl).Type);
+      return ast_to_function_type((astNode as AST.FuncDecl).Type);
     case AST.NodeType.FUNC_TYPE:
-      return make_function_type_from_func(astNode as AST.FuncType);
+      return ast_to_function_type(astNode as AST.FuncType);
     default:
       return UNDEFINED_TYPE;
   }
 }
 
-function make_function_type_from_func(func_type: AST.FuncType) {
+function ast_to_function_type(func_type: AST.FuncType) {
   const { Params, Results } = func_type;
 
   const param_types = Params.List.flatMap((param) => {
     if (param.Names.length > 0) {
       return param.Names.map(() => ast_to_type(param.Type));
     } else {
-      return ast_to_type(param.Type); // anonymous function have empty Names array
+      return ast_to_type(param.Type); // anonymous function type have empty Names array
     }
   });
 

@@ -169,18 +169,18 @@ export interface Decl extends Node {
 
 export interface Spec extends Node {}
 
-interface Field {
-  Names: Ident[]; // field/method parameter names
-  Type: Expr; // parameter types
+export interface FuncType extends Node {
+  Params: FieldList; // function parameters
+  Results: FieldList; // return type
 }
 
 interface FieldList {
   List: Field[];
 }
 
-export interface FuncType extends Node {
-  Params: FieldList; // function parameters
-  Results: FieldList; // return type
+interface Field {
+  Names: Ident[]; // field/method parameter names
+  Type: Expr; // parameter types
 }
 
 export interface ValueSpec extends Spec {
