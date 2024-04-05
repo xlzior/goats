@@ -1,4 +1,3 @@
-import { asTree } from "treeify";
 import { RuntimeError } from "../errors";
 import { InternalBuiltinNames } from "../internal_builtins";
 import { BuiltinFunction } from "../types";
@@ -6,7 +5,7 @@ import * as VM from "../types/vm_instructions";
 import { peek } from "../utils";
 import { print_stack } from "./debugger";
 import { Memory } from "./memory";
-import { format_address } from "./memory_display";
+import { format_address, to_tree } from "./memory_display";
 import { Tag } from "./tag";
 import { Context } from "./thread_context";
 import { ThreadManager } from "./thread_manager";
@@ -96,19 +95,16 @@ export class GolangVM {
     PrintHeap: {
       arity: 0,
       apply: () => {
+        this.println("Heap:");
         let i = 0;
         while (i < this.memory.heap.free) {
           const obj = this.memory.address_to_object(i);
           this.println(`${format_address(i)}: ${obj.to_string()}`);
 
           if (obj.children && obj.children.length > 0) {
-            const children = obj
-              .children_to_string(this.memory)
-              .reduce((obj, key) => ({ ...obj, [key]: null }), {});
-
-            const tree = asTree(children, false, true)
+            const children = obj.children_to_tree(this.memory);
+            const tree = to_tree(children)
               .split("\n")
-              .slice(0, -1)
               .map((child, j) => `${format_address(i + j + 1)}: ${child}`);
 
             this.println(tree.join("\n"));
@@ -120,6 +116,9 @@ export class GolangVM {
     PrintEnvironment: {
       arity: 0,
       apply: () => {
+        this.println(
+          "Environment (top = global frame, bottom = current frame):",
+        );
         const addr = this.ctx.environment;
         const env = this.memory.address_to_object(addr);
         this.println(env.to_string());
@@ -128,18 +127,42 @@ export class GolangVM {
         if (env.children) {
           env.children.forEach((frame_addr) => {
             const frame = this.memory.address_to_object(frame_addr);
-            const items = frame
-              .children_to_string(this.memory)
-              .reduce((obj, key) => ({ ...obj, [key]: null }), {});
+            const items = frame.children_to_tree(this.memory);
             tree[frame.to_string()] = items;
           });
         }
-        this.println(asTree(tree, false, true));
+        this.println(to_tree(tree));
       },
     },
     PrintRuntimeStack: {
       arity: 0,
-      apply: () => {},
+      apply: () => {
+        this.println(
+          "Runtime Stack (top = top of stack, bottom = bottom of stack):",
+        );
+        const stack = this.ctx.runtime_stack.reverse().map((addr) => {
+          const stackframe = this.memory.address_to_object(addr);
+          const children = stackframe.children_to_tree(this.memory);
+
+          const env = stackframe.children![0];
+          const env_obj = this.memory.address_to_object(env);
+          const last_frame = env_obj.children![env_obj.children!.length - 1];
+          const last_frame_obj = this.memory.address_to_object(last_frame);
+          const frame_children = last_frame_obj.children_to_tree(this.memory);
+
+          return [
+            stackframe.to_string(),
+            to_tree(children),
+            to_tree(frame_children)
+              .split("\n")
+              .map((line) => "    " + line)
+              .join("\n"),
+          ]
+            .join("\n")
+            .trim();
+        });
+        this.println(stack.join("\n\n"));
+      },
     },
   };
 
@@ -200,6 +223,7 @@ export class GolangVM {
       args.push(this.pop_os());
     }
     const result = apply.apply(null, args) ?? this.memory.Undefined;
+    this.ctx.operand_stack.pop(); // pop fun
     this.ctx.operand_stack.push(result);
   }
 
