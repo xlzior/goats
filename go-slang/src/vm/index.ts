@@ -19,6 +19,7 @@ export class GolangVM {
   private memory: Memory;
   private builtins: Array<BuiltinFunction>;
   private thread_manager: ThreadManager;
+  private println: (val: any) => void;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
     this.memory = new Memory(10000000);
@@ -26,6 +27,7 @@ export class GolangVM {
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
     ];
+    this.println = (val: any) => external_builtins["Println"].apply(val);
     this.ctx = new Context(0, this.initialise_environment());
     this.thread_manager = new ThreadManager();
   }
@@ -72,6 +74,7 @@ export class GolangVM {
   }
 
   internal_builtins: Record<InternalBuiltinNames, BuiltinFunction> = {
+    // NOTE: Ensure that the order of keys matches the order of the enum
     Sleep: {
       arity: 1,
       apply: (duration: number) => {
@@ -85,6 +88,21 @@ export class GolangVM {
           return this.memory.channel.allocate();
         } else {
           return this.memory.buffered_channel.allocate(capacity);
+        }
+      },
+    },
+    Print_Heap: {
+      arity: 0,
+      apply: () => {
+        let i = 0;
+        while (i < this.memory.heap.free) {
+          this.memory
+            .address_to_display_values(i)
+            .forEach((display_value, j) => {
+              const address = `@${i + j}`.padStart(4, " ");
+              this.println(`${address}: ${display_value}`);
+            });
+          i += this.memory.heap.get_size(i);
         }
       },
     },
