@@ -7,7 +7,7 @@ export enum Tag {
   Blockframe,
   Callframe,
   Closure,
-  Frame,
+  EnvFrame,
   Environment,
   Builtin,
   Channel,

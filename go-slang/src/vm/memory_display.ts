@@ -72,12 +72,12 @@ export const to_memory_object: Record<
     const env = memory.closure.get_environment(address);
     return new MemoryObject("Closure", { arity, pc }, [env]);
   },
-  [Tag.Frame]: function (address: number, memory: Memory) {
+  [Tag.EnvFrame]: function (address: number, memory: Memory) {
     const size = memory.frame.get_num_values(address);
     const values = new Array(size).fill(null).map((_, i) => {
       return memory.frame.get_value(address, i);
     });
-    return new MemoryObject("Frame", { size }, values);
+    return new MemoryObject("EnvFrame", { size }, values);
   },
   [Tag.Environment]: function (address: number, memory: Memory) {
     const size = memory.environment.get_num_frames(address);
