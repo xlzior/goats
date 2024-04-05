@@ -1,7 +1,5 @@
 import { Memory } from "./memory";
 import { Tag } from "./tag";
-import { add_ascii_tree } from "./utils";
-
 export class MemoryObject {
   constructor(
     public name: string,
@@ -21,12 +19,10 @@ export class MemoryObject {
   children_to_string(memory: Memory): string[] {
     if (!this.children) return [];
 
-    return add_ascii_tree(
-      this.children.map((child) => {
-        const obj = memory.address_to_object(child);
-        return `${format_address(child)} - ${obj.to_string()}`;
-      }),
-    );
+    return this.children.map((child) => {
+      const obj = memory.address_to_object(child);
+      return `${format_address(child)} - ${obj.to_string()}`;
+    });
   }
 }
 
