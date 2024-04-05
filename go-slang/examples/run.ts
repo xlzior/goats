@@ -19,7 +19,6 @@ process.stdin.on("data", (chunk) => {
 });
 
 process.stdin.on("end", () => {
-  console.log("Running Go program:");
   runner
     .execute(program)
     .then((result) => {
