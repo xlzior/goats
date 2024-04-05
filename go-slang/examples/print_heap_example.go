@@ -11,5 +11,5 @@ func main() {
 	Lock(d)
 	Add(e, 8)
 
-	Print_Heap()
+	PrintHeap()
 }

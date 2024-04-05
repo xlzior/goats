@@ -3,49 +3,53 @@ Running Go program:
   @1: true
   @2: undefined
   @3: Environment(size=0)
-  @4: Frame(size=4)
-  @5: ├─ @9 - Builtin#0
-  @6: ├─ @10 - Builtin#1
-  @7: ├─ @11 - Builtin#2
-  @8: └─ @12 - Builtin#3
-  @9: Builtin#0
- @10: Builtin#1
- @11: Builtin#2
- @12: Builtin#3
- @13: Environment(size=1)
- @14: └─ Frame@4
- @15: Blockframe()
- @16: └─ Environment@13
- @17: Frame(size=1)
- @18: └─ @22 - Closure(arity=0, pc=3)
- @19: Environment(size=2)
- @20: ├─ Frame@4
- @21: └─ Frame@17
- @22: Closure(arity=0, pc=3)
- @23: └─ Environment@19
- @24: Callframe(pc=35)
- @25: └─ Environment@19
- @26: Frame(size=0)
- @27: Environment(size=3)
- @28: ├─ Frame@4
- @29: ├─ Frame@17
- @30: └─ Frame@26
- @31: Blockframe()
- @32: └─ Environment@27
- @33: Frame(size=5)
- @34: ├─ @44 - 1
- @35: ├─ @46 - hello world
- @36: ├─ @0 - false
- @37: ├─ @47 - Mutex(locked)
- @38: └─ @49 - WaitGroup(value=8)
- @39: Environment(size=4)
- @40: ├─ Frame@4
- @41: ├─ Frame@17
- @42: ├─ Frame@26
- @43: └─ Frame@33
- @44: 1
- @46: hello world
- @47: Mutex(locked)
- @49: WaitGroup(value=8)
- @51: 8
+  @4: Frame(size=6)
+  @5: ├─ @11 - Builtin#0
+  @6: ├─ @12 - Builtin#1
+  @7: ├─ @13 - Builtin#2
+  @8: ├─ @14 - Builtin#3
+  @9: ├─ @15 - Builtin#4
+ @10: └─ @16 - Builtin#5
+ @11: Builtin#0
+ @12: Builtin#1
+ @13: Builtin#2
+ @14: Builtin#3
+ @15: Builtin#4
+ @16: Builtin#5
+ @17: Environment(size=1)
+ @18: └─ Frame@4
+ @19: Blockframe()
+ @20: └─ Environment@17
+ @21: Frame(size=1)
+ @22: └─ @26 - Closure(arity=0, pc=3)
+ @23: Environment(size=2)
+ @24: ├─ Frame@4
+ @25: └─ Frame@21
+ @26: Closure(arity=0, pc=3)
+ @27: └─ Environment@23
+ @28: Callframe(pc=35)
+ @29: └─ Environment@23
+ @30: Frame(size=0)
+ @31: Environment(size=3)
+ @32: ├─ Frame@4
+ @33: ├─ Frame@21
+ @34: └─ Frame@30
+ @35: Blockframe()
+ @36: └─ Environment@31
+ @37: Frame(size=5)
+ @38: ├─ @48 - 1
+ @39: ├─ @50 - hello world
+ @40: ├─ @0 - false
+ @41: ├─ @51 - Mutex(locked)
+ @42: └─ @53 - WaitGroup(value=8)
+ @43: Environment(size=4)
+ @44: ├─ Frame@4
+ @45: ├─ Frame@21
+ @46: ├─ Frame@30
+ @47: └─ Frame@37
+ @48: 1
+ @50: hello world
+ @51: Mutex(locked)
+ @53: WaitGroup(value=8)
+ @55: 8
 { value: undefined }
