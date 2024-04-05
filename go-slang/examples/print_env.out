@@ -1,4 +1,3 @@
-Running Go program:
 Environment(size=4)
 ├─ EnvFrame(size=6)
 │  ├─  @11 - Builtin(id=0)
