@@ -22,11 +22,7 @@ export class Memory {
 
   address_to_object(address: number): MemoryObject {
     const tag = this.heap.get_tag(address) as Tag;
-    const display_fn = to_memory_object[tag];
-    if (!display_fn) {
-      throw new Error(`No display function for tag ${tag}`);
-    }
-    return display_fn(address, this);
+    return to_memory_object[tag](address, this);
   }
 
   address_to_js_value(address: number) {
