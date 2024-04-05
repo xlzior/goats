@@ -23,9 +23,3 @@ const unop_microcode: any = {
 };
 
 export const apply_unop = (op: Token, v: any) => unop_microcode[op](v);
-
-export function add_ascii_tree(vals: string[]): string[] {
-  return vals.map((val, i) =>
-    i === vals.length - 1 ? `└─ ${val}` : `├─ ${val}`,
-  );
-}
