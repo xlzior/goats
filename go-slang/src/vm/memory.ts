@@ -2,6 +2,7 @@ import { RuntimeError } from "../errors";
 import { is_number, is_string } from "../utils";
 import { BufferedChannel, Channel } from "./channel";
 import { Heap } from "./heap";
+import { display_functions } from "./memory_display";
 import { Tag } from "./tag";
 
 export class Memory {
@@ -19,6 +20,16 @@ export class Memory {
     this.string_pool = new Map();
   }
 
+  address_to_display_values(address: number): string[] {
+    const tag = this.heap.get_tag(address) as Tag;
+    const display_fn = display_functions[tag];
+    if (display_fn) {
+      return display_fn(address, this);
+    } else {
+      return ["unknown"];
+    }
+  }
+
   address_to_js_value(address: number) {
     switch (this.heap.get_tag(address)) {
       case Tag.False:
@@ -28,13 +39,13 @@ export class Memory {
       case Tag.Undefined:
         return undefined;
       case Tag.Number:
-        return this.heap.get(address + 1);
+        return this.number.get(address);
       case Tag.Closure:
         return "<closure>";
       case Tag.Builtin:
         return "<builtin>";
       case Tag.String:
-        return this.string.get_string(address);
+        return this.string.get(address);
       case Tag.Channel:
         return "<channel>";
       case Tag.BufferedChannel:
@@ -69,6 +80,7 @@ export class Memory {
       this.heap.set(number_address + 1, n);
       return number_address;
     },
+    get: (address: number) => this.heap.get(address + 1),
   };
 
   string = {
@@ -80,7 +92,7 @@ export class Memory {
       this.string_pool.set(string_address, new_string_val);
       return string_address;
     },
-    get_string: (address: number): string => {
+    get: (address: number): string => {
       const string_val = this.string_pool.get(address);
       if (string_val === undefined)
         throw new RuntimeError("String value not found");
@@ -134,11 +146,20 @@ export class Memory {
     allocate: (num_values: number) => {
       return this.heap.allocate(Tag.Frame, num_values + 1);
     },
+    get_num_values: (frame_address: number) => {
+      return this.heap.get_size(frame_address) - 1;
+    },
+    get_value: (frame_address: number, index: number) => {
+      return this.heap.get_child(frame_address, index);
+    },
   };
 
   environment = {
     allocate: (num_frames: number) => {
       return this.heap.allocate(Tag.Environment, num_frames + 1);
+    },
+    get_num_frames: (env_address: number) => {
+      return this.heap.get_size(env_address) - 1;
     },
     get_value: (env_address: number, position: [number, number]) => {
       const [frame_index, value_index] = position;
@@ -257,6 +278,9 @@ export class Memory {
       const addr = this.heap.allocate(Tag.WaitGroup, 2);
       this.heap.set(addr + 1, 0);
       return addr;
+    },
+    get: (addr: number) => {
+      return this.heap.get(addr + 1);
     },
     update_counter: (addr: number, delta: number) => {
       const curr_count = this.heap.get(addr + 1);
