@@ -1,3 +1,4 @@
+import { asTree } from "treeify";
 import { RuntimeError } from "../errors";
 import { InternalBuiltinNames } from "../internal_builtins";
 import { BuiltinFunction } from "../types";
@@ -100,10 +101,17 @@ export class GolangVM {
           const obj = this.memory.address_to_object(i);
           this.println(`${format_address(i)}: ${obj.to_string()}`);
 
-          if (obj.children) {
-            obj.children_to_string(this.memory).forEach((child, j) => {
-              this.println(`${format_address(i + j + 1)}: ${child}`);
-            });
+          if (obj.children && obj.children.length > 0) {
+            const children = obj
+              .children_to_string(this.memory)
+              .reduce((obj, key) => ({ ...obj, [key]: null }), {});
+
+            const tree = asTree(children, false, true)
+              .split("\n")
+              .slice(0, -1)
+              .map((child, j) => `${format_address(i + j + 1)}: ${child}`);
+
+            this.println(tree.join("\n"));
           }
           i += this.memory.heap.get_size(i);
         }
