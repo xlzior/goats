@@ -1,0 +1,51 @@
+Running Go program:
+  @0: false
+  @1: true
+  @2: undefined
+  @3: Environment(size=0)
+  @4: Frame(size=4)
+  @5: ├─ @9 - Builtin#0
+  @6: ├─ @10 - Builtin#1
+  @7: ├─ @11 - Builtin#2
+  @8: └─ @12 - Builtin#3
+  @9: Builtin#0
+ @10: Builtin#1
+ @11: Builtin#2
+ @12: Builtin#3
+ @13: Environment(size=1)
+ @14: └─ Frame@4
+ @15: Blockframe()
+ @16: └─ Environment@13
+ @17: Frame(size=1)
+ @18: └─ @22 - Closure(arity=0, pc=3)
+ @19: Environment(size=2)
+ @20: ├─ Frame@4
+ @21: └─ Frame@17
+ @22: Closure(arity=0, pc=3)
+ @23: └─ Environment@19
+ @24: Callframe(pc=35)
+ @25: └─ Environment@19
+ @26: Frame(size=0)
+ @27: Environment(size=3)
+ @28: ├─ Frame@4
+ @29: ├─ Frame@17
+ @30: └─ Frame@26
+ @31: Blockframe()
+ @32: └─ Environment@27
+ @33: Frame(size=5)
+ @34: ├─ @44 - 1
+ @35: ├─ @46 - hello world
+ @36: ├─ @0 - false
+ @37: ├─ @47 - Mutex(locked)
+ @38: └─ @49 - WaitGroup(value=8)
+ @39: Environment(size=4)
+ @40: ├─ Frame@4
+ @41: ├─ Frame@17
+ @42: ├─ Frame@26
+ @43: └─ Frame@33
+ @44: 1
+ @46: hello world
+ @47: Mutex(locked)
+ @49: WaitGroup(value=8)
+ @51: 8
+{ value: undefined }
