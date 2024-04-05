@@ -119,7 +119,23 @@ export class GolangVM {
     },
     PrintEnvironment: {
       arity: 0,
-      apply: () => {},
+      apply: () => {
+        const addr = this.ctx.environment;
+        const env = this.memory.address_to_object(addr);
+        this.println(env.to_string());
+
+        const tree: Record<string, Record<string, any>> = {};
+        if (env.children) {
+          env.children.forEach((frame_addr) => {
+            const frame = this.memory.address_to_object(frame_addr);
+            const items = frame
+              .children_to_string(this.memory)
+              .reduce((obj, key) => ({ ...obj, [key]: null }), {});
+            tree[frame.to_string()] = items;
+          });
+        }
+        this.println(asTree(tree, false, true));
+      },
     },
     PrintRuntimeStack: {
       arity: 0,
