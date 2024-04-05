@@ -91,7 +91,7 @@ export class GolangVM {
         }
       },
     },
-    Print_Heap: {
+    PrintHeap: {
       arity: 0,
       apply: () => {
         let i = 0;
@@ -105,6 +105,14 @@ export class GolangVM {
           i += this.memory.heap.get_size(i);
         }
       },
+    },
+    PrintEnvironment: {
+      arity: 0,
+      apply: () => {},
+    },
+    PrintRuntimeStack: {
+      arity: 0,
+      apply: () => {},
     },
   };
 
