@@ -2,7 +2,7 @@ import { RuntimeError } from "../errors";
 import { is_number, is_string } from "../utils";
 import { BufferedChannel, Channel } from "./channel";
 import { Heap } from "./heap";
-import { display_functions } from "./memory_display";
+import { MemoryObject, to_memory_object } from "./memory_display";
 import { Tag } from "./tag";
 
 export class Memory {
@@ -20,14 +20,13 @@ export class Memory {
     this.string_pool = new Map();
   }
 
-  address_to_display_values(address: number): string[] {
+  address_to_object(address: number): MemoryObject {
     const tag = this.heap.get_tag(address) as Tag;
-    const display_fn = display_functions[tag];
-    if (display_fn) {
-      return display_fn(address, this);
-    } else {
-      return ["unknown"];
+    const display_fn = to_memory_object[tag];
+    if (!display_fn) {
+      throw new Error(`No display function for tag ${tag}`);
     }
+    return display_fn(address, this);
   }
 
   address_to_js_value(address: number) {
@@ -253,6 +252,16 @@ export class Memory {
     },
     set_slot: (addr: number, i: number, val: number) => {
       this.heap.set_child(addr, i, val);
+    },
+    get_values: (addr: number) => {
+      const size = this.buffered_channel.get_size(addr);
+      const head = this.buffered_channel.get_head(addr);
+      const tail = this.buffered_channel.get_tail(addr);
+      const values = [];
+      for (let i = head; i !== tail; i = (i + 1) % size) {
+        values.push(this.buffered_channel.get_slot(addr, i));
+      }
+      return values;
     },
   };
 
