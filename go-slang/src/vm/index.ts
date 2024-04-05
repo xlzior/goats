@@ -54,7 +54,7 @@ export class GolangVM {
 
       this.microcode[instr._type](instr);
 
-      print_os(this.ctx.operand_stack, this.memory);
+      // print_os(this.ctx.operand_stack, this.memory);
 
       this.ctx = this.thread_manager.get_context(this.ctx);
     }
