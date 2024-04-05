@@ -63,7 +63,6 @@ const builtin_func_types: Record<string, Type> = {
   Add: make_function_type([WAITGROUP_TYPE, INT_TYPE], [UNDEFINED_TYPE]),
   Wait: make_function_type([WAITGROUP_TYPE], [UNDEFINED_TYPE]),
   Done: make_function_type([WAITGROUP_TYPE], [UNDEFINED_TYPE]),
-  PrintOS: make_function_type([], [UNDEFINED_TYPE])
 };
 
 export const global_type_frame: Record<string, Type> = {
