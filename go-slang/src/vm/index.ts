@@ -4,6 +4,7 @@ import { BuiltinFunction } from "../types";
 import * as VM from "../types/vm_instructions";
 import { peek } from "../utils";
 import { print_stack } from "./debugger";
+import { NODE_SIZE } from "./heap";
 import { Memory } from "./memory";
 import { format_address, to_tree } from "./memory_display";
 import { Tag } from "./tag";
@@ -23,7 +24,7 @@ export class GolangVM {
   private println: (val: any) => void;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(10000000);
+    this.memory = new Memory(10000000, this.get_roots.bind(this));
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
@@ -109,7 +110,7 @@ export class GolangVM {
 
             this.println(tree.join("\n"));
           }
-          i += this.memory.heap.get_size(i);
+          i += NODE_SIZE;
         }
       },
     },
@@ -200,6 +201,15 @@ export class GolangVM {
     }
 
     return context;
+  }
+
+  private get_roots(): number[] {
+    // TODO: get roots from all threads
+    return [
+      this.ctx.environment,
+      ...this.ctx.runtime_stack,
+      ...this.ctx.operand_stack,
+    ];
   }
 
   private pop_os() {

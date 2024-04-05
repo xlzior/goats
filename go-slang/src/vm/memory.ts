@@ -12,8 +12,8 @@ export class Memory {
   Undefined: number;
   string_pool: Map<number, string>; // <string address, actual string value>
 
-  constructor(heap_size: number) {
-    this.heap = new Heap(heap_size);
+  constructor(heap_size: number, get_roots: () => number[]) {
+    this.heap = new Heap(heap_size, get_roots);
     this.False = this.heap.allocate(Tag.False, 1);
     this.True = this.heap.allocate(Tag.True, 1);
     this.Undefined = this.heap.allocate(Tag.Undefined, 1);
@@ -201,6 +201,7 @@ export class Memory {
     allocate: () => {
       const address = this.heap.allocate(Tag.Channel, 2);
       this.heap.set(address + 1, this.Undefined);
+      this.channel.set_is_receiver_waiting(address, this.False);
       return address;
     },
     set_value: (addr: number, val: number) => {
