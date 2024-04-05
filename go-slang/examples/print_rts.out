@@ -1,0 +1,60 @@
+Runtime Stack (top = top of stack, bottom = bottom of stack):
+Blockframe()
+└─ @158 - Environment(size=5)
+    └─ @164 - String(value=now inside the if statement)
+
+Blockframe()
+└─ @147 - Environment(size=4)
+
+Blockframe()
+└─ @140 - Environment(size=3)
+    └─ @134 - Number(value=1)
+
+Callframe(pc=29)
+└─ @125 - Environment(size=4)
+
+Blockframe()
+└─ @118 - Environment(size=3)
+    └─ @112 - Number(value=2)
+
+Callframe(pc=29)
+└─ @103 - Environment(size=4)
+
+Blockframe()
+└─  @96 - Environment(size=3)
+    └─  @90 - Number(value=3)
+
+Callframe(pc=29)
+└─  @81 - Environment(size=4)
+
+Blockframe()
+└─  @74 - Environment(size=3)
+    └─  @68 - Number(value=4)
+
+Callframe(pc=29)
+└─  @59 - Environment(size=4)
+
+Blockframe()
+└─  @52 - Environment(size=3)
+    └─  @46 - Number(value=5)
+
+Callframe(pc=42)
+└─  @41 - Environment(size=4)
+
+Blockframe()
+└─  @34 - Environment(size=3)
+
+Callframe(pc=50)
+└─  @24 - Environment(size=2)
+    ├─  @27 - Closure(arity=1, pc=3)
+    └─  @29 - Closure(arity=0, pc=38)
+
+Blockframe()
+└─  @17 - Environment(size=1)
+    ├─  @11 - Builtin(id=0)
+    ├─  @12 - Builtin(id=1)
+    ├─  @13 - Builtin(id=2)
+    ├─  @14 - Builtin(id=3)
+    ├─  @15 - Builtin(id=4)
+    └─  @16 - Builtin(id=5)
+{ value: 1 }

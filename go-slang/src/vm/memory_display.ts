@@ -1,3 +1,4 @@
+import { asTree } from "treeify";
 import { Memory } from "./memory";
 import { Tag } from "./tag";
 export class MemoryObject {
@@ -7,6 +8,10 @@ export class MemoryObject {
     public children?: number[],
   ) {}
 
+  /**
+   * Returns a string representation of the object
+   * with name and attributes only, omitting children.
+   */
   to_string(): string {
     const a = this.attributes
       ? Object.entries(this.attributes)
@@ -24,6 +29,17 @@ export class MemoryObject {
       return `${format_address(child)} - ${obj.to_string()}`;
     });
   }
+
+  children_to_tree(memory: Memory): Record<string, any> {
+    return this.children_to_string(memory).reduce(
+      (obj, key) => ({ ...obj, [key]: null }),
+      {},
+    );
+  }
+}
+
+export function to_tree(data: Record<string, any>) {
+  return asTree(data, false, true).trim();
 }
 
 export function format_address(address: number): string {
@@ -54,8 +70,8 @@ export const to_memory_object: Record<
     });
   },
   [Tag.Blockframe]: function (address: number, memory: Memory) {
-    const bf_env = memory.blockframe.get_environment(address);
-    return new MemoryObject("Blockframe", {}, [bf_env]);
+    const env = memory.blockframe.get_environment(address);
+    return new MemoryObject("Blockframe", {}, [env]);
   },
   [Tag.Callframe]: function (address: number, memory: Memory) {
     const pc = memory.callframe.get_pc(address);

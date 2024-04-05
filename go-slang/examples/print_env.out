@@ -1,3 +1,4 @@
+Environment (top = global frame, bottom = current frame):
 Environment(size=4)
 ├─ EnvFrame(size=6)
 │  ├─  @11 - Builtin(id=0)
@@ -15,5 +16,4 @@ Environment(size=4)
    ├─   @0 - False()
    ├─  @51 - Mutex(is_available=false)
    └─  @53 - WaitGroup(value=8)
-
 { value: undefined }
