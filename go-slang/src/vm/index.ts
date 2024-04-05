@@ -5,6 +5,7 @@ import * as VM from "../types/vm_instructions";
 import { peek } from "../utils";
 import { print_stack } from "./debugger";
 import { Memory } from "./memory";
+import { format_address } from "./memory_display";
 import { Tag } from "./tag";
 import { Context } from "./thread_context";
 import { ThreadManager } from "./thread_manager";
@@ -96,12 +97,14 @@ export class GolangVM {
       apply: () => {
         let i = 0;
         while (i < this.memory.heap.free) {
-          this.memory
-            .address_to_display_values(i)
-            .forEach((display_value, j) => {
-              const address = `@${i + j}`.padStart(4, " ");
-              this.println(`${address}: ${display_value}`);
+          const obj = this.memory.address_to_object(i);
+          this.println(`${format_address(i)}: ${obj.to_string()}`);
+
+          if (obj.children) {
+            obj.children_to_string(this.memory).forEach((child, j) => {
+              this.println(`${format_address(i + j + 1)}: ${child}`);
             });
+          }
           i += this.memory.heap.get_size(i);
         }
       },
