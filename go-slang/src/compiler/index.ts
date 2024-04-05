@@ -397,5 +397,8 @@ export class GolangCompiler {
     BranchStmt: () => {
       throw new CompilationError(`BranchStmt not implemented`);
     },
+    FuncType: () => {
+      return;
+    },
   };
 }
