@@ -1,6 +1,7 @@
 # GOaTS: GOlang interpreter in TypeScript
 
-GOaTS is a small Golang interpreter developed using TypeScript, offering a subset of Golang's features. It includes a web-based playground equipped with a code editor for execution of code.
+GOaTS is a small Golang interpreter developed using TypeScript, offering a subset of Golang's features. 
+It includes a web-based playground equipped with a code editor for execution of code.
 
 ## Quick Start
 
@@ -9,9 +10,10 @@ GOaTS is a small Golang interpreter developed using TypeScript, offering a subse
 To set up GOaTS, please follow the instructions outlined in the README 
 within each directory in the following order:
 
-1. go-slang
-2. js-slang
-3. frontend
+1. go-parser
+2. go-slang
+3. js-slang
+4. frontend
 
 ### Usage
 Once the frontend setup is complete, navigate to http://localhost:8000 to utilize the playground.
@@ -39,4 +41,5 @@ We've included a garbage collector to efficiently manage dynamically allocated m
 We've incorporated a robust type-checker to ensure the type safety of all programs.
 
 ### Memory Visualisation
-Debugging is made easier with our memory visualization feature, allowing users to inspect the heap memory. Access this feature via the built-in functions `PrintHeap` or `PrintRuntimeStack`.
+Debugging is made easier with our memory visualization feature, allowing users to inspect the heap memory. 
+Access this feature via the built-in functions `PrintHeap` or `PrintRuntimeStack`.
