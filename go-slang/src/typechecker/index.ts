@@ -45,7 +45,8 @@ export class GolangTypechecker {
   }
 
   private type(astNode: AST.Node): Type {
-    if (this.type_ast[astNode._type] === undefined) return {} as Type;
+    if (this.type_ast[astNode._type] === undefined)
+      throw new TypeError(`type: ${astNode._type} not supported`);
     return this.type_ast[astNode._type](astNode);
   }
 
