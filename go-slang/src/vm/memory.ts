@@ -12,8 +12,10 @@ export class Memory {
   Undefined: number;
   string_pool: Map<number, string>; // <string address, actual string value>
 
+  allocating: number[] = [];
+
   constructor(heap_size: number, get_roots: () => number[]) {
-    this.heap = new Heap(heap_size, get_roots);
+    this.heap = new Heap(heap_size, () => get_roots().concat(this.allocating));
     this.False = this.heap.allocate(Tag.False, 1);
     this.True = this.heap.allocate(Tag.True, 1);
     this.Undefined = this.heap.allocate(Tag.Undefined, 1);
@@ -110,7 +112,9 @@ export class Memory {
 
   closure = {
     allocate: (arity: number, pc: number, env: number) => {
+      this.allocating = [env];
       const address = this.heap.allocate(Tag.Closure, 2);
+      this.allocating = [];
       this.heap.set_byte_at_offset(address, 1, arity);
       this.heap.set_2_bytes_at_offset(address, 2, pc);
       this.heap.set(address + 1, env);
@@ -123,7 +127,9 @@ export class Memory {
 
   blockframe = {
     allocate: (env: number) => {
+      this.allocating = [env];
       const address = this.heap.allocate(Tag.Blockframe, 2);
+      this.allocating = [];
       this.heap.set(address + 1, env);
       return address;
     },
@@ -132,7 +138,9 @@ export class Memory {
 
   callframe = {
     allocate: (env: number, pc: number) => {
+      this.allocating = [env];
       const address = this.heap.allocate(Tag.Callframe, 2);
+      this.allocating = [];
       this.heap.set_2_bytes_at_offset(address, 2, pc);
       this.heap.set(address + 1, env);
       return address;
@@ -176,7 +184,9 @@ export class Memory {
     },
     extend: (frame_address: number, env_address: number) => {
       const old_size = this.heap.get_size(env_address);
+      this.allocating = [frame_address, env_address];
       const new_env_address = this.environment.allocate(old_size);
+      this.allocating = [];
       let i;
       for (i = 0; i < old_size - 1; i++) {
         this.heap.set_child(
