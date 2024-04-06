@@ -15,31 +15,35 @@ describe("mutex", () => {
     package main
 
     var (
-      balance int = 0
       wg WaitGroup
+      balance = 0
     )
 
     func withdraw(amt int) {
-      balance -= amt
-      i := 5
-      for i > 0 {
-        i -= 1
+      i := 0
+      for i < amt {
+        i++
+        balance--
       }
       Done(wg)
     }
 
     func deposit(amt int) {
-      balance += amt
+      i := 0
+      for i < amt {
+        i++
+        balance++
+      }
       Done(wg)
     }
 
     func main() {
-      i := 10000
+      i := 300
       for i > 0 {
-        go deposit(1)
-        go withdraw(1)
-        i--
         Add(wg, 2)
+        go deposit(100)
+        go withdraw(100)
+        i -= 1
       }
       Wait(wg)
       return balance
@@ -54,40 +58,45 @@ describe("mutex", () => {
     package main
 
     var (
-      balance int = 0
-      mutex Mutex
       wg WaitGroup
+      mutex Mutex
+      balance = 0
     )
-
+    
     func withdraw(amt int) {
       Lock(mutex)
-      balance -= amt
-      i := 5
-      for i > 0 {
-        i -= 1
+      i := 0
+      for i < amt {
+        i++
+        balance--
       }
       Unlock(mutex)
       Done(wg)
     }
-
+    
     func deposit(amt int) {
       Lock(mutex)
-      balance += amt
+      i := 0
+      for i < amt {
+        i++
+        balance++
+      }
       Unlock(mutex)
       Done(wg)
     }
-
+    
     func main() {
-      i := 10000
+      i := 300
       for i > 0 {
-        go deposit(1)
-        go withdraw(1)
         Add(wg, 2)
-        i--
+        go deposit(100)
+        go withdraw(100)
+        i -= 1
       }
       Wait(wg)
       return balance
-    }`;
+    }
+    `;
 
     const { value } = await golangRunner.execute(program);
     const expected = 0;
@@ -105,28 +114,32 @@ describe("mutex", () => {
 
     func withdraw(amt int, mutex Mutex) {
       Lock(mutex)
-      balance -= amt
-      i := 5
-      for i > 0 {
-        i -= 1
+      i := 0
+      for i < amt {
+        i++
+        balance--
       }
       Unlock(mutex)
       Done(wg)
     }
 
-    func deposit(amt int, mutex Mutex) {
+    func deposit(amt int, mutex Mutex) {      
       Lock(mutex)
-      balance += amt
+      i := 0
+      for i < amt {
+        i++
+        balance++
+      }
       Unlock(mutex)
       Done(wg)
     }
 
     func main() {
       var mutex Mutex
-      i := 10000
+      i := 300
       for i > 0 {
-        go deposit(1, mutex)
-        go withdraw(1, mutex)
+        go deposit(100, mutex)
+        go withdraw(100, mutex)
         Add(wg, 2)
         i--
       }
@@ -154,16 +167,20 @@ describe("mutex", () => {
     func withdraw(amt int) {
       // mutex 1
       Lock(mutex1)
-      balance1 -= amt
-      i := 5
-      for i > 0 {
-        i -= 1
+      i := 0
+      for i < amt {
+        i++
+        balance1--
       }
       Unlock(mutex1)
 
       // mutex 2
       Lock(mutex2)
-      balance2 -= amt
+      j := 0
+      for j < amt {
+        j++
+        balance2--
+      }
       Unlock(mutex2)
 
       Done(wg)
@@ -172,21 +189,29 @@ describe("mutex", () => {
     func deposit(amt int) {
       // mutex 1
       Lock(mutex1)
-      balance1 += amt
+      i := 0
+      for i < amt {
+        i++
+        balance1++
+      }
       Unlock(mutex1)
 
       // mutex2
       Lock(mutex2)
-      balance2 += amt
+      j := 0
+      for j < amt {
+        j++
+        balance2++
+      }
       Unlock(mutex2)
       Done(wg)
     }
 
     func main() {
-      i := 10000
+      i := 300
       for i > 0 {
-        go deposit(1)
-        go withdraw(1)
+        go deposit(100)
+        go withdraw(100)
         Add(wg, 2)
         i--
       }
