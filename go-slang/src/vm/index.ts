@@ -24,7 +24,7 @@ export class GolangVM {
   private println: (val: any) => void;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(1000, this.get_roots.bind(this));
+    this.memory = new Memory(10000000, this.get_roots.bind(this));
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
