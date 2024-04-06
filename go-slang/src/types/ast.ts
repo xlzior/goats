@@ -146,7 +146,7 @@ export enum Token {
   COLON = ":",
 }
 
-export type Node = File | Type | Spec | Decl | Expr | Stmt;
+export type Node = Spec | Decl | Expr | Stmt;
 
 // ========================
 // FILE - ROOT AST NODE
@@ -161,8 +161,6 @@ export type File = {
 // ========================
 // TYPES
 // ========================
-
-export type Type = FuncType | ChanType;
 
 export type ChanType = {
   _type: NodeType.CHAN_TYPE;
@@ -222,7 +220,9 @@ export type Expr =
   | UnaryExpr
   | ParenExpr
   | Ident
-  | CallExpr;
+  | CallExpr
+  | ChanType
+  | FuncType;
 
 export type BasicLit = {
   _type: NodeType.BASIC_LIT;
