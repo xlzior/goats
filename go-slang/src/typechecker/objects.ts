@@ -91,12 +91,12 @@ export function make_function_type(args: Type[], res: Type[]): FunctionType {
 export function ast_to_type(astNode: AST.Node): Type {
   switch (astNode._type) {
     case AST.NodeType.IDENT:
-      return ident_to_type(astNode as AST.Ident);
+      return ident_to_type(astNode);
     case AST.NodeType.CHAN_TYPE:
-      const content_type = ast_to_type((astNode as AST.ChanType).Value);
+      const content_type = ast_to_type(astNode.Value);
       return make_channel_type(content_type);
     case AST.NodeType.FUNC_TYPE:
-      return ast_to_function_type(astNode as AST.FuncType);
+      return ast_to_function_type(astNode);
     default:
       return UNDEFINED_TYPE;
   }
