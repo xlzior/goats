@@ -146,173 +146,194 @@ export enum Token {
   COLON = ":",
 }
 
+export type Node = File | Type | Spec | Decl | Expr | Stmt;
+
 // ========================
 // FILE - ROOT AST NODE
 // ========================
-export interface File {
+
+export type File = {
   _type: NodeType.FILE;
   Decls: Decl[];
   Name: Ident; // package name
-}
+};
 
-export interface Node {
-  _type: NodeType;
-}
+// ========================
+// TYPES
+// ========================
+
+export type Type = FuncType | ChanType;
+
+export type ChanType = {
+  _type: NodeType.CHAN_TYPE;
+  Value: Ident;
+};
+
+export type FuncType = {
+  _type: NodeType.FUNC_TYPE;
+  Params: FieldList; // function parameters
+  Results: FieldList; // return type
+};
+
+type FieldList = {
+  List: Field[];
+};
+
+type Field = {
+  Names: Ident[]; // field/method parameter names
+  Type: Expr; // parameter types
+};
 
 // ========================
 // DECLARATIONS
 // ========================
 
-export interface Decl extends Node {
-  Name: Ident;
-}
+export type Decl = FuncDecl | GenDecl;
 
-export interface Spec extends Node {}
-
-export interface FuncType extends Node {
-  Params: FieldList; // function parameters
-  Results: FieldList; // return type
-}
-
-interface FieldList {
-  List: Field[];
-}
-
-interface Field {
-  Names: Ident[]; // field/method parameter names
-  Type: Expr; // parameter types
-}
-
-export interface ValueSpec extends Spec {
-  _type: NodeType.VALUE_SPEC;
-  Names: Ident[];
-  Values: Expr[];
-  Type: Ident;
-}
-
-export interface FuncDecl extends Decl {
+export type FuncDecl = {
   _type: NodeType.FUNC_DECL;
   Name: Ident;
   Body: BlockStmt;
   Type: FuncType;
-}
+};
 
-export interface GenDecl extends Decl {
+export type GenDecl = {
   _type: NodeType.GEN_DECL;
   Specs: Spec[];
   Tok: Token;
-}
+};
+
+type Spec = ValueSpec;
+
+export type ValueSpec = {
+  _type: NodeType.VALUE_SPEC;
+  Names: Ident[];
+  Values: Expr[];
+  Type: Ident;
+};
 
 // ========================
 // EXPRESSIONS
 // ========================
 
-export interface Expr extends Node {}
+export type Expr =
+  | BasicLit
+  | BinaryExpr
+  | UnaryExpr
+  | ParenExpr
+  | Ident
+  | CallExpr;
 
-export interface BasicLit extends Expr {
+export type BasicLit = {
   _type: NodeType.BASIC_LIT;
   Kind: Token;
   Value: number | string;
-}
+};
 
-export interface BinaryExpr extends Expr {
+export type BinaryExpr = {
   _type: NodeType.BINARY_EXPR;
   Op: Token;
   X: Expr;
   Y: Expr;
-}
+};
 
-export interface UnaryExpr extends Expr {
+export type UnaryExpr = {
   _type: NodeType.UNARY_EXPR;
   Op: Token.SUB | Token.NOT | Token.ARROW;
   X: Expr;
-}
+};
 
-export interface ParenExpr extends Expr {
+export type ParenExpr = {
   _type: NodeType.PAREN_EXPR;
   X: Expr;
-}
+};
 
-export interface Ident extends Expr {
+export type Ident = {
   _type: NodeType.IDENT;
   Name: string;
-}
+};
 
-export interface CallExpr extends Expr {
+export type CallExpr = {
   _type: NodeType.CALL_EXPR;
   Args: Expr[];
   Fun: Ident;
-}
+};
 
 // ========================
 // STATEMENTS
 // ========================
 
-export interface Stmt extends Node {}
+export type Stmt =
+  | AssignStmt
+  | BlockStmt
+  | IfStmt
+  | ForStmt
+  | ExprStmt
+  | ReturnStmt
+  | BranchStmt
+  | IncDecStmt
+  | SendStmt
+  | GoStmt
+  | DeclStmt;
 
-export interface AssignStmt extends Stmt {
+export type AssignStmt = {
   _type: NodeType.ASSIGN_STMT;
   Lhs: Ident[];
   Rhs: Expr[];
   Tok: Token;
-}
+};
 
-export interface BlockStmt extends Stmt {
+export type BlockStmt = {
   _type: NodeType.BLOCK_STMT;
-  List: Stmt[];
-}
+  List: (Stmt | Decl)[];
+};
 
-export interface IfStmt extends Stmt {
+export type IfStmt = {
   _type: NodeType.IF_STMT;
   Cond: Expr;
   Body: BlockStmt;
   Else?: BlockStmt | IfStmt; // if there is no else if or else, IfStmt Node does not have Else property
-}
+};
 
-export interface ForStmt extends Stmt {
+export type ForStmt = {
   _type: NodeType.FOR_STMT;
   Body: BlockStmt;
   Cond: Expr;
-}
+};
 
-export interface ExprStmt extends Stmt {
+export type ExprStmt = {
   _type: NodeType.EXPR_STMT;
   X: Expr;
-}
+};
 
-export interface ReturnStmt extends Stmt {
+export type ReturnStmt = {
   _type: NodeType.RETURN_STMT;
   Results: Expr[];
-}
+};
 
-export interface BranchStmt extends Stmt {
+export type BranchStmt = {
   _type: NodeType.BRANCH_STMT;
-  Token: string; // keyword token (break, continue)
-}
+  Tok: Token; // keyword token (break, continue)
+};
 
-export interface IncDecStmt extends Stmt {
+export type IncDecStmt = {
   _type: NodeType.INC_DEC_STMT;
   Tok: Token.INC | Token.DEC;
   X: Ident;
-}
+};
 
-export interface GoStmt extends Stmt {
+export type GoStmt = {
   _type: NodeType.GO_STMT;
   Call: CallExpr;
-}
+};
 
-export interface DeclStmt extends Stmt {
+export type DeclStmt = {
   _type: NodeType.DECL_STMT;
   Decl: Decl;
-}
+};
 
-export interface SendStmt extends Stmt {
+export type SendStmt = {
   _type: NodeType.SEND_STMT;
   Chan: Expr;
   Value: Expr;
-}
-
-export interface ChanType extends Node {
-  _type: NodeType.CHAN_TYPE;
-  Value: Ident;
-}
+};

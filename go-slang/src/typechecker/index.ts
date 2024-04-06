@@ -1,4 +1,4 @@
-import { make_call_expr, make_ident } from "../compiler/utils";
+import { make_block_stmt, make_call_expr, make_ident } from "../compiler/utils";
 import { TypeError } from "../errors";
 import { BuiltinFunction } from "../types";
 import * as AST from "../types/ast";
@@ -40,17 +40,12 @@ export class GolangTypechecker {
   }
 
   public check_type(rootAstNode: AST.File): void {
-    const block: AST.BlockStmt = {
-      _type: AST.NodeType.BLOCK_STMT,
-      List: [...rootAstNode.Decls],
-    };
+    const block: AST.BlockStmt = make_block_stmt([...rootAstNode.Decls]);
     this.type(block);
   }
 
   private type(astNode: AST.Node): Type {
-    if (this.type_ast[astNode._type] === undefined)
-      // throw new TypeError(`${astNode._type} not supported`);
-      return {} as Type;
+    if (this.type_ast[astNode._type] === undefined) return {} as Type;
     return this.type_ast[astNode._type](astNode);
   }
 
@@ -200,7 +195,7 @@ export class GolangTypechecker {
 
       const func_type = this.type(astNode.Name) as FunctionType;
       const param_types = func_type.args;
-      const declared_return_type = func_type.res as Type[];
+      const declared_return_type: Type[] = func_type.res;
 
       this.extend_env(param_names, param_types);
 

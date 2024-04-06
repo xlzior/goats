@@ -11,6 +11,8 @@ import {
   make_assign_stmt,
   make_basic_lit,
   make_binary_expr,
+  make_block_stmt,
+  make_ident,
   noNewVariables,
   typeToDefaultValue,
 } from "./utils";
@@ -29,11 +31,10 @@ export class GolangCompiler {
   }
 
   compile_program(rootAstNode: AST.File) {
-    const block: AST.BlockStmt = {
-      _type: AST.NodeType.BLOCK_STMT,
-      List: [...rootAstNode.Decls, MAIN_CALL],
-    };
-
+    const block: AST.BlockStmt = make_block_stmt([
+      ...rootAstNode.Decls,
+      MAIN_CALL,
+    ]);
     this.compile(block);
     this.instrs[this.wc] = { _type: "DONE" };
     return this.instrs;
@@ -59,7 +60,7 @@ export class GolangCompiler {
   private compile_conditional(
     pred: AST.Expr,
     cons: AST.Expr | AST.BlockStmt,
-    alt: AST.Expr | AST.BlockStmt,
+    alt: AST.Expr | AST.BlockStmt | AST.IfStmt,
   ) {
     this.compile(pred);
     const jump_on_false_instruction: JOF = { _type: "JOF", addr: -1 };
@@ -120,15 +121,12 @@ export class GolangCompiler {
     BinaryExpr: (astNode: AST.BinaryExpr) => {
       if (astNode.Op === AST.Token.LAND) {
         // X && Y is "if X then Y else false"
-        const falseExpr: AST.Ident = {
-          _type: AST.NodeType.IDENT,
-          Name: "false",
-        };
+        const falseExpr: AST.Ident = make_ident("false");
         return this.compile_conditional(astNode.X, astNode.Y, falseExpr);
       }
       if (astNode.Op === AST.Token.LOR) {
         // X || Y is "if X then true else Y"
-        const trueExpr: AST.Ident = { _type: AST.NodeType.IDENT, Name: "true" };
+        const trueExpr: AST.Ident = make_ident("true");
         return this.compile_conditional(astNode.X, trueExpr, astNode.Y);
       }
       this.compile(astNode.X);
@@ -357,10 +355,11 @@ export class GolangCompiler {
       this.compile(astNode.X);
     },
     IfStmt: (astNode: AST.IfStmt) => {
+      const empty_block_stmt: AST.BlockStmt = make_block_stmt([]);
       this.compile_conditional(
         astNode.Cond,
         astNode.Body,
-        astNode.Else ?? { _type: AST.NodeType.BLOCK_STMT, List: [] },
+        astNode.Else ?? empty_block_stmt,
       );
     },
     ForStmt: (astNode: AST.ForStmt) => {
