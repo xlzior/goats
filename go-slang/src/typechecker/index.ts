@@ -384,9 +384,6 @@ export class GolangTypechecker {
       this.type(astNode.Decl);
       return UNDEFINED_TYPE;
     },
-    File: () => {
-      return;
-    },
     BranchStmt: () => {
       return;
     },

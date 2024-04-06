@@ -390,9 +390,6 @@ export class GolangCompiler {
     DeclStmt: (astNode: AST.DeclStmt) => {
       this.compile(astNode.Decl);
     },
-    File: () => {
-      throw new CompilationError(`File not implemented`);
-    },
     BranchStmt: () => {
       throw new CompilationError(`BranchStmt not implemented`);
     },
