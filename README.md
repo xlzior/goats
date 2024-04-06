@@ -42,4 +42,4 @@ We've incorporated a robust type-checker to ensure the type safety of all progra
 
 ### Memory Visualisation
 Debugging is made easier with our memory visualization feature, allowing users to inspect the heap memory. 
-Access this feature via the built-in functions `PrintHeap` or `PrintRuntimeStack`.
+Access this feature via the built-in functions `PrintHeap`, `PrintEnvironment` or `PrintRuntimeStack`.
