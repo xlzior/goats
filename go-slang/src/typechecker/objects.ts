@@ -95,8 +95,6 @@ export function ast_to_type(astNode: AST.Node): Type {
     case AST.NodeType.CHAN_TYPE:
       const content_type = ast_to_type((astNode as AST.ChanType).Value);
       return make_channel_type(content_type);
-    case AST.NodeType.FUNC_DECL:
-      return ast_to_function_type((astNode as AST.FuncDecl).Type);
     case AST.NodeType.FUNC_TYPE:
       return ast_to_function_type(astNode as AST.FuncType);
     default:

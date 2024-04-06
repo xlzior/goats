@@ -295,13 +295,9 @@ export class GolangTypechecker {
     BlockStmt: (astNode: AST.BlockStmt): Type => {
       const func_decls = astNode.List.filter(
         (val) => val._type === AST.NodeType.FUNC_DECL,
-      );
-      const func_names = func_decls.map(
-        (func) => (func as AST.FuncDecl).Name.Name,
-      );
-      const func_types = func_decls.map((func) =>
-        ast_to_type(func as AST.FuncDecl),
-      );
+      ) as AST.FuncDecl[];
+      const func_names = func_decls.map((func) => func.Name.Name);
+      const func_types = func_decls.map((func) => ast_to_type(func.Type));
 
       this.extend_env(func_names, func_types);
       const stmts = astNode.List;
