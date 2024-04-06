@@ -11,6 +11,7 @@ const MARKED = 1;
 
 export class Heap {
   free: number = 0;
+  max_allocated_address: number = 0;
   heap_size: number;
   view: DataView;
   bottom: number = 0;
@@ -44,6 +45,7 @@ export class Heap {
     }
 
     const address = this.free;
+    this.max_allocated_address = Math.max(this.max_allocated_address, address);
     this.free = this.get(this.free);
     this.view.setUint8(address * WORD_SIZE, tag);
     this.view.setUint16(address * WORD_SIZE + SIZE_OFFSET, size);
@@ -52,6 +54,7 @@ export class Heap {
 
   mark_sweep() {
     const roots = this.get_roots();
+    this.max_allocated_address = 0;
     roots.forEach((root) => this.mark(root));
     this.sweep();
     if (this.free === -1) throw new RuntimeError("Heap is full");
@@ -60,6 +63,10 @@ export class Heap {
   mark(address: number) {
     if (this.is_unmarked(address)) {
       // console.log("Marking", address);
+      this.max_allocated_address = Math.max(
+        this.max_allocated_address,
+        address,
+      );
       this.set_mark(address, MARKED);
       const number_of_children = this.get_number_of_children(address);
       for (let i = 0; i < number_of_children; i++) {

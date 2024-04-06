@@ -2,11 +2,17 @@ import { asTree } from "treeify";
 import { Memory } from "./memory";
 import { Tag } from "./tag";
 export class MemoryObject {
+  static empty: MemoryObject = new MemoryObject("Empty");
+
   constructor(
     public name: string,
     public attributes?: Record<string, any>,
     public children?: number[],
   ) {}
+
+  is_empty() {
+    return this === MemoryObject.empty;
+  }
 
   /**
    * Returns a string representation of the object

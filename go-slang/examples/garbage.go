@@ -2,9 +2,9 @@ package main
 
 func main() {
 	i := 0
-	for i < 100000 {
+	for i < 15 {
 		i++
-		// PrintHeap()
+		PrintHeap()
 	}
 	return i
 }

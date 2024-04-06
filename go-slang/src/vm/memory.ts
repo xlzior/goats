@@ -22,7 +22,11 @@ export class Memory {
 
   address_to_object(address: number): MemoryObject {
     const tag = this.heap.get_tag(address) as Tag;
-    return to_memory_object[tag](address, this);
+    if (to_memory_object[tag]) {
+      return to_memory_object[tag](address, this);
+    } else {
+      return MemoryObject.empty;
+    }
   }
 
   address_to_js_value(address: number) {
