@@ -24,7 +24,7 @@ export class GolangVM {
   private println: (val: any) => void;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(10000000, this.get_roots.bind(this));
+    this.memory = new Memory(1000, this.get_roots.bind(this));
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
@@ -100,9 +100,13 @@ export class GolangVM {
       apply: () => {
         this.println("Heap:");
         let i = 0;
-        while (i < this.memory.heap.free) {
-          // TODO: fix printing when address has been garbage collected and there's nothing there
+        while (i <= this.memory.heap.max_allocated_address) {
           const obj = this.memory.address_to_object(i);
+          if (obj.is_empty()) {
+            i += NODE_SIZE;
+            continue;
+          }
+
           this.println(`${format_address(i)}: ${obj.to_string()}`);
 
           if (obj.children && obj.children.length > 0) {
