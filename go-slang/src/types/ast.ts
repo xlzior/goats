@@ -12,7 +12,6 @@ export type ParserResult = ParserResultSuccess | ParserResultError;
 // CONSTANTS
 // ========================
 export enum NodeType {
-  FILE = "File",
   FUNC_DECL = "FuncDecl",
   GEN_DECL = "GenDecl",
   IDENT = "Ident",
@@ -153,7 +152,7 @@ export type Node = Spec | Decl | Expr | Stmt;
 // ========================
 
 export type File = {
-  _type: NodeType.FILE;
+  _type: "File";
   Decls: Decl[];
   Name: Ident; // package name
 };
