@@ -59,6 +59,7 @@ const builtin_func_types: Record<string, Type> = {
   Println: make_function_type([ANY_TYPE], [UNDEFINED_TYPE]),
   Sleep: make_function_type([INT_TYPE], [UNDEFINED_TYPE]),
   PrintHeap: make_function_type([], [UNDEFINED_TYPE]),
+  PrintHeatMap: make_function_type([], [UNDEFINED_TYPE]),
   PrintEnvironment: make_function_type([], [UNDEFINED_TYPE]),
   PrintRuntimeStack: make_function_type([], [UNDEFINED_TYPE]),
   Lock: make_function_type([MUTEX_TYPE], [UNDEFINED_TYPE]),

@@ -5,6 +5,7 @@ import * as VM from "../types/vm_instructions";
 import { peek } from "../utils";
 import { print_stack } from "./debugger";
 import { NODE_SIZE } from "./heap";
+import { heatmap_legend, tag_to_cell } from "./heatmap";
 import { Memory } from "./memory";
 import { format_address, to_tree } from "./memory_display";
 import { Tag } from "./tag";
@@ -22,9 +23,10 @@ export class GolangVM {
   private builtins: Array<BuiltinFunction>;
   private thread_manager: ThreadManager;
   private println: (val: any) => void;
+  private animate_called = false;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(10000000, this.get_roots.bind(this));
+    this.memory = new Memory(1000, this.get_roots.bind(this));
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
@@ -119,6 +121,28 @@ export class GolangVM {
           }
           i += NODE_SIZE;
         }
+      },
+    },
+    PrintHeatMap: {
+      arity: 0,
+      apply: () => {
+        if (!this.animate_called) {
+          this.println(heatmap_legend);
+          this.animate_called = true;
+        }
+
+        let i = 0;
+        let row = [];
+        while (i < this.memory.heap.heap_size) {
+          const tag = this.memory.heap.get_tag(i);
+          row.push(tag_to_cell(tag));
+          if (row.length === 100) {
+            this.println(row.join(""));
+            row = [];
+          }
+          i += NODE_SIZE;
+        }
+        if (row.length > 0) this.println(row.join(""));
       },
     },
     PrintEnvironment: {
