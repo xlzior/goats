@@ -11,11 +11,14 @@ export class GolangRunner {
   private compiler: GolangCompiler;
   private vm: GolangVM;
 
-  constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
+  constructor(
+    external_builtins: Record<string, BuiltinFunction> = {},
+    config: Record<string, string> = {},
+  ) {
     this.parser = new GolangParser();
     this.typechecker = new GolangTypechecker(external_builtins);
     this.compiler = new GolangCompiler(external_builtins);
-    this.vm = new GolangVM(external_builtins);
+    this.vm = new GolangVM(external_builtins, config);
   }
 
   async execute(program: string): Promise<RunnerResult> {

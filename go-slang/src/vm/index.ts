@@ -13,10 +13,6 @@ import { Context } from "./thread_context";
 import { ThreadManager } from "./thread_manager";
 import { apply_binop, apply_unop } from "./utils";
 
-const DEBUG_CONFIG = {
-  os: false,
-};
-
 export class GolangVM {
   private ctx: Context;
   private memory: Memory;
@@ -24,9 +20,16 @@ export class GolangVM {
   private thread_manager: ThreadManager;
   private println: (val: any) => void;
   private heatmap_legend_printed = false;
+  private debug_os: boolean = false;
 
-  constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(10000000, this.get_roots.bind(this));
+  constructor(
+    external_builtins: Record<string, BuiltinFunction> = {},
+    config: Record<string, string> = {},
+  ) {
+    const num_words = parseInt(config["memory"] ?? "10000000");
+    this.debug_os = config["debug_os"] === "true";
+
+    this.memory = new Memory(num_words, this.get_roots.bind(this));
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
@@ -64,7 +67,7 @@ export class GolangVM {
       if (this.microcode[instr._type] === undefined)
         throw new RuntimeError(`${instr._type} not supported`);
 
-      if (DEBUG_CONFIG.os) {
+      if (this.debug_os) {
         const content_in_string = this.ctx.operand_stack.map((addr) => {
           const val = this.memory.address_to_js_value(addr);
           return val === undefined ? "undefined" : JSON.stringify(val);
@@ -136,10 +139,6 @@ export class GolangVM {
         while (i < this.memory.heap.heap_size) {
           const tag = this.memory.heap.get_tag(i);
           row.push(tag_to_cell(tag));
-          if (row.length === 100) {
-            this.println(heatmap(row.join("")));
-            row = [];
-          }
           i += NODE_SIZE;
         }
         if (row.length > 0) this.println(heatmap(row.join("")));
