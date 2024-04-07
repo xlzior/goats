@@ -23,10 +23,10 @@ export class GolangVM {
   private builtins: Array<BuiltinFunction>;
   private thread_manager: ThreadManager;
   private println: (val: any) => void;
-  private animate_called = false;
+  private heatmap_legend_printed = false;
 
   constructor(external_builtins: Record<string, BuiltinFunction> = {}) {
-    this.memory = new Memory(1000, this.get_roots.bind(this));
+    this.memory = new Memory(10000000, this.get_roots.bind(this));
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
@@ -126,9 +126,9 @@ export class GolangVM {
     PrintHeatMap: {
       arity: 0,
       apply: () => {
-        if (!this.animate_called) {
+        if (!this.heatmap_legend_printed) {
           this.println(heatmap_legend);
-          this.animate_called = true;
+          this.heatmap_legend_printed = true;
         }
 
         let i = 0;
