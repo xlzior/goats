@@ -5,7 +5,7 @@ import * as VM from "../types/vm_instructions";
 import { peek } from "../utils";
 import { print_stack } from "./debugger";
 import { NODE_SIZE } from "./heap";
-import { heatmap_legend, tag_to_cell } from "./heatmap";
+import { heatmap, heatmap_legend, tag_to_cell } from "./heatmap";
 import { Memory } from "./memory";
 import { format_address, to_tree } from "./memory_display";
 import { Tag } from "./tag";
@@ -137,12 +137,12 @@ export class GolangVM {
           const tag = this.memory.heap.get_tag(i);
           row.push(tag_to_cell(tag));
           if (row.length === 100) {
-            this.println(row.join(""));
+            this.println(heatmap(row.join("")));
             row = [];
           }
           i += NODE_SIZE;
         }
-        if (row.length > 0) this.println(row.join(""));
+        if (row.length > 0) this.println(heatmap(row.join("")));
       },
     },
     PrintEnvironment: {
