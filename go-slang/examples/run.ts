@@ -1,8 +1,17 @@
 // can be run using
-// npx ts-node run.ts < xxx.go
+// npx ts-node run.ts < xxx.go > xxx.out
+// npx ts-node run.ts < xxx.go --memory=1000
+// npx ts-node run.ts < xxx.go --debug_os=true
 
 import { GolangRunner } from "../src";
 import { BuiltinFunction } from "../src/types";
+
+const config: Record<string, string> = process.argv
+  .slice(2)
+  .reduce((acc, arg) => {
+    const match = arg.match(/^--([^=]+)=(.*)$/);
+    return match ? { ...acc, [match[1]]: match[2] } : acc;
+  }, {});
 
 const external_builtins: Record<string, BuiltinFunction> = {
   Println: {
@@ -10,7 +19,7 @@ const external_builtins: Record<string, BuiltinFunction> = {
     apply: (v: any) => console.log(v),
   },
 };
-const runner = new GolangRunner(external_builtins);
+const runner = new GolangRunner(external_builtins, config);
 
 process.stdin.setEncoding("utf8");
 let program = "";
