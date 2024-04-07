@@ -44,13 +44,15 @@ const RESET = "\x1b[0m";
 
 export const colour = (fg: Fg | Bg, text: string) => `${fg}${text}${RESET}`;
 
-const values = colour(Bg.White, "v");
-const functions = colour(Bg.Dark_red, "f");
-const runtime_stack = colour(Bg.Green, "r");
-const environments = colour(Bg.Blue, "e");
-const free = " ";
+enum Cell {
+  values = "v",
+  functions = "f",
+  runtime_stack = "r",
+  env = "e",
+  free = " ",
+}
 
-export const tag_to_cell = (tag: Tag): string => {
+export const tag_to_cell = (tag: Tag): Cell => {
   switch (tag) {
     case Tag.False:
     case Tag.True:
@@ -61,29 +63,70 @@ export const tag_to_cell = (tag: Tag): string => {
     case Tag.BufferedChannel:
     case Tag.Mutex:
     case Tag.WaitGroup:
-      return values;
+      return Cell.values;
 
     case Tag.Closure:
     case Tag.Builtin:
-      return functions;
+      return Cell.functions;
 
     case Tag.Blockframe:
     case Tag.Callframe:
-      return runtime_stack;
+      return Cell.runtime_stack;
 
     case Tag.Environment:
     case Tag.EnvFrame:
-      return environments;
+      return Cell.env;
 
     default:
-      return free;
+      return Cell.free;
   }
 };
 
+/**
+ * Splits a string into an array of [char, count] pairs
+ * @param str "aaabbbccc"
+ * @returns [["a", 3], ["b", 3], ["c", 3]]
+ */
+const compressString = (str: string): [string, number][] => {
+  return [...str].reduce<[string, number][]>(
+    (acc, char) =>
+      acc.length === 0 || acc[acc.length - 1][0] !== char
+        ? [...acc, [char, 1]]
+        : (acc[acc.length - 1][1]++, acc),
+    [],
+  );
+};
+
+const centralised = (c: string, n: number): string =>
+  Array.from({ length: n }, (_, i) =>
+    i === Math.floor((n - 1) / 2) ? c : " ",
+  ).join("");
+
+const coloured = (cell: Cell, n: number): string => {
+  const text = centralised(cell, n);
+  switch (cell) {
+    case Cell.values:
+      return colour(Bg.White, text);
+    case Cell.functions:
+      return colour(Bg.Dark_green, text);
+    case Cell.runtime_stack:
+      return colour(Bg.Dark_red, text);
+    case Cell.env:
+      return colour(Bg.Blue, text);
+    case Cell.free:
+      return text;
+  }
+};
+
+export const heatmap = (str: string) => {
+  const compressed = compressString(str);
+  return compressed.map(([cell, n]) => coloured(cell as Cell, n)).join("");
+};
+
 export const heatmap_legend: string = `Heatmap Legend:
-${values} - Values
-${functions} - Functions
-${runtime_stack} - Runtime Stack Frames (Callframes and Blockframes)
-${environments} - Environments (Environment and EnvFrame)
-${free} - Free Space
+${coloured(Cell.values, 1)} - Values
+${coloured(Cell.functions, 1)} - Functions
+${coloured(Cell.runtime_stack, 1)} - Runtime Stack Frames (Callframes and Blockframes)
+${coloured(Cell.env, 1)} - Environments (Environment and EnvFrame)
+${coloured(Cell.free, 1)} - Free Space
 `;
