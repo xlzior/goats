@@ -8,10 +8,11 @@ This project contains a simple Go server with an endpoint for parsing Go program
 
 Make sure you have Go installed on your machine. You can download and install it from the official [Go website](https://golang.org/dl/). The version used in this project is `1.20`.
 
+Install dependencies by running `go mod download`.
 
 ## Usage
 
-Start the Go server by changing directory to `go-parser` and run `go run main.go`
+Start the Go server by running `go run main.go`.
 
 Open Postman and test the endpoint at [http://localhost:8080](http://localhost:8080)
 
