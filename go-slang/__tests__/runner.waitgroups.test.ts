@@ -1,5 +1,5 @@
 import { GolangRunner } from "../src";
-import { TypeError } from "../src/errors";
+import { RuntimeError, TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -382,6 +382,44 @@ describe("typechecker for waitgroups", () => {
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "Done expects [WaitGroup], but got [int]",
+    );
+  });
+});
+
+describe("runtime errors", () => {
+  test("should not error when negative delta passed into Add() as waitgroup's counter does not go negative and no deadlock", async () => {
+    const program = `
+    package main
+
+    var wg WaitGroup
+
+    func main() {
+      Add(wg, 5)
+      Add(wg, -5)
+      Wait(wg)
+      return 1
+    }
+    `;
+    await expect(golangRunner.execute(program)).resolves.not.toThrow(
+      RuntimeError,
+    );
+  });
+
+  test("negative delta passed into Add(), and waitgroup has an instance of negative counter", async () => {
+    const program = `
+    package main
+
+    var wg WaitGroup
+
+    func main() {
+      Add(wg, 1)
+      Add(wg, -1)
+      Add(wg, -1)
+      Wait(wg)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(RuntimeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "negative WaitGroup counter",
     );
   });
 });
