@@ -7,16 +7,26 @@ It includes a web-based playground equipped with a code editor for execution of 
 
 ### Installation
 
-To set up GOaTS, please follow the instructions outlined in the README 
-within each directory in the following order:
+There are 2 ways to set up GOaTS:
 
-1. go-parser
-2. go-slang
-3. js-slang
-4. frontend
+- Docker
+
+If you do not have Docker Desktop, please download it. 
+At the root project directory, run `docker compose up` to start the container.
+To stop, press `Ctrl+C`.
+
+- Manual
+
+Please follow the instructions outlined in the README 
+within each directory in the following order:
+  1. go-parser
+  2. go-slang
+  3. js-slang
+  4. frontend
+
 
 ### Usage
-Once the frontend setup is complete, navigate to http://localhost:8000 to utilize the playground.
+Once the setup is complete, navigate to http://localhost:8000 to utilize the playground.
 
 ## Features
 
