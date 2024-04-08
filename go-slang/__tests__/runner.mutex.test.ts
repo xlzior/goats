@@ -1,5 +1,5 @@
 import { GolangRunner } from "../src";
-import { TypeError } from "../src/errors";
+import { RuntimeError, TypeError } from "../src/errors";
 
 let golangRunner: GolangRunner;
 
@@ -376,6 +376,23 @@ describe("typechecker for mutex", () => {
     await expect(golangRunner.execute(program)).rejects.toThrow(TypeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
       "Unlock expects [Mutex], but got [int]",
+    );
+  });
+});
+
+describe("runtime errors", () => {
+  test("unlock a mutex that is already available", async () => {
+    const program = `
+    package main
+
+    var mutex Mutex
+
+    func main() {
+      Unlock(mutex)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(RuntimeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "unlock of unlocked mutex",
     );
   });
 });
