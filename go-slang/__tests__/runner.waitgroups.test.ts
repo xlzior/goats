@@ -422,4 +422,19 @@ describe("runtime errors", () => {
       "negative WaitGroup counter",
     );
   });
+
+  test("calling Done() causes waitgroup counter to become negative", async () => {
+    const program = `
+    package main
+
+    var wg WaitGroup
+
+    func main() {
+      Done(wg)
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(RuntimeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "negative WaitGroup counter",
+    );
+  });
 });
