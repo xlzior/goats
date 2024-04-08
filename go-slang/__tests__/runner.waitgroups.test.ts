@@ -178,16 +178,29 @@ describe("waitgroups", () => {
   test("reference equality", async () => {
     const program = `
     package main
+
+    var (
+      wg1 WaitGroup
+      wg2 WaitGroup
+      wg3 = wg1
+    )
+
+    func goroutine() {
+      x := 1
+      Done(wg3)
+    }
     
     func main() {
-      var wg1 WaitGroup
-      var wg2 WaitGroup
-      var wg3 WaitGroup = wg1
       wg4 := wg2
       Println(wg1 == wg1) // true
       Println(wg1 == wg2) // false
       Println(wg1 == wg3) // true
       Println(wg2 == wg4) // true
+
+      Add(wg1, 1)
+      go goroutine()
+      Wait(wg1)
+
       return 1
     }
     `;

@@ -227,16 +227,36 @@ describe("mutex", () => {
   test("reference equality", async () => {
     const program = `
     package main
+
+    var (
+      balance int = 0
+      m1 Mutex
+      m2 Mutex
+      m3 = m1
+      wg WaitGroup
+    )
+
+    func goroutine() {
+      Lock(m1)
+      balance += 1
+      Unlock(m3)
+      Done(wg)
+    }
     
     func main() {
-      var m1 Mutex
-      var m2 Mutex
-      var m3 Mutex = m1
       m4 := m2
+
       Println(m1 == m1) // true
       Println(m1 == m2) // false
       Println(m1 == m3) // true
       Println(m2 == m4) // true
+
+      Add(wg, 3)
+      go goroutine()
+      go goroutine()
+      go goroutine()
+      Wait(wg)
+
       return 1
     }
     `;
