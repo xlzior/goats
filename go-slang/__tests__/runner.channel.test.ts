@@ -496,6 +496,32 @@ describe("channels", () => {
     const { value } = await golangRunner.execute(program);
     expect(value).toEqual(0);
   });
+
+  test("reference equality", async () => {
+    const program = `
+    package main
+
+    func main() {
+      c1 := make(chan int, 5)
+      c2 := make(chan int, 5)
+      c3 := c1
+
+      Println(c1 == c1) // true
+      Println(c1 == c2) // false
+      Println(c1 == c3) // true
+
+      c3 <- 1
+      m1 := <-c1
+      return m1
+    }
+    `;
+    const { value } = await golangRunner.execute(program);
+    expect(value).toEqual(1);
+    expect(println).toHaveBeenCalledTimes(3);
+    expect(println).toHaveBeenNthCalledWith(1, true);
+    expect(println).toHaveBeenNthCalledWith(2, false);
+    expect(println).toHaveBeenNthCalledWith(3, true);
+  });
 });
 
 describe("Typechecker for channels", () => {

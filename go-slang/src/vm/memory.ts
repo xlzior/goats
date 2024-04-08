@@ -41,20 +41,20 @@ export class Memory {
         return undefined;
       case Tag.Number:
         return this.number.get(address);
-      case Tag.Closure:
-        return "<closure>";
-      case Tag.Builtin:
-        return "<builtin>";
       case Tag.String:
         return this.string.get(address);
+      case Tag.Closure:
+        return `Closure@${address}`;
+      case Tag.Builtin:
+        return `Builtin@${address}`;
       case Tag.Channel:
-        return "<channel>";
+        return `Channel@${address}`;
       case Tag.BufferedChannel:
-        return "<buffered_channel>";
+        return `BufferedChannel@${address}`;
       case Tag.Mutex:
-        return "<Mutex>";
+        return `Mutex@${address}`;
       case Tag.WaitGroup:
-        return "<WaitGroup>";
+        return `WaitGroup@${address}`;
       default:
         return "<internals>";
     }
