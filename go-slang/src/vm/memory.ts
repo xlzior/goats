@@ -306,7 +306,9 @@ export class Memory {
     },
     update_counter: (addr: number, delta: number) => {
       const curr_count = this.heap.get(addr + 1);
-      this.heap.set(addr + 1, curr_count + delta);
+      const total = curr_count + delta;
+      if (total < 0) throw new RuntimeError("negative WaitGroup counter");
+      this.heap.set(addr + 1, total);
     },
     is_done: (addr: number) => {
       return this.heap.get(addr + 1) === 0;
