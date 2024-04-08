@@ -6,7 +6,7 @@ func main() {
 	b := false
 
 	channel := make(chan int)
-	buffered_channel := make(chan string, 10)
+	buffered_channel := make(chan string, 5)
 	var mutex Mutex
 	var wait_group WaitGroup
 

@@ -5,7 +5,7 @@ func send(channel chan int, n int) {
 }
 
 func main() {
-	buffered_channel := make(chan int, 10)
+	buffered_channel := make(chan int, 5)
 
 	go send(buffered_channel, 1)
 	go send(buffered_channel, 2)
