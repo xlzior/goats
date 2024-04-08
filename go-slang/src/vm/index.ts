@@ -3,6 +3,7 @@ import { InternalBuiltinNames } from "../internal_builtins";
 import { BuiltinFunction } from "../types";
 import * as VM from "../types/vm_instructions";
 import { peek } from "../utils";
+import { Config } from "./config";
 import { print_stack } from "./debugger";
 import { NODE_SIZE } from "./heap";
 import { heatmap, heatmap_legend, tag_to_cell } from "./heatmap";
@@ -20,16 +21,15 @@ export class GolangVM {
   private thread_manager: ThreadManager;
   private println: (val: any) => void;
   private heatmap_legend_printed = false;
-  private debug_os: boolean = false;
+  private config: Config;
 
   constructor(
     external_builtins: Record<string, BuiltinFunction> = {},
-    config: Record<string, string> = {},
+    config: Config,
   ) {
-    const num_words = parseInt(config["memory"] ?? "10000000");
-    this.debug_os = config["debug_os"] === "true";
+    this.config = config;
 
-    this.memory = new Memory(num_words, this.get_roots.bind(this));
+    this.memory = new Memory(config.memory, this.get_roots.bind(this));
     this.builtins = [
       ...Object.values(this.internal_builtins),
       ...Object.values(external_builtins),
@@ -67,7 +67,7 @@ export class GolangVM {
       if (this.microcode[instr._type] === undefined)
         throw new RuntimeError(`${instr._type} not supported`);
 
-      if (this.debug_os) {
+      if (this.config.debug_os) {
         const content_in_string = this.ctx.operand_stack.map((addr) => {
           const val = this.memory.address_to_js_value(addr);
           return val === undefined ? "undefined" : JSON.stringify(val);

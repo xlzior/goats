@@ -3,6 +3,7 @@ import { GolangParser } from "./parser";
 import { GolangTypechecker } from "./typechecker";
 import { BuiltinFunction, RunnerResult } from "./types";
 import { GolangVM } from "./vm";
+import { Config } from "./vm/config";
 
 // Facade class that contains parser, compiler and vm / main entry point
 export class GolangRunner {
@@ -13,7 +14,7 @@ export class GolangRunner {
 
   constructor(
     external_builtins: Record<string, BuiltinFunction> = {},
-    config: Record<string, string> = {},
+    config: Config = new Config(),
   ) {
     this.parser = new GolangParser();
     this.typechecker = new GolangTypechecker(external_builtins);

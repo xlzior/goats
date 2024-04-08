@@ -5,8 +5,9 @@
 
 import { GolangRunner } from "../src";
 import { BuiltinFunction } from "../src/types";
+import { Config } from "../src/vm/config";
 
-const config: Record<string, string> = process.argv
+const args: Record<string, string> = process.argv
   .slice(2)
   .reduce((acc, arg) => {
     const match = arg.match(/^--([^=]+)=(.*)$/);
@@ -19,7 +20,7 @@ const external_builtins: Record<string, BuiltinFunction> = {
     apply: (v: any) => console.log(v),
   },
 };
-const runner = new GolangRunner(external_builtins, config);
+const runner = new GolangRunner(external_builtins, Config.from_args(args));
 
 process.stdin.setEncoding("utf8");
 let program = "";
