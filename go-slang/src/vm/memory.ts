@@ -289,6 +289,8 @@ export class Memory {
       this.heap.set(addr + 1, 0);
     },
     release: (addr: number) => {
+      if (this.mutex.is_available(addr))
+        throw new RuntimeError("unlock of unlocked mutex");
       this.heap.set(addr + 1, 1);
     },
   };
