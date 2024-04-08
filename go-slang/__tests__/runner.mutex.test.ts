@@ -223,6 +223,31 @@ describe("mutex", () => {
     const expected = 0;
     expect(value).toEqual(expected);
   });
+
+  test("reference equality", async () => {
+    const program = `
+    package main
+    
+    func main() {
+      var m1 Mutex
+      var m2 Mutex
+      var m3 Mutex = m1
+      m4 := m2
+      Println(m1 == m1) // true
+      Println(m1 == m2) // false
+      Println(m1 == m3) // true
+      Println(m2 == m4) // true
+      return 1
+    }
+    `;
+    const { value } = await golangRunner.execute(program);
+    expect(value).toEqual(1);
+    expect(println).toHaveBeenCalledTimes(4);
+    expect(println).toHaveBeenNthCalledWith(1, true);
+    expect(println).toHaveBeenNthCalledWith(2, false);
+    expect(println).toHaveBeenNthCalledWith(3, true);
+    expect(println).toHaveBeenNthCalledWith(4, true);
+  });
 });
 
 describe("typechecker for mutex", () => {

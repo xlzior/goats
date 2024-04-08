@@ -174,6 +174,31 @@ describe("waitgroups", () => {
     expect(println).toHaveBeenCalledWith("goroutine 2");
     expect(println).toHaveBeenCalledWith("goroutine 3");
   });
+
+  test("reference equality", async () => {
+    const program = `
+    package main
+    
+    func main() {
+      var wg1 WaitGroup
+      var wg2 WaitGroup
+      var wg3 WaitGroup = wg1
+      wg4 := wg2
+      Println(wg1 == wg1) // true
+      Println(wg1 == wg2) // false
+      Println(wg1 == wg3) // true
+      Println(wg2 == wg4) // true
+      return 1
+    }
+    `;
+    const { value } = await golangRunner.execute(program);
+    expect(value).toEqual(1);
+    expect(println).toHaveBeenCalledTimes(4);
+    expect(println).toHaveBeenNthCalledWith(1, true);
+    expect(println).toHaveBeenNthCalledWith(2, false);
+    expect(println).toHaveBeenNthCalledWith(3, true);
+    expect(println).toHaveBeenNthCalledWith(4, true);
+  });
 });
 
 describe("typechecker for waitgroups", () => {
