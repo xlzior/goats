@@ -1,6 +1,7 @@
 const SPACE = " ";
 const PIPE = "|";
 const DASH = "-";
+const PLUS = "+";
 const NEWLINE = "\n";
 const LEFT_AND_RIGHT_PADDING = 2;
 
@@ -15,27 +16,27 @@ export function print_stack(name: string, content: string[]): void {
   const stack_width =
     LEFT_AND_RIGHT_PADDING +
     Math.max(name.length, length_of_longest_string(content));
-  const line_sep = format_line_sep(stack_width);
-  const header = format_data_row(name, stack_width);
+  const line_sep = format_line_separator(stack_width);
+  const header = format_content_row(name, stack_width);
   const result = [line_sep, header, line_sep];
   for (let i = content.length - 1; i >= 0; i--) {
-    result.push(format_data_row(content[i], stack_width));
+    result.push(format_content_row(content[i], stack_width));
     result.push(line_sep);
   }
   const result_to_string = result.join(NEWLINE) + NEWLINE;
   console.log(result_to_string);
 }
 
-function format_line_sep(stack_width: number): string {
-  return PIPE + DASH.repeat(stack_width) + PIPE;
+function format_line_separator(stack_width: number): string {
+  return PLUS + DASH.repeat(stack_width) + PLUS;
 }
 
-function format_data_row(data: string, stack_width: number): string {
+function format_content_row(content: string, stack_width: number): string {
   return (
     PIPE +
     SPACE +
-    data +
-    SPACE.repeat(stack_width - data.length - LEFT_AND_RIGHT_PADDING) +
+    content +
+    SPACE.repeat(stack_width - content.length - LEFT_AND_RIGHT_PADDING) +
     SPACE +
     PIPE
   );
