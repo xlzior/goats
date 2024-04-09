@@ -72,6 +72,7 @@ export class ThreadManager {
         curr_ctx.operand_stack,
         curr_ctx.runtime_stack,
         curr_ctx.sleep_until,
+        curr_ctx.blocked,
       ),
     );
   }
