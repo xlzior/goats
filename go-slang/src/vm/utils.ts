@@ -1,10 +1,14 @@
+import { RuntimeError } from "../errors";
 import { Token } from "../types/ast";
 
 const binop_microcode: any = {
   "+": (x: any, y: any) => x + y,
   "-": (x: number, y: number) => x - y,
   "*": (x: number, y: number) => x * y,
-  "/": (x: number, y: number) => x / y,
+  "/": (x: number, y: number) => {
+    if (y === 0) throw new RuntimeError("invalid operation: division by zero");
+    return x / y;
+  },
   "%": (x: number, y: number) => x % y,
   "<": (x: number, y: number) => x < y,
   "<=": (x: number, y: number) => x <= y,
