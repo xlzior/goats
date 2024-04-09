@@ -60,6 +60,16 @@ package main
 // 	}
 // }
 
+// func typechecking_continues_after_return_in_funcdecl() int {
+// 	x := 10
+// 	if x > 0 {
+// 		return 1
+// 	} else {
+// 		return 2
+// 	}
+// 	garbage
+// }
+
 func add(a int, b int) int {
 	return a + b
 }
