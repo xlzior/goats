@@ -19,6 +19,7 @@ export class Channel {
     }
 
     this.memory.channel.set_value(this.addr, val);
+    // sender must reset the receiver waiting flag to prevent other senders from sending
     this.memory.channel.set_is_receiver_waiting(this.addr, this.memory.False);
     return true;
   }
@@ -26,12 +27,9 @@ export class Channel {
   dequeue() {
     const value = this.memory.channel.get_value(this.addr);
     if (value === this.memory.Undefined) {
-      // signal receiver is waiting
       this.memory.channel.set_is_receiver_waiting(this.addr, this.memory.True);
     } else {
-      // remove the value from the channel and remove signal
       this.memory.channel.set_value(this.addr, this.memory.Undefined);
-      this.memory.channel.set_is_receiver_waiting(this.addr, this.memory.False);
     }
     return value; // Undefined if no value is available
   }
