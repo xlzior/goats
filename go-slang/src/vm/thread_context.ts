@@ -4,6 +4,7 @@ export class Context {
   program_counter: number;
   environment: number;
   sleep_until: Date;
+  blocked: boolean = false;
 
   constructor(
     program_counter: number,

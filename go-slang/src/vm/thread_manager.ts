@@ -22,6 +22,13 @@ export class ThreadManager {
     return this.thread_queue.flatMap((ctx) => ctx.get_roots());
   }
 
+  all_blocked(): boolean {
+    for (const ctx of this.thread_queue) {
+      if (!ctx.blocked) return false;
+    }
+    return true;
+  }
+
   /**
    * Updates the scheduler based on the current context.
    */
