@@ -63,6 +63,10 @@ export class GolangVM {
         continue;
       }
 
+      if (this.ctx.blocked && this.thread_manager.all_blocked()) {
+        throw new RuntimeError("Deadlock detected: All threads are blocked");
+      }
+
       const instr = instrs[this.ctx.program_counter++];
       if (this.microcode[instr._type] === undefined)
         throw new RuntimeError(`${instr._type} not supported`);
@@ -395,10 +399,11 @@ export class GolangVM {
       const success = channel.enqueue(value);
       if (!success) {
         this.ctx.program_counter--;
+        this.ctx.blocked = true;
         this.ctx = this.thread_manager.context_switch(this.ctx);
         return;
       }
-
+      this.ctx.blocked = false;
       this.pop_os(); // pop channel
       this.pop_os(); // pop value
     },
@@ -409,10 +414,11 @@ export class GolangVM {
       const value = channel.dequeue();
       if (value === this.memory.Undefined) {
         this.ctx.program_counter--;
+        this.ctx.blocked = true;
         this.ctx = this.thread_manager.context_switch(this.ctx);
         return;
       }
-
+      this.ctx.blocked = false;
       this.pop_os(); // pop channel
       this.ctx.operand_stack.push(value);
     },
@@ -420,9 +426,11 @@ export class GolangVM {
       const mutex_addr = peek(this.ctx.operand_stack);
       if (!this.memory.mutex.is_available(mutex_addr)) {
         this.ctx.program_counter--;
+        this.ctx.blocked = true;
         this.ctx = this.thread_manager.context_switch(this.ctx);
         return;
       }
+      this.ctx.blocked = false;
       this.memory.mutex.acquire(mutex_addr);
       this.pop_os();
     },
@@ -446,9 +454,11 @@ export class GolangVM {
       const wg_addr = peek(this.ctx.operand_stack);
       if (!this.memory.wait_group.is_done(wg_addr)) {
         this.ctx.program_counter--;
+        this.ctx.blocked = true;
         this.ctx = this.thread_manager.context_switch(this.ctx);
         return;
       }
+      this.ctx.blocked = false;
       this.pop_os();
     },
     DONE: (instr: VM.DONE) => {},
