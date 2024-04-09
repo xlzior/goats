@@ -1,5 +1,5 @@
 import { GolangRunner } from "../src";
-import { TypeError } from "../src/errors";
+import { RuntimeError, TypeError } from "../src/errors";
 import { Token } from "../src/types/ast";
 
 let golangRunner: GolangRunner;
@@ -443,6 +443,19 @@ describe("string expressions", () => {
     const { value } = await golangRunner.execute(program);
     const expected = "hello world";
     expect(value).toEqual(expected);
+  });
+
+  test("division by zero should throw error", async () => {
+    const program = `
+    package main
+  
+    func main() {
+      1 / 0
+    }`;
+    await expect(golangRunner.execute(program)).rejects.toThrow(RuntimeError);
+    await expect(golangRunner.execute(program)).rejects.toThrow(
+      "invalid operation: division by zero",
+    );
   });
 });
 
