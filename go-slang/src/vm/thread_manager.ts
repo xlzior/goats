@@ -8,6 +8,7 @@ const TIME_QUANTUM = 1; // ms
 export class ThreadManager {
   private thread_queue: Array<Context>;
   private last_context_switch: Date;
+  private blocked_threads: number = 0;
 
   constructor() {
     this.thread_queue = [];
@@ -23,10 +24,22 @@ export class ThreadManager {
   }
 
   all_blocked(): boolean {
-    for (const ctx of this.thread_queue) {
-      if (!ctx.blocked) return false;
+    // current thread is not in the queue, so we add 1
+    return this.blocked_threads === this.thread_queue.length + 1;
+  }
+
+  blocked(ctx: Context): void {
+    if (!ctx.blocked) {
+      this.blocked_threads++;
+      ctx.blocked = true;
     }
-    return true;
+  }
+
+  unblocked(ctx: Context): void {
+    if (ctx.blocked) {
+      this.blocked_threads--;
+      ctx.blocked = false;
+    }
   }
 
   /**
