@@ -279,7 +279,7 @@ describe("deadlock detection with multiple interacting threads", () => {
 
     func foo() {
       Lock(m1)
-      Sleep(1) // let the other thread lock m2
+      Sleep(10) // let the other thread lock m2
       Lock(m2)
       Unlock(m1)
       Unlock(m2)
@@ -288,7 +288,7 @@ describe("deadlock detection with multiple interacting threads", () => {
 
     func bar() {
       Lock(m2)
-      Sleep(1) // let the other thread lock m1
+      Sleep(10) // let the other thread lock m1
       Lock(m1)
       Unlock(m2)
       Unlock(m1)

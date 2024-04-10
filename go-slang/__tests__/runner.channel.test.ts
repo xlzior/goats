@@ -129,20 +129,24 @@ describe("unbuffered channels", () => {
     const program = `
     package main
 
+    var wg WaitGroup
+
     func receive(messages chan int) {
       Println("receiver running")
       msg := <-messages
       Println(msg)
+      Done(wg)
     }
 
     func main() {
+      Add(wg, 1)
       messages := make(chan int)
       go receive(messages)
       Sleep(2) // let receiver run and block
       Println("going to unblock")
       messages <- 42 // unblock the receiver
       Println("sent")
-      Sleep(2) // let receiver finish
+      Wait(wg)
     }`;
     await golangRunner.execute(program);
     expect(println).toHaveBeenCalledTimes(4);
