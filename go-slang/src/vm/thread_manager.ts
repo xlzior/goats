@@ -1,7 +1,7 @@
 import { Context } from "./thread_context";
 
 const TIME_QUANTUM = 1; // ms
-export const DEADLOCK_THRESHOLD = 5; // consecutive blocks
+export const DEADLOCK_THRESHOLD = 2; // consecutive blocks
 
 /**
  * Represents a manager for handling threads and context switching.
