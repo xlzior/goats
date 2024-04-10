@@ -387,8 +387,6 @@ export class GolangVM {
       this.ctx.program_counter--;
       const top_frame = this.ctx.runtime_stack.pop();
       if (top_frame === undefined) {
-        // thread is done, may unblock other threads, reset their counters
-        this.thread_manager.unblocked(this.ctx);
         this.ctx = this.thread_manager.restore_context() ?? this.ctx;
         return;
       }
@@ -410,6 +408,7 @@ export class GolangVM {
         return;
       }
       this.thread_manager.unblocked(this.ctx);
+      this.thread_manager.unblock_all();
       this.pop_os(); // pop channel
       this.pop_os(); // pop value
     },
@@ -425,6 +424,7 @@ export class GolangVM {
         return;
       }
       this.thread_manager.unblocked(this.ctx);
+      this.thread_manager.unblock_all();
       this.pop_os(); // pop channel
       this.ctx.operand_stack.push(value);
     },
@@ -443,6 +443,7 @@ export class GolangVM {
     UNLOCK: (instr: VM.UNLOCK) => {
       const mutex_addr = peek(this.ctx.operand_stack);
       this.memory.mutex.release(mutex_addr);
+      this.thread_manager.unblock_all();
       this.pop_os();
     },
     WG_ADD: (instr: VM.WG_ADD) => {
@@ -454,6 +455,7 @@ export class GolangVM {
     WG_DONE: (instr: VM.WG_DONE) => {
       const wg_addr = peek(this.ctx.operand_stack);
       this.memory.wait_group.update_counter(wg_addr, -1);
+      this.thread_manager.unblock_all();
       this.pop_os();
     },
     WG_WAIT: (instr: VM.WG_WAIT) => {

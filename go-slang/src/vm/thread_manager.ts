@@ -35,7 +35,9 @@ export class ThreadManager {
 
   unblocked(ctx: Context): void {
     ctx.consecutive_blocks = 0;
-    // unblocking a context may unblock other contexts, so we reset all their counters
+  }
+
+  unblock_all(): void {
     this.thread_queue.forEach((ctx) => (ctx.consecutive_blocks = 0));
   }
 
