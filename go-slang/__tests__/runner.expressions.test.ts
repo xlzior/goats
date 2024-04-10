@@ -450,7 +450,7 @@ describe("string expressions", () => {
     package main
   
     func main() {
-      1 / 0
+      x := 1 / 0
     }`;
     await expect(golangRunner.execute(program)).rejects.toThrow(RuntimeError);
     await expect(golangRunner.execute(program)).rejects.toThrow(
