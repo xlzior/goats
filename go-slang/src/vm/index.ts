@@ -63,7 +63,10 @@ export class GolangVM {
         continue;
       }
 
-      if (this.ctx.blocked && this.thread_manager.all_blocked()) {
+      if (
+        this.ctx.consecutive_blocks > 5 &&
+        this.thread_manager.all_blocked()
+      ) {
         throw new RuntimeError("Deadlock detected: All threads are blocked");
       }
 
@@ -232,6 +235,7 @@ export class GolangVM {
       context.operand_stack = this.ctx.operand_stack;
       context.runtime_stack = this.ctx.runtime_stack;
       context.sleep_until = this.ctx.sleep_until;
+      context.consecutive_blocks = this.ctx.consecutive_blocks;
     }
 
     return context;

@@ -4,7 +4,7 @@ export class Context {
   program_counter: number;
   environment: number;
   sleep_until: Date;
-  blocked: boolean = false;
+  consecutive_blocks: number = 0;
 
   constructor(
     program_counter: number,
@@ -12,14 +12,14 @@ export class Context {
     operand_stack: Array<number> = [],
     runtime_stack: Array<number> = [],
     sleep_until: Date = new Date(),
-    blocked: boolean = false,
+    consecutive_blocks: number = 0,
   ) {
     this.operand_stack = operand_stack;
     this.runtime_stack = runtime_stack;
     this.program_counter = program_counter;
     this.environment = environment;
     this.sleep_until = sleep_until;
-    this.blocked = blocked;
+    this.consecutive_blocks = consecutive_blocks;
   }
 
   get_roots(): number[] {

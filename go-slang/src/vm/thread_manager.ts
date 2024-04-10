@@ -8,7 +8,6 @@ const TIME_QUANTUM = 1; // ms
 export class ThreadManager {
   private thread_queue: Array<Context>;
   private last_context_switch: Date;
-  private blocked_threads: number = 0;
 
   constructor() {
     this.thread_queue = [];
@@ -24,22 +23,17 @@ export class ThreadManager {
   }
 
   all_blocked(): boolean {
-    // current thread is not in the queue, so we add 1
-    return this.blocked_threads === this.thread_queue.length + 1;
+    return this.thread_queue.every((ctx) => ctx.consecutive_blocks > 5);
   }
 
   blocked(ctx: Context): void {
-    if (!ctx.blocked) {
-      this.blocked_threads++;
-      ctx.blocked = true;
-    }
+    ctx.consecutive_blocks++;
   }
 
   unblocked(ctx: Context): void {
-    if (ctx.blocked) {
-      this.blocked_threads--;
-      ctx.blocked = false;
-    }
+    ctx.consecutive_blocks = 0;
+    // unblocking a context may unblock other contexts, so we reset all their counters
+    this.thread_queue.forEach((ctx) => (ctx.consecutive_blocks = 0));
   }
 
   /**
@@ -85,7 +79,7 @@ export class ThreadManager {
         curr_ctx.operand_stack,
         curr_ctx.runtime_stack,
         curr_ctx.sleep_until,
-        curr_ctx.blocked,
+        curr_ctx.consecutive_blocks,
       ),
     );
   }
