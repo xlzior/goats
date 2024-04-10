@@ -82,19 +82,23 @@ describe("unbuffered channels", () => {
     const program = `
     package main
 
+    var wg WaitGroup
+
     func send(messages chan int) {
       Println("sender running")
       messages <- 9001
       Println("sent")
+      Done(wg)
     }
 
     func main() {
+      Add(wg, 1)
       messages := make(chan int)
       go send(messages)
       Sleep(2) // let sender run and block
       Println("going to unblock")
       msg := <-messages // unblock the sender
-      Sleep(2) // let sender finish
+      Wait(wg)
       return msg
     }`;
     const { value } = await golangRunner.execute(program);
@@ -160,6 +164,8 @@ describe("unbuffered channels", () => {
     const program = `
     package main
 
+    var wg WaitGroup
+
     func send(messages chan int) {
       messages <- 1
       Println("1 sent")
@@ -167,9 +173,11 @@ describe("unbuffered channels", () => {
       Println("2 sent")
       messages <- 3
       Println("3 sent")
+      Done(wg)
     }
 
     func main() {
+      Add(wg, 1)
       messages := make(chan int)
       go send(messages)
       msg1 := <-messages
@@ -178,6 +186,7 @@ describe("unbuffered channels", () => {
       Println("2 received")
       msg3 := <-messages
       Println("3 received")
+      Wait(wg)
       return msg1 * 100 + msg2 * 10 + msg3
     }`;
     const { value } = await golangRunner.execute(program);
@@ -208,7 +217,6 @@ describe("unbuffered channels", () => {
       msg1 := <-messages
       msg2 := <-messages
       msg3 := <-messages
-      Sleep(2)
       Println(msg1)
       Println(msg2)
       Println(msg3)
@@ -224,12 +232,16 @@ describe("unbuffered channels", () => {
     const program = `
     package main
 
+    var wg WaitGroup
+
     func receive(messages chan int) {
       msg := <-messages
       Println(msg)
+      Done(wg)
     }
 
     func main() {
+      Add(wg, 3)
       messages := make(chan int)
       go receive(messages)
       go receive(messages)
@@ -237,7 +249,7 @@ describe("unbuffered channels", () => {
       messages <- 1
       messages <- 2
       messages <- 3
-      Sleep(2)
+      Wait(wg)
     }`;
     await golangRunner.execute(program);
     expect(println).toHaveBeenCalledTimes(3);
@@ -360,13 +372,17 @@ describe("buffered channels", () => {
     const program = `
     package main
 
+    var wg WaitGroup
+
     func send(messages chan int) {
       Println("sender running")
       messages <- 9001
       Println("sent")
+      Done(wg)
     }
 
     func main() {
+      Add(wg, 1)
       messages := make(chan int, 1)
       messages <- 42
       go send(messages)
@@ -374,7 +390,7 @@ describe("buffered channels", () => {
       Println("going to unblock")
       msg := <-messages // unblock the sender
       Println("received")
-      Sleep(2) // let sender finish
+      Wait(wg)
     }`;
     await golangRunner.execute(program);
     expect(println).toHaveBeenCalledTimes(4);
@@ -408,20 +424,24 @@ describe("buffered channels", () => {
     const program = `
     package main
 
+    var wg WaitGroup
+
     func receive(messages chan int) {
       Println("receiver running")
       msg := <-messages
       Println("received")
+      Done(wg)
     }
 
     func main() {
+      Add(wg, 1)
       messages := make(chan int, 1)
       go receive(messages)
       Sleep(2) // let receiver run and block
       Println("going to unblock")
       messages <- 42 // unblock the receiver
       Println("sent")
-      Sleep(2) // let receiver finish
+      Wait(wg)
     }`;
     await golangRunner.execute(program);
     expect(println).toHaveBeenCalledTimes(4);
@@ -447,7 +467,6 @@ describe("buffered channels", () => {
       msg1 := <-messages
       msg2 := <-messages
       msg3 := <-messages
-      Sleep(2)
       Println(msg1)
       Println(msg2)
       Println(msg3)
@@ -463,12 +482,16 @@ describe("buffered channels", () => {
     const program = `
     package main
 
+    var wg WaitGroup
+
     func receive(messages chan int) {
       msg := <-messages
       Println(msg)
+      Done(wg)
     }
 
     func main() {
+      Add(wg, 3)
       messages := make(chan int, 1)
       go receive(messages)
       go receive(messages)
@@ -476,7 +499,7 @@ describe("buffered channels", () => {
       messages <- 1
       messages <- 2
       messages <- 3
-      Sleep(2)
+      Wait(wg)
     }`;
     await golangRunner.execute(program);
     expect(println).toHaveBeenCalledTimes(3);
