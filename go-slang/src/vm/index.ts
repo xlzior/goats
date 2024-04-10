@@ -11,7 +11,7 @@ import { Memory } from "./memory";
 import { format_address, to_tree } from "./memory_display";
 import { Tag } from "./tag";
 import { Context } from "./thread_context";
-import { ThreadManager } from "./thread_manager";
+import { DEADLOCK_THRESHOLD, ThreadManager } from "./thread_manager";
 import { apply_binop, apply_unop } from "./utils";
 
 export class GolangVM {
@@ -64,7 +64,7 @@ export class GolangVM {
       }
 
       if (
-        this.ctx.consecutive_blocks > 5 &&
+        this.ctx.consecutive_blocks > DEADLOCK_THRESHOLD &&
         this.thread_manager.all_blocked()
       ) {
         throw new RuntimeError("Deadlock detected: All threads are blocked");
@@ -387,6 +387,8 @@ export class GolangVM {
       this.ctx.program_counter--;
       const top_frame = this.ctx.runtime_stack.pop();
       if (top_frame === undefined) {
+        // thread is done, may unblock other threads, reset their counters
+        this.thread_manager.unblocked(this.ctx);
         this.ctx = this.thread_manager.restore_context() ?? this.ctx;
         return;
       }

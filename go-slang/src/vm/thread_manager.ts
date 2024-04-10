@@ -1,6 +1,7 @@
 import { Context } from "./thread_context";
 
 const TIME_QUANTUM = 1; // ms
+export const DEADLOCK_THRESHOLD = 5; // consecutive blocks
 
 /**
  * Represents a manager for handling threads and context switching.
@@ -23,7 +24,9 @@ export class ThreadManager {
   }
 
   all_blocked(): boolean {
-    return this.thread_queue.every((ctx) => ctx.consecutive_blocks > 5);
+    return this.thread_queue.every(
+      (ctx) => ctx.consecutive_blocks > DEADLOCK_THRESHOLD,
+    );
   }
 
   blocked(ctx: Context): void {
