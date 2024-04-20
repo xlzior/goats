@@ -190,7 +190,6 @@ export class GolangTypechecker {
       return this.type(astNode.X);
     },
     FuncDecl: (astNode: AST.FuncDecl) => {
-      // TODO: Handle higher order function. For now only literal return types
       const params = astNode.Type.Params.List;
       const param_names = params.flatMap((e) => e.Names.map((x) => x.Name));
 
@@ -265,7 +264,6 @@ export class GolangTypechecker {
       return this.check_function_call(astNode);
     },
     GoStmt: (astNode: AST.GoStmt) => {
-      // TODO: write tests for this
       return this.check_function_call(astNode.Call);
     },
     SendStmt: (astNode: AST.SendStmt) => {

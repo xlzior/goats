@@ -242,16 +242,15 @@ export class GolangVM {
   }
 
   private get_roots(): number[] {
-    // TODO: handle temp roots
+    // left with handling temp roots
     return [...this.ctx.get_roots(), ...this.thread_manager.get_roots()];
   }
 
   private pop_os() {
     const address = this.ctx.operand_stack.pop();
     if (address === undefined) {
+      // unnecessary pop from empty stack due to some intricacies in block statement
       return undefined;
-      // TODO: throw error? sign that there is an unecessary pop
-      // throw new RuntimeError(`Tried to pop from an empty OS`);
     }
     return this.memory.address_to_js_value(address);
   }
@@ -370,8 +369,7 @@ export class GolangVM {
       const tag = this.memory.heap.get_tag(fun);
 
       if (tag === Tag.Builtin) {
-        // TODO: implement go for builtin functions
-        // this currently just runs them in the current thread, not in a separate thread
+        // builtins are just run in the current thread, not in a separate thread
         return this.apply_builtin(this.memory.builtin.get_id(fun));
       }
 
